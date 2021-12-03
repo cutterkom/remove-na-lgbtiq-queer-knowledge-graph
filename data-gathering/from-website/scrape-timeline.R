@@ -18,13 +18,13 @@ timeline <- tibble(
   date = nodes %>% extract_text(".timeline-date"),
   text = nodes %>% extract_text("p"),
   location = ifelse(nodes %>% as.character() %>% str_detect("muc") == TRUE, "München", NA)
-) %>% 
-  unnest(c(title, date, text, location)) %>% 
-  group_by(title, date, location) %>% 
+) %>%
+  unnest(c(title, date, text, location)) %>%
+  group_by(title, date, location) %>%
   summarise(
     text = glue::glue_collapse(text, sep = " "),
     .groups = "drop"
-  ) %>% 
+  ) %>%
   mutate(across(where(is.character), str_trim))
 
 
@@ -32,4 +32,5 @@ timeline <- tibble(
 
 con <- connect_db()
 DBI::dbWriteTable(con, "timeline", timeline, overwrite = TRUE, row.names = FALSE)
-DBI::dbDisconnect(con); rm(con)
+DBI::dbDisconnect(con)
+rm(con)
