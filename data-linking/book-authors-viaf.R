@@ -1,0 +1,69 @@
+# Connect forum author_id with VIAF
+# https://viaf.org/
+
+library(tidyverse)
+library(viafr)
+library(DBI)
+library(cli)
+library(dbx)
+
+
+# import from db ----------------------------------------------------------
+
+con <- connect_db()
+authors <- tbl(con, "authors") %>%
+  collect() %>%
+  rename(author_name = name)
+DBI::dbDisconnect(con)
+rm(con)
+
+
+# Get suggestions from VIAF API -------------------------------------------
+
+#' Get suggestion of viaf_id
+#'
+#' @param name name as string
+get_viaf_suggest <- function(name) {
+  cli_alert_info(name)
+  safer_viaf_suggest <- possibly(viaf_suggest, otherwise = "no item found")
+  data <- safer_viaf_suggest(name)
+  if (data == "no item found") {
+    data <- NULL
+  } else {
+    data <- data %>%
+      enframe() %>%
+      unnest(col = "value") %>%
+      unnest(col = "source_ids", names_sep = "_") %>%
+      mutate(across(everything(), as.character))
+  }
+}
+
+# Get the DNB-ID with highest score per author_id
+viaf_data <- authors %>%
+  mutate(viaf = map(.x = author_name, .f = get_viaf_suggest)) %>%
+  unnest(cols = c(viaf)) %>%
+  filter(source_ids_scheme == "DNB") %>%
+  group_by(id) %>%
+  filter(score == max(score)) %>%
+  ungroup() %>%
+  distinct(id, author_name, viaf_id, gnd_id = source_ids_id, source_ids_scheme, score) %>%
+  mutate(score = as.numeric(score)) %>%
+  right_join(authors, by = c("id", "author_name"))
+
+# cleaning ----------------------------------------------------------------
+
+# problematic, when single names like tony, stephan etc -> remove them
+
+viaf_data <- viaf_data %>%
+  filter(str_detect(author_name, " ")) %>%
+  filter(!is.na(viaf_id))
+
+# Write in DB -------------------------------------------------------------
+
+import <- viaf_data %>%
+  select(id, viaf_id, gnd_id, score)
+
+con <- connect_db()
+dbxUpsert(con, "authors_viaf_gnd", import, where_cols = c("id", "viaf_id", "gnd_id"))
+dbDisconnect(con)
+rm(con)
