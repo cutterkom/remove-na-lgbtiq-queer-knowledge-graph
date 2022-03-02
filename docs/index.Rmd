@@ -1,0 +1,17 @@
+---
+title: "Remove NA"
+subtitle: 'About Creating a LGBTIQ* Knowledge Graph'
+author: "Katharina Brunner"
+site: bookdown::bookdown_site
+documentclass: book
+output:
+  bookdown::gitbook: default
+---
+
+# Hallo Welt
+
+Einen größeren Teil des Jahres 2022 werde ich damit verbringen dürfen, einen Knowledge Graph zur Geschichte queerer Menschen zu bauen.
+Diese Seite soll mir als Dokumentation dienen.
+Sprachlich wird das vermutlich eine wilde Mische aus Deutsch und Englisch: Ersteres geht schneller und mir leichter von der Hand, wenn's ein bisschen komplexer wird. Zweiteres natürlich der Standard technischer(er) Dokumentationen. Aber besser eine Dokumentation in einer Nischensprache als gar keine. Kurzum: Who knows.
+
+

@@ -1,0 +1,5 @@
+# Data Gathering
+
+Der erste Schritt besteht darin, verschiedene Datenquellen zusammenzuführen.
+Im Repo finden sich die Skripte dafür unter `data-gathering`.
+

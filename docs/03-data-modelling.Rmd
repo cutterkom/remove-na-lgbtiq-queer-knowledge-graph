@@ -1,0 +1,13 @@
+---
+title: "Data Modelling"
+author: "Katharina Brunner"
+date: "2/1/2022"
+output: html_document
+---
+
+# Data Modelling
+
+In this document you'll find explainations and descriptions of the data model used in the `Remove NA` project.
+
+Remove NA collects data about real world entities, such as people, organizations or locations, and the relationships between them.
+
