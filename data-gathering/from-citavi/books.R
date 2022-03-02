@@ -59,10 +59,10 @@ df_person_book <- df_link_author_book %>%
 
 # Herausgaber -------------------------------------------------------------
 
-df_link_herausgeber_person <- dbGetQuery(con_books, "select * FROM ReferenceEditor") %>% as_tibble()
+df_link_editor_person <- dbGetQuery(con_books, "select * FROM ReferenceEditor") %>% as_tibble()
 
 
-df_herausgeber_book <- df_link_herausgeber_person %>%
+df_editor_book <- df_link_editor_person %>%
   left_join(., df_author, by = c("PersonID" = "ID")) %>%
   select(-PersonID, -Index) %>%
   mutate(
@@ -85,9 +85,9 @@ df_herausgeber_book <- df_link_herausgeber_person %>%
   summarise(Autor_in = glue::glue_collapse(value, sep = ", "))
 
 
-# Autor_in und Herausgeber zusammenfassen ---------------------------------
+# Autor_in und editor zusammenfassen ---------------------------------
 
-df_person_book <- bind_rows(df_person_book, df_herausgeber_book)
+df_person_book <- bind_rows(df_person_book, df_editor_book)
 
 # Verlag ------------------------------------------------------------------
 
@@ -129,14 +129,21 @@ books_wide_raw <- df_book_prep %>%
   as_tibble() %>%
   janitor::clean_names() %>%
   separate_rows(autor_in, sep = ",") %>%
-  mutate(autor_in = trimws(autor_in)) %>%
+  mutate(author = trimws(autor_in)) %>%
   separate_rows(year, sep = ";") %>%
   mutate(year = trimws(year)) %>%
   mutate(
-    is_herausgeber = ifelse(str_detect(autor_in, "Hg."), 1, 0),
-    herausgeber = ifelse(is_herausgeber == 1, str_remove(autor_in, " \\(Hg\\.\\)"), NA),
-    autor_in = ifelse(is_herausgeber == 1, NA, autor_in)
-  )
+    is_editor = ifelse(str_detect(author, "Hg."), 1, 0),
+    editor = ifelse(is_editor == 1, str_remove(author, " \\(Hg\\.\\)"), NA),
+    author = ifelse(is_editor == 1, NA, author)
+  ) %>% 
+  rename(
+    series = meta_series_title,
+    location = meta_place_of_publication,
+    subtitle = meta_subtitle, 
+    title_supplement = meta_title_supplement, 
+    isbn = meta_isbn
+    )
 
 books_wide_ids <- books_wide_raw %>% 
   distinct(sku) %>% 
@@ -150,115 +157,171 @@ books_wide <- books_wide_raw %>%
 
 # Book - Author Relation --------------------------------------------------
 
-authors <- books_wide %>%
-  filter(!is.na(autor_in)) %>%
-  distinct(autor_in) %>%
+books_authors <- books_wide %>%
+  filter(!is.na(author)) %>%
+  distinct(author) %>%
   mutate(author_id = row_number())
 
 book_author <- books_wide %>%
-  filter(!is.na(autor_in)) %>%
-  select(book_id, autor_in) %>%
-  left_join(authors, by = "autor_in") %>%
-  select(-autor_in)
-book_author
+  filter(!is.na(author)) %>%
+  distinct(book_id, author) %>%
+  left_join(books_authors, by = "author") %>%
+  select(-author)
+
+test_that(
+  desc = "unique combinations",
+  expect_unique(c(author, author_id), data = books_authors)
+)
+
+test_that(
+  desc = "unique combinations",
+  expect_unique(c(book_id, author_id), data = book_author)
+)
 
 
 # Book - Editor Relation --------------------------------------------------
 
-editors <- books_wide %>%
-  filter(is_herausgeber == 1) %>%
-  distinct(herausgeber) %>%
+books_editors <- books_wide %>%
+  filter(is_editor == 1) %>%
+  distinct(editor) %>%
   mutate(editor_id = row_number())
 
 book_editor <- books_wide %>%
-  filter(is_herausgeber == 1) %>%
-  select(book_id, herausgeber) %>%
-  left_join(editors, by = "herausgeber") %>%
-  select(-herausgeber)
-book_editor
+  filter(is_editor == 1) %>%
+  distinct(book_id, editor) %>%
+  left_join(books_editors, by = "editor") %>%
+  select(-editor)
 
+test_that(
+  desc = "unique combinations",
+  expect_unique(c(editor, editor_id), data = books_editors)
+)
+
+test_that(
+  desc = "unique combinations",
+  expect_unique(c(book_id, editor_id), data = book_editor)
+)
 
 # Book - Publisher Relation -----------------------------------------------
 
-publishers <- books_wide %>%
+books_publishers <- books_wide %>%
   filter(!is.na(publisher)) %>%
   distinct(publisher) %>%
   mutate(publisher_id = row_number())
 
 book_publisher <- books_wide %>%
   filter(!is.na(publisher)) %>%
-  select(book_id, publisher) %>%
-  left_join(publishers, by = "publisher") %>%
+  distinct(book_id, publisher) %>%
+  left_join(books_publishers, by = "publisher") %>%
   select(-publisher)
-book_publisher
 
+test_that(
+  desc = "unique combinations",
+  expect_unique(c(publisher, publisher_id), data = books_publishers)
+)
+
+test_that(
+  desc = "unique combinations",
+  expect_unique(c(book_id, publisher_id), data = book_publisher)
+)
 
 # Book - Series relation --------------------------------------------------
 
-series <- books_wide %>%
-  filter(!is.na(meta_series_title)) %>%
-  distinct(meta_series_title) %>%
+books_series <- books_wide %>%
+  filter(!is.na(series)) %>%
+  distinct(series) %>%
   mutate(series_id = row_number())
 
 book_series <- books_wide %>%
-  filter(!is.na(meta_series_title)) %>%
-  select(book_id, meta_series_title) %>%
-  left_join(series, by = "meta_series_title") %>%
-  select(-meta_series_title)
-book_series
+  filter(!is.na(series)) %>%
+  distinct(book_id, series) %>%
+  left_join(books_series, by = "series") %>%
+  select(-series)
+
+test_that(
+  desc = "unique combinations",
+  expect_unique(c(series, series_id), data = books_series)
+)
+
+test_that(
+  desc = "unique combinations",
+  expect_unique(c(book_id, series_id), data = book_series)
+)
 
 
 # Book - Place of Publication relation ------------------------------------
 
-locations <- books_wide %>%
-  filter(!is.na(meta_place_of_publication)) %>%
-  distinct(meta_place_of_publication) %>%
+books_locations <- books_wide %>%
+  filter(!is.na(location)) %>%
+  distinct(location) %>%
   mutate(location_id = row_number())
 
 book_location <- books_wide %>%
-  filter(!is.na(meta_place_of_publication)) %>%
-  select(book_id, meta_place_of_publication) %>%
-  left_join(locations, by = "meta_place_of_publication") %>%
-  select(-meta_place_of_publication)
-book_location
+  filter(!is.na(location)) %>%
+  distinct(book_id, location) %>%
+  left_join(books_locations, by = "location") %>%
+  select(-location)
+
+test_that(
+  desc = "unique combinations",
+  expect_unique(c(location, location_id), data = books_locations)
+)
+
+test_that(
+  desc = "unique combinations",
+  expect_unique(c(book_id, location_id), data = book_location)
+)
 
 
 # Book - Year relation ----------------------------------------------------
 
-years <- books_wide %>%
+books_years <- books_wide %>%
   filter(!is.na(year)) %>%
   distinct(year) %>%
   mutate(year_id = row_number())
 
 book_year <- books_wide %>%
   filter(!is.na(year)) %>%
-  select(book_id, year) %>%
-  left_join(years, by = "year") %>%
+  distinct(book_id, year) %>%
+  left_join(books_years, by = "year") %>%
   select(-year)
-book_year
+
+
+test_that(
+  desc = "unique combinations",
+  expect_unique(c(year, year_id), data = books_years)
+)
+
+test_that(
+  desc = "unique combinations",
+  expect_unique(c(book_id, year_id), data = book_year)
+)
 
 # Books distinct ----------------------------------------------------------
 
 books <- books_wide %>%
-  select(-year, -meta_place_of_publication, -autor_in, -publisher, -meta_series_title, -is_herausgeber, -herausgeber) %>%
-  distinct()
+  distinct(book_id, name, subtitle, title_supplement, isbn)
 
+test_that(
+  desc = "unique combinations",
+  expect_unique(everything(), data = books)
+)
 
 relations <-
   list(
     "books" = books,
     "book_year" = book_year,
-    "years" = years,
+    "years" = books_years,
     "book_location" = book_location,
-    "locations" = locations,
+    "locations" = books_locations,
     "book_series" = book_series,
-    "series" = series,
+    "series" = books_series,
     "book_publisher" = book_publisher,
-    "publishers" = publishers,
+    "publishers" = books_publishers,
     "book_editor" = book_editor,
-    "editors" = editors,
+    "editors" = books_editors,
     "book_author" = book_author,
-    "authors" = authors
+    "authors" = books_authors
   )
 
 # save(
@@ -283,29 +346,29 @@ relations <-
 dm_raw <- dm(
   book_author, book_editor, book_location,
   book_publisher, book_series, book_year,
-  authors, books, editors, locations, publishers, series, years
+  books_authors, books, books_editors, books_locations, books_publishers, books_series, books_years
 )
 
 dm <- dm_raw %>%
-  dm_add_pk(authors, author_id) %>%
-  dm_add_pk(books, book_id) %>%
-  dm_add_pk(editors, editor_id) %>%
-  dm_add_pk(locations, location_id) %>%
-  dm_add_pk(publishers, publisher_id) %>%
-  dm_add_pk(series, series_id) %>%
-  dm_add_pk(years, year_id) %>%
-  dm_add_fk(book_author, book_id, books, book_id) %>%
-  dm_add_fk(book_author, author_id, authors, author_id) %>%
-  dm_add_fk(book_editor, editor_id, editors, editor_id) %>%
-  dm_add_fk(book_editor, book_id, books, book_id) %>%
-  dm_add_fk(book_location, location_id, locations, location_id) %>%
-  dm_add_fk(book_location, book_id, books, book_id) %>%
-  dm_add_fk(book_publisher, publisher_id, publishers, publisher_id) %>%
-  dm_add_fk(book_publisher, book_id, books, book_id) %>%
-  dm_add_fk(book_series, series_id, series, series_id) %>%
-  dm_add_fk(book_series, book_id, books, book_id) %>%
-  dm_add_fk(book_year, year_id, years, year_id) %>%
-  dm_add_fk(book_year, book_id, books, book_id)
+  dm_add_pk(books_authors, author_id, check = T) %>%
+  dm_add_pk(books, book_id, check = T) %>%
+  dm_add_pk(books_editors, editor_id, check = T) %>%
+  dm_add_pk(books_locations, location_id, check = T) %>%
+  dm_add_pk(books_publishers, publisher_id, check = T) %>%
+  dm_add_pk(books_series, series_id, check = T) %>%
+  dm_add_pk(books_years, year_id, check = T) %>%
+  dm_add_fk(book_author, book_id, books, book_id, check = T) %>%
+  dm_add_fk(book_author, author_id, books_authors, author_id, check = T) %>%
+  dm_add_fk(book_editor, editor_id, books_editors, editor_id, check = T) %>%
+  dm_add_fk(book_editor, book_id, books, book_id, check = T) %>%
+  dm_add_fk(book_location, location_id, books_locations, location_id, check = T) %>%
+  dm_add_fk(book_location, book_id, books, book_id, check = T) %>%
+  dm_add_fk(book_publisher, publisher_id, books_publishers, publisher_id, check = T) %>%
+  dm_add_fk(book_publisher, book_id, books, book_id, check = T) %>%
+  dm_add_fk(book_series, series_id, books_series, series_id, check = T) %>%
+  dm_add_fk(book_series, book_id, books, book_id, check = T) %>%
+  dm_add_fk(book_year, year_id, books_years, year_id, check = T) %>%
+  dm_add_fk(book_year, book_id, books, book_id, check = T)
 
 
 # Inspect dm object -------------------------------------------------------

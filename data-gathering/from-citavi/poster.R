@@ -1,15 +1,15 @@
 # title: ETL poster data
 # desc: extract poster data from citavi db tables, create clean relations, add pk's and fk's and load in DB
+# ref: https://scriptsandstatistics.wordpress.com/2017/05/19/how-to-parse-citavi-files-using-r/
 
-
-library(RSQLite)
-library(DBI)
 library(tidyverse)
 library(kabrutils)
+library(RSQLite)
+library(DBI)
+library(dm)
+library(testdat)
 
-link_to_cloud <- "/Users/kabr/Nextcloud/Forum (2)/"
-
-con_poster <- DBI::dbConnect(RSQLite::SQLite(), paste0(link_to_cloud,"data/Archiv fhm Poster (Team).ctt4"))
+con_poster <- dbConnect(RSQLite::SQLite(), "data-gathering/data/input/citavi-poster.ctt4")
 dbListTables(con_poster)
 
 ####
@@ -69,62 +69,96 @@ poster_wide_raw <- df_poster_prep %>%
   mutate(
     filename = str_replace(online_address, "\\\\", "/"),
     filename = str_remove(filename, "Bilder/")) %>% 
-  select(-online_address)
-
-poster_wide <- poster_wide_raw %>% 
+  select(-online_address) %>% 
   separate_rows(origin, sep = ",") %>%
   mutate(origin = trimws(origin)) %>%
   separate_rows(keyword, sep = ",") %>%
-  mutate(keyword = trimws(keyword)) %>%
-  rename(poster_id = id,
-         author = origin)
+  mutate(keyword = trimws(keyword)) %>% 
+  rename(author = origin)
+
+
+poster_wide_ids <- poster_wide_raw %>% 
+  distinct(id) %>% 
+  mutate(poster_id = row_number())
+
+poster_wide <- poster_wide_ids %>% 
+  left_join(poster_wide_raw, by = "id") %>% 
+  select(poster_id, everything()) %>% 
+  select(-id) %>% 
+  distinct()
 
 
 # Poster - Year relation --------------------------------------------------
 
-years <- poster_wide %>%
+posters_years <- poster_wide %>%
   filter(!is.na(year)) %>%
   distinct(year) %>%
   mutate(year_id = row_number())
 
 poster_year <- poster_wide %>%
   filter(!is.na(year)) %>%
-  select(poster_id, year) %>%
-  left_join(years, by = "year") %>%
+  distinct(poster_id, year) %>%
+  left_join(posters_years, by = "year") %>%
   select(-year)
 
-poster_year
+test_that(
+  desc = "unique combinations",
+  expect_unique(c(year, year_id), data = posters_years)
+)
+
+test_that(
+  desc = "unique combinations",
+  expect_unique(c(poster_id, year_id), data = poster_year)
+)
 
 
 # Poster - Author Relation ------------------------------------------------
 # define Origin as Author
 
-authors <- poster_wide %>%
+posters_authors <- poster_wide %>%
   filter(!is.na(author)) %>%
   distinct(author) %>%
   mutate(author_id = row_number())
 
 poster_author <- poster_wide %>%
   filter(!is.na(author)) %>%
-  select(poster_id, author) %>%
-  left_join(authors, by = "author") %>%
+  distinct(poster_id, author) %>%
+  left_join(posters_authors, by = "author") %>%
   select(-author)
-poster_author
 
+
+test_that(
+  desc = "unique combinations",
+  expect_unique(c(author, author_id), data = posters_authors)
+)
+
+test_that(
+  desc = "unique combinations",
+  expect_unique(c(poster_id, author_id), data = poster_author)
+)
 
 # Poster - Keyword Relation -----------------------------------------------
 
-keywords <- poster_wide %>%
+posters_keywords <- poster_wide %>%
   filter(!is.na(keyword)) %>%
   distinct(keyword) %>%
   mutate(keyword_id = row_number())
 
 poster_keyword <- poster_wide %>%
   filter(!is.na(keyword)) %>%
-  select(poster_id, keyword) %>%
-  left_join(keywords, by = "keyword") %>%
+  distinct(poster_id, keyword) %>%
+  left_join(posters_keywords, by = "keyword") %>%
   select(-keyword)
-poster_keyword
+
+test_that(
+  desc = "unique combinations",
+  expect_unique(c(keyword, keyword_id), data = posters_keywords)
+)
+
+test_that(
+  desc = "unique combinations",
+  expect_unique(c(poster_id, keyword_id), data = poster_keyword)
+)
 
 # Poster distinct ----------------------------------------------------------
 
@@ -132,28 +166,38 @@ posters <- poster_wide %>%
   select(-year, -author, -keyword) %>%
   distinct()
 
+test_that(
+  desc = "unique combinations",
+  expect_unique(everything(), data = posters)
+)
+
 
 # Construct dm ------------------------------------------------------------
+# create a relational data model from the dataframes above
 
 dm_raw <- dm(
   poster_author, poster_keyword, poster_year,
-  authors, posters, years, keywords
+  posters_authors, posters, posters_years, posters_keywords
 )
 
 dm <- dm_raw %>%
-  dm_add_pk(authors, author_id) %>%
-  dm_add_pk(posters, poster_id) %>%
-  dm_add_pk(years, year_id) %>%
-  dm_add_pk(keywords, keyword_id) %>%
-  dm_add_fk(poster_author, poster_id, posters, poster_id) %>%
-  dm_add_fk(poster_author, author_id, authors, author_id) %>%
-  dm_add_fk(poster_keyword, poster_id, posters, poster_id) %>%
-  dm_add_fk(poster_keyword, keyword_id, keywords, keyword_id) %>%
-  dm_add_fk(poster_year, year_id, years, year_id) %>%
-  dm_add_fk(poster_year, poster_id, posters, poster_id)
+  dm_add_pk(posters_authors, author_id, check = T) %>%
+  dm_add_pk(posters, poster_id, check = T) %>%
+  dm_add_pk(posters_years, year_id, check = T) %>%
+  dm_add_pk(posters_keywords, keyword_id, check = T) %>%
+  dm_add_fk(poster_author, poster_id, posters, poster_id, check = T) %>%
+  dm_add_fk(poster_author, author_id, posters_authors, author_id, check = T) %>%
+  dm_add_fk(poster_keyword, poster_id, posters, poster_id, check = T) %>%
+  dm_add_fk(poster_keyword, keyword_id, posters_keywords, keyword_id, check = T) %>%
+  dm_add_fk(poster_year, year_id, posters_years, year_id, check = T) %>%
+  dm_add_fk(poster_year, poster_id, posters, poster_id, check = T)
 
 # Inspect dm object -------------------------------------------------------
 
+# Draw 
+# for now only DiagrammeR 1.0.6.1 works 
+# Issue: https://github.com/cynkra/dm/issues/823
+# devtools::install_version("DiagrammeR", version = "1.0.6.1", repos = "http://cran.us.r-project.org")
 dm %>% dm_draw()
 dm %>% dm_nrow()
 dm %>% dm_get_all_fks()
@@ -164,8 +208,7 @@ dm %>% dm_examine_constraints()
 
 con <- connect_db()
 
-deployed_dm <-
-  copy_dm_to(con, dm, temporary = FALSE)
-
+deployed_dm <- copy_dm_to(con, dm, temporary = FALSE)
 deployed_dm
+
 DBI::dbDisconnect(con)
