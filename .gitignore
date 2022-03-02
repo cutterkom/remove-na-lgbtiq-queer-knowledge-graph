@@ -51,6 +51,8 @@ po/*~
 # ignore internal input data files
 orte-albert.doc
 themengeschichtspfad.pdf
+*.ctt4
+*.xlsx
 
 # bookdown
 _bookdown_files
