@@ -1,20 +1,14 @@
 # title: Extract Books data from Citavi relational DB and load in DB
 # desc: script extracts db tables and creates clean relations. With dm pk and fk are created and loaded in DB
-
 # ref: https://scriptsandstatistics.wordpress.com/2017/05/19/how-to-parse-citavi-files-using-r/
 
+library(tidyverse)
+library(kabrutils)
 library(RSQLite)
 library(DBI)
-library(tidyverse)
-library(stringr)
-library(glue)
 library(dm)
-library(kabrutils)
 
-# Pfad zur Nextcloud
-link_to_cloud <- "/Users/kabr/Nextcloud/Forum (2)/"
-
-con_books <- DBI::dbConnect(RSQLite::SQLite(), paste0(link_to_cloud, "data/Archiv fhm Buecher (Team).ctt4"))
+con_books <- dbConnect(RSQLite::SQLite(), "data-gathering/data/input/citavi-buecher.ctt4")
 dbListTables(con_books)
 
 df_ReferenceKeyword <- dbGetQuery(con_books, "select * from Publisher")
@@ -133,9 +127,7 @@ df_book_prep <- df_books %>%
 
 books_wide_raw <- df_book_prep %>%
   as_tibble() %>%
-  janitor::clean_names()
-
-books_wide <- books_wide_raw %>%
+  janitor::clean_names() %>%
   separate_rows(autor_in, sep = ",") %>%
   mutate(autor_in = trimws(autor_in)) %>%
   separate_rows(year, sep = ";") %>%
@@ -144,10 +136,17 @@ books_wide <- books_wide_raw %>%
     is_herausgeber = ifelse(str_detect(autor_in, "Hg."), 1, 0),
     herausgeber = ifelse(is_herausgeber == 1, str_remove(autor_in, " \\(Hg\\.\\)"), NA),
     autor_in = ifelse(is_herausgeber == 1, NA, autor_in)
-  ) %>%
-  rename(book_id = sku)
+  )
 
+books_wide_ids <- books_wide_raw %>% 
+  distinct(sku) %>% 
+  mutate(book_id = row_number())
 
+books_wide <- books_wide_raw %>% 
+  left_join(books_wide_ids, by = "sku") %>% 
+  select(book_id, everything()) %>% 
+  select(-sku) %>% 
+  distinct()
 
 # Book - Author Relation --------------------------------------------------
 
@@ -319,10 +318,7 @@ dm %>% dm_examine_constraints()
 
 # Write to DB -------------------------------------------------------------
 
-con <- connect_db()
-
-deployed_dm <-
-  copy_dm_to(con, dm, temporary = FALSE)
-
+con <- connect_db(credential_name = "db_local")
+deployed_dm <- copy_dm_to(con, dm, temporary = FALSE)
 deployed_dm
 DBI::dbDisconnect(con)
