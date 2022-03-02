@@ -10,9 +10,9 @@ CREATE DATABASE lgbtiq_kg
 
 ## Documentation
 
-´docs´ are built with `bookdown`.
+Documentation built with `bookdown`.
 Built a fresh version with this command:
 
-````r
+```r
 bookdown::render_book("docs", "bookdown::gitbook")
-````
+```
