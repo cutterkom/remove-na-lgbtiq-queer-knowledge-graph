@@ -3,3 +3,13 @@
 Der erste Schritt besteht darin, verschiedene Datenquellen zusammenzuführen.
 Im Repo finden sich die Skripte dafür unter `data-gathering`.
 
+## Citavi-Daten
+
+Scripts: `data-gathering/from-citavi/`
+
+Es gibt drei Exporte aus Citavi-Datenbanken, die normalisiert werden: `poster`, `books`, `digitales` und in einer MariaDB gespeichert werden.
+
+Die Bennenung der Tabellen folgt diesem Muster: 
+
+* Plural: Daten -> `books_years`
+* Singular: Relation -> `book_years`: Relation aus `book_id` und `year_id`
