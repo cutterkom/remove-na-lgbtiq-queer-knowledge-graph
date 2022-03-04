@@ -4,7 +4,7 @@
 # output: 
 
 # Example duplicates in data:
-# August Graf Platen - August Graf Platen
+# August Graf Platen - August von Platen
 # Angstmann Gustl - Gustl Angstmann
 # Armistad Maupin - Armistead Maupin
 
@@ -32,7 +32,7 @@ authors <- authors %>%
   
   filter(
     # remove Verlage and Vereine
-    !str_detect(tolower(author), "verlag|e.v."),
+    !str_detect(tolower(author), "verlag|e.v.|kollektiv"),
     # remove ? 
     !author %in% c("?", "et al."),
     # remove if there is no space in the name -> just 1 name or abbreviation
@@ -222,7 +222,7 @@ check_multiple_tests %>% filter(meta_sim >= 1, same_id == 1)  %>% View#distinct(
 
 
 # Testfälle:
-# August Graf Platen - August Graf Platen -> wird gefunden, meta_sim = 1.1666667, same_id = 1
+# August Graf Platen - August von Platen -> wird gefunden, meta_sim = 1.1666667, same_id = 1
 # Angstmann Gustl - Gustl Angstmann -> wird gefunden, meta_sim = 2, same_id = 1
 # Armistad Maupin - Armistead Maupin -> wird gefunden, meta_sim = 2.8, same_id = 1
 
