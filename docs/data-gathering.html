@@ -4,11 +4,11 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>Data Modelling</title>
-  <meta name="description" content="Data Modelling" />
+  <title>2 Data Gathering | Data Modelling</title>
+  <meta name="description" content="2 Data Gathering | Data Modelling" />
   <meta name="generator" content="bookdown 0.24 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="Data Modelling" />
+  <meta property="og:title" content="2 Data Gathering | Data Modelling" />
   <meta property="og:type" content="book" />
   
   
@@ -16,7 +16,7 @@
   
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="Data Modelling" />
+  <meta name="twitter:title" content="2 Data Gathering | Data Modelling" />
   
   
   
@@ -30,8 +30,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-
-<link rel="next" href="data-gathering.html"/>
+<link rel="prev" href="index.html"/>
+<link rel="next" href="data-modelling.html"/>
 <script src="libs/header-attrs-2.11/header-attrs.js"></script>
 <script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
@@ -159,26 +159,45 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="header">
-<h1 class="title">Data Modelling</h1>
-<h2 class="subtitle"><em>About Creating a LGBTIQ* Knowledge Graph</em></h2>
-<p class="author"><em>Katharina Brunner</em></p>
-<p class="date"><em>2/1/2022</em></p>
+<div id="data-gathering" class="section level1" number="2">
+<h1><span class="header-section-number">2</span> Data Gathering</h1>
+<p>Der erste Schritt besteht darin, verschiedene Datenquellen zusammenzuführen.
+Im Repo finden sich die Skripte dafür unter <code>data-gathering</code>.</p>
+<div id="infrastructure" class="section level2" number="2.1">
+<h2><span class="header-section-number">2.1</span> Infrastructure</h2>
+<div id="mariadb" class="section level3" number="2.1.1">
+<h3><span class="header-section-number">2.1.1</span> MariaDB</h3>
+<p>Initial converted data from Citavi and other sources are stored in a MariaDB.
+Install and setup on <a href="https://mariadb.com/kb/en/installing-mariadb-on-macos-using-homebrew/">Mac with <code>homebrew</code></a>.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb1-1"><a href="data-gathering.html#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">DATABASE</span> lgbtiq_kg </span>
+<span id="cb1-2"><a href="data-gathering.html#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">CHARACTER</span> <span class="kw">SET</span> <span class="op">=</span> <span class="st">&#39;utf8&#39;</span></span>
+<span id="cb1-3"><a href="data-gathering.html#cb1-3" aria-hidden="true" tabindex="-1"></a>  COLLATE <span class="op">=</span> <span class="st">&#39;utf8_german2_ci&#39;</span>;</span>
+<span id="cb1-4"><a href="data-gathering.html#cb1-4" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb1-5"><a href="data-gathering.html#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">FLUSH</span> <span class="kw">PRIVILEGES</span>;</span>
+<span id="cb1-6"><a href="data-gathering.html#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> <span class="fu">USER</span> <span class="st">&#39;root&#39;</span>@<span class="st">&#39;localhost&#39;</span> <span class="kw">IDENTIFIED</span> <span class="kw">BY</span> <span class="st">&#39;NEW_PASSWORD&#39;</span>;</span></code></pre></div>
 </div>
-<div id="hallo-welt" class="section level1" number="1">
-<h1><span class="header-section-number">1</span> Hallo Welt</h1>
-<p>Einen größeren Teil des Jahres 2022 werde ich damit verbringen dürfen, einen Knowledge Graph zur Geschichte queerer Menschen zu bauen.
-Diese Seite soll mir als Dokumentation dienen.
-Sprachlich wird das vermutlich eine wilde Mische aus Deutsch und Englisch: Ersteres geht schneller und mir leichter von der Hand, wenn’s ein bisschen komplexer wird. Zweiteres natürlich der Standard technischer(er) Dokumentationen. Aber besser eine Dokumentation in einer Nischensprache als gar keine. Kurzum: Who knows.</p>
+</div>
+<div id="citavi-daten" class="section level2" number="2.2">
+<h2><span class="header-section-number">2.2</span> Citavi-Daten</h2>
+<p>Scripts: <code>data-gathering/from-citavi/</code></p>
+<p>Es gibt drei Exporte aus Citavi-Datenbanken, die normalisiert werden: <code>poster</code>, <code>books</code>, <code>digitales</code> und in einer MariaDB gespeichert werden.</p>
+<p>Die Bennenung der Tabellen folgt diesem Muster:</p>
+<ul>
+<li>Plural: Daten -&gt; <code>books_years</code></li>
+<li>Singular: Relation -&gt; <code>book_years</code>: Relation aus <code>book_id</code> und <code>year_id</code></li>
+</ul>
+<p>Ressources Deduplication</p>
+<p><a href="https://r-vogg-blog.netlify.app/posts/2021-03-27-fuzzy-matching-packages/" class="uri">https://r-vogg-blog.netlify.app/posts/2021-03-27-fuzzy-matching-packages/</a></p>
 
+</div>
 </div>
             </section>
 
           </div>
         </div>
       </div>
-
-<a href="data-gathering.html" class="navigation navigation-next navigation-unique" aria-label="Next page"><i class="fa fa-angle-right"></i></a>
+<a href="index.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="data-modelling.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
