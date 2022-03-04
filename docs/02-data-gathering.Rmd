@@ -30,3 +30,9 @@ Die Bennenung der Tabellen folgt diesem Muster:
 
 * Plural: Daten -> `books_years`
 * Singular: Relation -> `book_years`: Relation aus `book_id` und `year_id`
+
+
+
+Ressources Deduplication
+
+https://r-vogg-blog.netlify.app/posts/2021-03-27-fuzzy-matching-packages/
