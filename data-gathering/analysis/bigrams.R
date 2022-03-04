@@ -5,6 +5,7 @@ library(tidyverse)
 library(kabrutils)
 library(quanteda)
 library(quanteda.textstats)
+library(DBI)
 
 source("R/deduplication-matching.R")
 source("R/utils.R")
@@ -13,25 +14,26 @@ source("R/entity-cleaning.R")
 con <- connect_db()
 authors <- tbl(con, "books_authors") %>%
   collect()
-DBI::dbDisconnect(con); rm(con)
+dbDisconnect(con); rm(con)
 
 
 bigrams_authors <- authors %>% 
-  select(id = author_id, author) %>% 
+  select(id = author_id, name = author) %>% 
   mutate(id = paste0("books_", id)) %>% 
-  split_human_name(name_col = "author") %>% 
+  split_human_name(col = "name") %>% 
+  clean_string(col = "name") %>% 
   filter(
     # remove Verlage and Vereine
-    !str_detect(tolower(author), "verlag|e.v.|kollektiv"),
+    !str_detect(tolower(name), "verlag|e.v.|kollektiv"),
     # remove ? 
-    !author %in% c("?", "et al."),
+    !name %in% c("?", "et al."),
     # remove if there is no space in the name -> just 1 name or abbreviation
-    str_detect(author, "\\s")
+    str_detect(name, "\\s")
   )
 
 # Prepare text data -------------------------------------------------------
 
-corp <- corpus(bigrams_authors, text_field = "author", docid_field = "id")
+corp <- corpus(bigrams_authors, text_field = "name", docid_field = "id")
 toks <- tokens(corp)
 
 # create bigrams on word level = shingles
@@ -49,3 +51,14 @@ bigrams_sims_with_names <- bigrams_sims %>%
   # add plain strings
   left_join(bigrams_authors, by = c("id_1" = "id")) %>% 
   left_join(bigrams_authors, by = c("id_2" = "id"), suffix = c("_1", "_2"))
+
+bigrams_sims_with_names %>% count(id_1, sort = T) %>% 
+  left_join(bigrams_sims_with_names) %>% View
+
+# Write in DB -------------------------------------------------------------
+
+con <- connect_db()
+DBI::dbWriteTable()
+DBI::dbDisconnect(con); rm(con)
+
+
