@@ -15,11 +15,3 @@ We collect cultural heritage on queer history, especially in Munich and Bavaria/
 * `data-gathering`: contains the scripts in the data collection process from various, heterogeneous data sources
 * `data-linking`: 
 * `docs`: technical documentation based on `bookdown`
-
-## Update documentation
-
-```r
-bookdown::render_book("docs", "bookdown::gitbook", output_dir = ".")
-```
-
-
