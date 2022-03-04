@@ -6,16 +6,14 @@ library(viafr)
 library(DBI)
 library(cli)
 library(dbx)
-
+library(kabrutils)
 
 # import from db ----------------------------------------------------------
 
 con <- connect_db()
-authors <- tbl(con, "authors") %>%
-  collect() %>%
-  rename(author_name = name)
-DBI::dbDisconnect(con)
-rm(con)
+authors <- tbl(con, "books_authors") %>%
+  collect()
+DBI::dbDisconnect(con); rm(con)
 
 
 # Get suggestions from VIAF API -------------------------------------------
@@ -40,22 +38,22 @@ get_viaf_suggest <- function(name) {
 
 # Get the DNB-ID with highest score per author_id
 viaf_data <- authors %>%
-  mutate(viaf = map(.x = author_name, .f = get_viaf_suggest)) %>%
+  mutate(viaf = map(.x = author, .f = get_viaf_suggest)) %>%
   unnest(cols = c(viaf)) %>%
   filter(source_ids_scheme == "DNB") %>%
   group_by(id) %>%
   filter(score == max(score)) %>%
   ungroup() %>%
-  distinct(id, author_name, viaf_id, gnd_id = source_ids_id, source_ids_scheme, score) %>%
+  distinct(id, author, viaf_id, gnd_id = source_ids_id, source_ids_scheme, score) %>%
   mutate(score = as.numeric(score)) %>%
-  right_join(authors, by = c("id", "author_name"))
+  right_join(authors, by = c("id", "author"))
 
 # cleaning ----------------------------------------------------------------
 
 # problematic, when single names like tony, stephan etc -> remove them
 
 viaf_data <- viaf_data %>%
-  filter(str_detect(author_name, " ")) %>%
+  filter(str_detect(author, " ")) %>%
   filter(!is.na(viaf_id))
 
 # Write in DB -------------------------------------------------------------
@@ -64,6 +62,6 @@ import <- viaf_data %>%
   select(id, viaf_id, gnd_id, score)
 
 con <- connect_db()
-dbxUpsert(con, "authors_viaf_gnd", import, where_cols = c("id", "viaf_id", "gnd_id"))
+dbxUpsert(con, "books_authors_viaf_gnd", import, where_cols = c("id", "viaf_id", "gnd_id"))
 dbDisconnect(con)
 rm(con)
