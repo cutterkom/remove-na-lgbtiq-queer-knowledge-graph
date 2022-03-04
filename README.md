@@ -6,6 +6,7 @@ We collect cultural heritage on queer history, especially in Munich and Bavaria/
 
 **More on the project:**
 
+* [Technical Documentation](https://cutterkom.github.io/remove-na-lgbtiq-queer-knowledge-graph/)
 * [Prototype Fund Website](https://prototypefund.de/project/remove-na/)
 * [Remove NA: Warum ich einen LGBTIQ*-Knowledge Graph bauen werde](https://katharinabrunner.de/2022/03/remove-na-ein-lgbtiq-knowledge-graph/)
 
