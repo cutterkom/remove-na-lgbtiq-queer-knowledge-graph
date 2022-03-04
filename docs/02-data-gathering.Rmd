@@ -20,11 +20,11 @@ FLUSH PRIVILEGES;
 ALTER USER 'root'@'localhost' IDENTIFIED BY 'NEW_PASSWORD';
 ```
 
-## Citavi-Daten
+## Citavi data dumps
 
 Scripts: `data-gathering/from-citavi/`
 
-There are three exports from Citavi databases that are normalized: `poster`, `books`, `digital`. 
+There are three exports from Citavi data dumps that are normalized: `poster`, `books`, `digital`. 
 All three are stored in a MariaDB.
 
 Naming convention: 
