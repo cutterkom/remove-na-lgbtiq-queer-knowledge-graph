@@ -24,7 +24,9 @@ calc_similarity <- function(data, method, min_sim) {
     # make them distinct
     dplyr::mutate(id_1_id_2 = map2_chr(id_1, id_2, collapse_to_distinct_rows)) %>% 
     dplyr::distinct(id_1_id_2, .keep_all = TRUE) %>% 
-    dplyr::select(-id_1_id_2)
+    dplyr::select(-id_1_id_2) %>% 
+    mutate(rank = dense_rank(desc(value))) %>% 
+    arrange(rank)
 }
 
 
