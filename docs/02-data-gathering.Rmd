@@ -38,4 +38,77 @@ Naming convention:
 ### Poster data model
 ![poster data model](img/dm-posters.png)
 
+### Views
 
+#### Books
+
+A wide view on all books
+
+```sql
+CREATE VIEW books_wide AS
+SELECT 
+books.book_id, 
+books_authors.author_id,
+books_editors.editor_id,
+books_locations.location_id,
+books_publishers.publisher_id,
+books_series.series_id,
+books_years.year_id,
+books.name, 
+books_authors.author,
+books.subtitle, 
+books.title_supplement,
+books_editors.editor,
+books_locations.location,
+books_publishers.publisher,
+books_series.series,
+books_years.year
+FROM books
+-- add authors
+LEFT JOIN book_author ON books.book_id = book_author.book_id
+LEFT JOIN books_authors ON book_author.author_id = books_authors.author_id
+-- add editors
+LEFT JOIN book_editor ON books.book_id= book_editor.book_id
+LEFT JOIN books_editors ON book_editor.editor_id = books_editors.editor_id
+-- add locatiONs
+LEFT JOIN book_locatiON ON books.book_id= book_locatiON.book_id
+LEFT JOIN books_locatiONs ON book_locatiON.locatiON_id = books_locatiONs.locatiON_id
+-- add publishers
+LEFT JOIN book_publisher ON books.book_id= book_publisher.book_id
+LEFT JOIN books_publishers ON book_publisher.publisher_id = books_publishers.publisher_id
+-- add series
+LEFT JOIN book_series ON books.book_id= book_series.book_id
+LEFT JOIN books_series ON book_series.series_id = books_series.series_id
+-- add years
+LEFT JOIN book_year ON books.book_id= book_year.book_id
+LEFT JOIN books_years ON book_year.year_id = books_years.year_id;
+```
+#### Posters
+
+Wide View on posters data.
+
+````sql
+CREATE VIEW posters_wide AS
+SELECT 
+posters.poster_id,
+posters_authors.author_id,
+posters_years.year_id,
+posters_keywords.keyword_id,
+posters.title,
+posters.size,
+posters_authors.author,
+posters_years.year,
+posters_keywords.keyword
+
+FROM posters
+-- add authors
+LEFT JOIN poster_author ON posters.poster_id = poster_author.poster_id
+LEFT JOIN posters_authors ON posters_authors.author_id = poster_author.author_id
+-- add years
+LEFT JOIN poster_year ON posters.poster_id = poster_year.poster_id
+LEFT JOIN posters_years ON posters_years.year_id = poster_year.year_id
+-- add keywords
+LEFT JOIN poster_keyword ON posters.poster_id = poster_keyword.poster_id
+LEFT JOIN posters_keywords ON posters_keywords.keyword_id = posters_keywords.keyword_id
+;
+```
