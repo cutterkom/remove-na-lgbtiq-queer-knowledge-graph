@@ -1,0 +1,21 @@
+prefixes:
+ ex: "http://example.com/"
+ schema: "https://schema.org/"
+ wd: "http://www.wikidata.org/entity/"
+
+mappings:
+  book:
+    sources:
+      - [brown.csv~csv]
+    s: http://example.com/$(book_id)
+    po:
+      - [a, schema:Book]
+      - [schema:name, $(name)]
+      - [schema:isbn, $(isbn)]
+      - [schema:author, $(author)]
+      - [wd:Q36180, Q242956]
+      - [schema:datePublished, $(year)]
+      - [schema:publisher, $(publisher)]
+      - [schema:editor, $(editor)]
+      - [schema:location, $(location)]
+      - [schema:BookSeries, $(series)]

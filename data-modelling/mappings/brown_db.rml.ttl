@@ -1,0 +1,145 @@
+@prefix rr: <http://www.w3.org/ns/r2rml#> .
+@prefix rml: <http://semweb.mmlab.be/ns/rml#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ql: <http://semweb.mmlab.be/ns/ql#> .
+@prefix map: <http://mapping.example.com/> .
+@prefix ma: <http://www.w3.org/ns/ma-ont#> .
+@prefix schema: <https://schema.org/> .
+@prefix ex: <http://example.com/> .
+@prefix wd: <http://www.wikidata.org/entity/> .
+
+map:database_000 rdf:type <http://www.wiwiss.fu-berlin.de/suhl/bizer/D2RQ/0.1#Database> ;
+	<http://www.wiwiss.fu-berlin.de/suhl/bizer/D2RQ/0.1#jdbcDSN> "http://localhost/lgbtiq_kg" ;
+	<http://www.wiwiss.fu-berlin.de/suhl/bizer/D2RQ/0.1#jdbcDriver> "com.mysql.cj.jdbc.Driver" ;
+	<http://www.wiwiss.fu-berlin.de/suhl/bizer/D2RQ/0.1#password> "root" ;
+	<http://www.wiwiss.fu-berlin.de/suhl/bizer/D2RQ/0.1#username> "root" .
+
+map:map_book_000 rml:logicalSource map:source_000 ;
+	rdf:type rr:TriplesMap ;
+	rdfs:label "book" ;
+	rr:predicateObjectMap map:pom_000, map:pom_001, map:pom_002, map:pom_003, map:pom_004, map:pom_005, map:pom_006, map:pom_007, map:pom_008, map:pom_009 ;
+	rr:subjectMap map:s_000 .
+
+map:om_000 rdf:type rr:ObjectMap ;
+	rr:constant "https://schema.org/Book" ;
+	rr:termType rr:IRI .
+
+map:om_001 rml:reference "name" ;
+	rdf:type rr:ObjectMap ;
+	rr:termType rr:Literal .
+
+map:om_002 rml:reference "isbn" ;
+	rdf:type rr:ObjectMap ;
+	rr:termType rr:Literal .
+
+map:om_003 rml:reference "author" ;
+	rdf:type rr:ObjectMap ;
+	rr:termType rr:Literal .
+
+map:om_004 rdf:type rr:ObjectMap ;
+	rr:constant "Q242956" ;
+	rr:termType rr:Literal .
+
+map:om_005 rml:reference "year" ;
+	rdf:type rr:ObjectMap ;
+	rr:termType rr:Literal .
+
+map:om_006 rml:reference "publisher" ;
+	rdf:type rr:ObjectMap ;
+	rr:termType rr:Literal .
+
+map:om_007 rml:reference "editor" ;
+	rdf:type rr:ObjectMap ;
+	rr:termType rr:Literal .
+
+map:om_008 rml:reference "location" ;
+	rdf:type rr:ObjectMap ;
+	rr:termType rr:Literal .
+
+map:om_009 rml:reference "series" ;
+	rdf:type rr:ObjectMap ;
+	rr:termType rr:Literal .
+
+map:pm_000 rdf:type rr:PredicateMap ;
+	rr:constant rdf:type .
+
+map:pm_001 rdf:type rr:PredicateMap ;
+	rr:constant schema:name .
+
+map:pm_002 rdf:type rr:PredicateMap ;
+	rr:constant schema:isbn .
+
+map:pm_003 rdf:type rr:PredicateMap ;
+	rr:constant schema:author .
+
+map:pm_004 rdf:type rr:PredicateMap ;
+	rr:constant wd:Q36180 .
+
+map:pm_005 rdf:type rr:PredicateMap ;
+	rr:constant schema:datePublished .
+
+map:pm_006 rdf:type rr:PredicateMap ;
+	rr:constant schema:publisher .
+
+map:pm_007 rdf:type rr:PredicateMap ;
+	rr:constant schema:editor .
+
+map:pm_008 rdf:type rr:PredicateMap ;
+	rr:constant schema:location .
+
+map:pm_009 rdf:type rr:PredicateMap ;
+	rr:constant schema:BookSeries .
+
+map:pom_000 rdf:type rr:PredicateObjectMap ;
+	rr:objectMap map:om_000 ;
+	rr:predicateMap map:pm_000 .
+
+map:pom_001 rdf:type rr:PredicateObjectMap ;
+	rr:objectMap map:om_001 ;
+	rr:predicateMap map:pm_001 .
+
+map:pom_002 rdf:type rr:PredicateObjectMap ;
+	rr:objectMap map:om_002 ;
+	rr:predicateMap map:pm_002 .
+
+map:pom_003 rdf:type rr:PredicateObjectMap ;
+	rr:objectMap map:om_003 ;
+	rr:predicateMap map:pm_003 .
+
+map:pom_004 rdf:type rr:PredicateObjectMap ;
+	rr:objectMap map:om_004 ;
+	rr:predicateMap map:pm_004 .
+
+map:pom_005 rdf:type rr:PredicateObjectMap ;
+	rr:objectMap map:om_005 ;
+	rr:predicateMap map:pm_005 .
+
+map:pom_006 rdf:type rr:PredicateObjectMap ;
+	rr:objectMap map:om_006 ;
+	rr:predicateMap map:pm_006 .
+
+map:pom_007 rdf:type rr:PredicateObjectMap ;
+	rr:objectMap map:om_007 ;
+	rr:predicateMap map:pm_007 .
+
+map:pom_008 rdf:type rr:PredicateObjectMap ;
+	rr:objectMap map:om_008 ;
+	rr:predicateMap map:pm_008 .
+
+map:pom_009 rdf:type rr:PredicateObjectMap ;
+	rr:objectMap map:om_009 ;
+	rr:predicateMap map:pm_009 .
+
+map:rules_000 <http://rdfs.org/ns/void#exampleResource> map:map_book_000 ;
+	rdf:type <http://rdfs.org/ns/void#Dataset> .
+
+map:s_000 rdf:type rr:SubjectMap ;
+	rr:template "http://example.com/{book_id}" .
+
+map:source_000 rml:query "SELECT * FROM test;" ;
+	rml:referenceFormulation ql:CSV ;
+	rml:source map:database_000 ;
+	rdf:type rml:LogicalSource ;
+	rr:sqlVersion rr:SQL2008 .
+
