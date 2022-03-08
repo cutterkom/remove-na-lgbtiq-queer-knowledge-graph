@@ -56,3 +56,5 @@ themengeschichtspfad.pdf
 
 # bookdown
 _bookdown_files
+
+/venv/
