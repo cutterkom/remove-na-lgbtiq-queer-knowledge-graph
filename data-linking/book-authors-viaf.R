@@ -37,16 +37,20 @@ get_viaf_suggest <- function(name) {
 }
 
 # Get the DNB-ID with highest score per author_id
-viaf_data <- authors %>%
+viaf_data_raw <- authors %>%
   mutate(viaf = map(.x = author, .f = get_viaf_suggest)) %>%
-  unnest(cols = c(viaf)) %>%
+  unnest(cols = c(viaf))
+
+
+viaf_data <- viaf_data_raw %>%
   filter(source_ids_scheme == "DNB") %>%
-  group_by(id) %>%
+  #rename(id = author_id) %>% 
+  group_by(author_id) %>%
   filter(score == max(score)) %>%
   ungroup() %>%
-  distinct(id, author, viaf_id, gnd_id = source_ids_id, source_ids_scheme, score) %>%
+  distinct(author_id, author, viaf_id, gnd_id = source_ids_id, source_ids_scheme, score) %>%
   mutate(score = as.numeric(score)) %>%
-  right_join(authors, by = c("id", "author"))
+  right_join(authors, by = c("author_id", "author"))
 
 # cleaning ----------------------------------------------------------------
 
@@ -59,7 +63,7 @@ viaf_data <- viaf_data %>%
 # Write in DB -------------------------------------------------------------
 
 import <- viaf_data %>%
-  select(id, viaf_id, gnd_id, score)
+  select(id = author_id, viaf_id, gnd_id, score)
 
 con <- connect_db()
 dbxUpsert(con, "books_authors_viaf_gnd", import, where_cols = c("id", "viaf_id", "gnd_id"))
