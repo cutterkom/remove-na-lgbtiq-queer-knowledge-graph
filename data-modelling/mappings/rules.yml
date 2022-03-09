@@ -1,0 +1,14 @@
+prefixes:
+  ex: "http://example.com/"
+  schema: "https://schema.org/"
+  wd: "http://www.wikidata.org/entity/"
+
+mappings:
+  BookMapping:
+    sources:
+      - [data.csv~csv]
+    s: http://example.com/$(book_id)
+    po:
+      - [a, schema:Book]
+      - [schema:name, $(name)]
+      - [schema:isbn, $(isbn)]

@@ -1,0 +1,74 @@
+@prefix schema: <https://schema.org/> .
+
+<http://example.com/1094> a schema:Book ;
+    schema:isbn "3498004522" ;
+    schema:name "Rubinroter Dschungel" .
+
+<http://example.com/1168> a schema:Book ;
+    schema:isbn "3499121581" ;
+    schema:name "Rubinroter Dschungel" .
+
+<http://example.com/2037> a schema:Book ;
+    schema:isbn "3499121956" ;
+    schema:name "Jacke wie Hose" .
+
+<http://example.com/2066> a schema:Book ;
+    schema:isbn "3499121581" ;
+    schema:name "Rubinroter Dschungel" .
+
+<http://example.com/2412> a schema:Book ;
+    schema:isbn "0553111477" ;
+    schema:name "Rubyfruit Jungle" .
+
+<http://example.com/2474> a schema:Book ;
+    schema:isbn "9783499127977" ;
+    schema:name "Herzgetümmel" .
+
+<http://example.com/2475> a schema:Book ;
+    schema:isbn "9783499129575" ;
+    schema:name "Goldene Zeiten" .
+
+<http://example.com/2476> a schema:Book ;
+    schema:isbn "9783548269245" ;
+    schema:name "Die Sandburg" .
+
+<http://example.com/2496> a schema:Book ;
+    schema:isbn "9783499123948" ;
+    schema:name "Die Tennisspielerin" .
+
+<http://example.com/2497> a schema:Book ;
+    schema:isbn "9783499136450" ;
+    schema:name "Venusneid" .
+
+<http://example.com/2498> a schema:Book ;
+    schema:isbn "9783499129575" ;
+    schema:name "Goldene Zeiten" .
+
+<http://example.com/2695> a schema:Book ;
+    schema:isbn "9780553569490" ;
+    schema:name "Dolley" .
+
+<http://example.com/2962> a schema:Book ;
+    schema:isbn "3498004859" ;
+    schema:name "Die Tennisspielerin" .
+
+<http://example.com/3066> a schema:Book ;
+    schema:isbn "9783498005863" ;
+    schema:name "Virus im Netz" .
+
+<http://example.com/3070> a schema:Book ;
+    schema:isbn "9783498005856" ;
+    schema:name "Mord in Monticello" .
+
+<http://example.com/3071> a schema:Book ;
+    schema:isbn "Rita Mae Brown" ;
+    schema:name "Schade" .
+
+<http://example.com/3072> a schema:Book ;
+    schema:isbn "9783498005726" ;
+    schema:name "Ruhe in Fetzen" .
+
+<http://example.com/444> a schema:Book ;
+    schema:isbn "3498006061" ;
+    schema:name "Rubinrote Rita" .
+

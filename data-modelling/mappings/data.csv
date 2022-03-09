@@ -1,0 +1,19 @@
+book_id,author_id,editor_id,location_id,publisher_id,series_id,year_id,name,author,isbn,subtitle,title_supplement,editor,location,publisher,series,year
+444,348,,13,17,,15,Rubinrote Rita,Rita Mae Brown,3498006061,Eine Autobiographie,,,Reinbek bei Hamburg,Rowohlt,,1998
+1094,348,,13,17,,17,Rubinroter Dschungel,Rita Mae Brown,3498004522,,,,Reinbek bei Hamburg,Rowohlt,,1985
+1168,348,,13,17,3,4,Rubinroter Dschungel,Rita Mae Brown,3499121581,,,,Reinbek bei Hamburg,Rowohlt,rororo,1992
+2037,348,,13,17,3,16,Jacke wie Hose,Rita Mae Brown,3499121956,Roman,,,Reinbek bei Hamburg,Rowohlt,rororo,1994
+2066,348,,13,17,3,23,Rubinroter Dschungel,Rita Mae Brown,3499121581,,,,Reinbek bei Hamburg,Rowohlt,rororo,1997
+2412,348,,3,521,,38,Rubyfruit Jungle,Rita Mae Brown,0553111477,A Novel about Being Different and Loving It,,,New York,Bantam Books,,1977
+2474,348,,13,17,3,18,Herzgetümmel,Rita Mae Brown,9783499127977,Roman,,,Reinbek bei Hamburg,Rowohlt,rororo,1991
+2475,348,,13,17,3,4,Goldene Zeiten,Rita Mae Brown,9783499129575,Roman,,,Reinbek bei Hamburg,Rowohlt,rororo,1992
+2476,348,,4,37,,29,Die Sandburg,Rita Mae Brown,9783548269245,Eine Sommergeschichte,,,Berlin,Ullstein,,2008
+2496,348,,13,17,3,4,Die Tennisspielerin,Rita Mae Brown,9783499123948,Roman,,,Reinbek bei Hamburg,Rowohlt,rororo,1992
+2497,348,,13,17,3,30,Venusneid,Rita Mae Brown,9783499136450,Roman,,,Reinbek bei Hamburg,Rowohlt,rororo,1995
+2498,348,,13,17,3,23,Goldene Zeiten,Rita Mae Brown,9783499129575,Roman,,,Reinbek bei Hamburg,Rowohlt,rororo,1997
+2695,348,,3,521,,30,Dolley,Rita Mae Brown,9780553569490,A Novel of Dolley Madison in Love and War,,,New York,Bantam Books,,1995
+2962,348,,13,17,,14,Die Tennisspielerin,Rita Mae Brown,3498004859,Roman,,,Reinbek bei Hamburg,Rowohlt,,1984
+3066,348,,13,17,,23,Virus im Netz,Rita Mae Brown,9783498005863,Ein Fall für Mrs. Murphy,Roman,,Reinbek bei Hamburg,Rowohlt,,1997
+3070,348,,13,17,,3,Mord in Monticello,Rita Mae Brown,9783498005856,Ein Fall für Mrs. Murphy,Roman,,Reinbek bei Hamburg,Rowohlt,,1996
+3071,348,,13,17,,18,Schade, daß du nicht tot bist,Rita Mae Brown,3498005510,Ein Fall für Mrs. Murphy,Roman,,Reinbek bei Hamburg,Rowohlt,,1991
+3072,348,,13,17,,16,Ruhe in Fetzen,Rita Mae Brown,9783498005726,Ein Fall für Mrs. Murphy,Roman,,Reinbek bei Hamburg,Rowohlt,,1994
