@@ -4,10 +4,12 @@ import kglab
 
 namespaces = {
     "ex":  "http://example.com/",
+    "schema": "https://schema.org/",
+    "wd": "http://www.wikidata.org/entity/"
     }
 
 kg = kglab.KnowledgeGraph(
-    name = "A KG example with students and sports",
+    name = "A KG example",
     namespaces = namespaces,
     )
 print(kg)
