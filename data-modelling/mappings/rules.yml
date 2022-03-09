@@ -3,12 +3,15 @@ prefixes:
   schema: "https://schema.org/"
   wd: "http://www.wikidata.org/entity/"
 
+sources:
+  books_wide:
+    table: books_wide
+    queryFormulation: mysql
+    
 mappings:
   BookMapping:
-    sources:
-      - [data.csv~csv]
+    sources: books_wide
     s: http://example.com/$(book_id)
     po:
       - [a, schema:Book]
       - [schema:name, $(name)]
-      - [schema:isbn, $(isbn)]
