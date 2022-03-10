@@ -59,3 +59,5 @@ _bookdown_files
 
 # venv
 venv
+
+*.Rdata
