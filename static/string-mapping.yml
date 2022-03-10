@@ -1,0 +1,10 @@
+default:
+  organisation:
+    - "verlag"
+    - "e.v."
+    - "kollektiv"
+  nonsense:
+    - "\\?"
+    - "et.al."
+    - "et .al."
+
