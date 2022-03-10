@@ -70,14 +70,15 @@ create_table <- "
 CREATE TABLE IF NOT EXISTS `matching_candidates_authors_books_posters` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
-  `source_1` varchar(50) COLLATE utf8mb3_german2_ci DEFAULT NULL,
-  `id_1` int(11) COLLATE utf8mb3_german2_ci DEFAULT NULL,
-  `source_2` varchar(50) COLLATE utf8mb3_german2_ci DEFAULT NULL,
-  `id_2` int(11) COLLATE utf8mb3_german2_ci DEFAULT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `source_1` varchar(50) COLLATE utf8mb3_german2_ci NOT NULL,
+  `id_1` int(11) NOT NULL,
+  `source_2` varchar(50) COLLATE utf8mb3_german2_ci NOT NULL,
+  `id_2` int(11) NOT NULL,
   `value` float DEFAULT NULL,
-  `rank` bigint DEFAULT NULL,
+  `rank` bigint(20) DEFAULT NULL,
   `decision` varchar(1501) COLLATE utf8mb3_german2_ci NOT NULL DEFAULT 'no_judgement',
-  PRIMARY KEY `keys` (`id_1`,`id_2`, `source_1`, `source_2`)
+  PRIMARY KEY `id` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_german2_ci COMMENT='Table to store calculation of similarities between entities. Afterwards there needs to be a human decision made. Decisions are written in this database.';
 "
 
