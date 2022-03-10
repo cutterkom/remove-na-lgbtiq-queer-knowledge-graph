@@ -59,7 +59,7 @@ bigrams <- corp %>%
 
 # Calculate similarities -> create candidate pairs -------------------------
 
-bigrams_sims <- calc_similarity(bigrams, method = "cosine", min_sim = 0.65) %>% 
+candidates <- calc_similarity(bigrams, method = "cosine", min_sim = 0.65) %>% 
   left_join(authors %>% select(-author), by = c("id_1" = "id")) %>% 
   left_join(authors %>% select(-author), by = c("id_2" = "id"), suffix = c("_1", "_2")) %>% 
   select(id_1 = author_id_1, id_2 = author_id_2, source_1, source_2, value, rank)
@@ -67,7 +67,7 @@ bigrams_sims <- calc_similarity(bigrams, method = "cosine", min_sim = 0.65) %>%
 # Write in DB -------------------------------------------------------------
 
 create_table <- "
-CREATE TABLE IF NOT EXISTS `matching_authors_books_posters` (
+CREATE TABLE IF NOT EXISTS `matching_candidates_authors_books_posters` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
   `source_1` varchar(50) COLLATE utf8mb3_german2_ci DEFAULT NULL,
@@ -83,5 +83,5 @@ CREATE TABLE IF NOT EXISTS `matching_authors_books_posters` (
 
 con <- connect_db()
 dbExecute(con, create_table)
-dbAppendTable(con, "matching_authors_books_posters", bigrams_sims)
+dbAppendTable(con, "matching_candidates_authors_books_posters", candidates)
 dbDisconnect(con); rm(con)
