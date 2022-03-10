@@ -36,7 +36,6 @@ posters_wide <- tbl(con, "posters_wide") %>%
   collect()
 
 books_wide <- tbl(con, "books_wide") %>% 
-  #distinct(author_id, author, book_title = name, isbn, subtitle, location, publisher, year) %>% 
   filter(author_id %in% book_author_ids) %>% 
   collect()
 
@@ -44,9 +43,9 @@ DBI::dbDisconnect(con); rm(con)
 
 # Export data -------------------------------------------------------------
 
-export_data <- list(
-  "candidates" = candidates,
-  "poster_meta" = books_wide,
-  "poster_meta" = posters_wide)
+candidates <- list(
+  "similarities" = candidates,
+  "books_additional_infos" = books_wide,
+  "poster_additional_infos" = posters_wide)
 
-save(export_data, file = "apps/entity-resolver/data/candidates-authors.Rdata")
+save(candidates, file = "apps/entity-resolver/data/candidates-authors.Rdata")
