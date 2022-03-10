@@ -4,17 +4,20 @@ import kglab
 
 namespaces = {
     "ex":  "http://example.com/",
-    "schema": "https://schema.org/",
-    "wd": "http://www.wikidata.org/entity/"
+    "schema": "https://schema.org/"
     }
 
 kg = kglab.KnowledgeGraph(
     name = "A KG example",
     namespaces = namespaces,
     )
-print(kg)
+
+kg.describe_ns()
+
 kg.materialize('config.ini');
 
-kg_to_write = kg.save_rdf_text(format="ttl")
-print(kg_to_write)
-kg.save_rdf("rdf-from-yamrrrl.ttl")
+kg_string = kg.save_rdf_text(format="ttl")
+print(kg_string)
+
+kg.save_rdf("output/rdf-triples.ttl")
+kg.save_jsonld("output/rdf-triples.jsonld")
