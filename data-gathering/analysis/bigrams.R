@@ -1,5 +1,7 @@
-# Ngrams based blocks
-# 2 grams -> messier names data
+# title: Calculate Similarities for Human Eyes
+# desc: In order to find duplicates, the cosine similarities between bigrams on character level (shingles) is calculated and above 0.65 saved in DB. There they wait for a human judgement.
+# input: DB tbl books_authors and posters_authors
+# output: DB tbl matching_authors_books_posters
 
 library(tidyverse)
 library(kabrutils)
@@ -34,12 +36,8 @@ string_mappings <- get(file = "static/string-mapping.yml")
 
 bigrams_authors <- authors %>% 
   select(id = author_id, name = author) %>% 
-  #split_human_name(col = "name") %>% 
   clean_string(col = "name") %>% 
   filter(
-    # remove Verlage and Vereine
-    # !str_detect(tolower(name), paste0(string_mappings$organisation, collapse = "|")),
-    # remove ? 
     !str_detect(tolower(name), paste0(string_mappings$nonsense, collapse = "|")),
     # remove if there is no space in the name -> just 1 name or abbreviation
     str_detect(name, "\\s")
@@ -66,9 +64,6 @@ bigrams_sims_with_names <- bigrams_sims %>%
   left_join(bigrams_authors, by = c("id_1" = "id")) %>% 
   left_join(bigrams_authors, by = c("id_2" = "id"), suffix = c("_1", "_2"))
 
-# bigrams_sims_with_names %>% count(id_1, sort = T) %>% 
-#   left_join(bigrams_sims_with_names) %>% View
-
 # Write in DB -------------------------------------------------------------
 
 create_table <- "
@@ -85,10 +80,8 @@ CREATE TABLE IF NOT EXISTS `matching_authors_books_posters` (
 "
 
 con <- connect_db()
-# create db tbl if not exists
 dbExecute(con, create_table)
 dbAppendTable(con, "matching_authors_books_posters", bigrams_sims)
-dbExecute(con, sort_table)
 dbDisconnect(con); rm(con)
 
 
