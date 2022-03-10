@@ -1,0 +1,219 @@
+---
+title: "Who Is Who?"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: column
+    vertical_layout: fill
+runtime: shiny
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+library(tidyverse)
+library(kabrutils)
+
+
+#load("apps/entity-resolver/data/candidates-authors.Rdata")
+load("data/candidates-authors.Rdata")
+
+```
+
+
+
+```{r get_data functions}
+
+
+#' get a cancidate pair to check
+#' 
+#' rule to choose
+#' - not yet checked: `decision == "no_judgement"`
+#' - minimum rank: highest similarity
+#' - minimum id: in order to choose when similar rank
+#' 
+#' @param data dataframe with similarties
+#' @return dataframe with 1 row
+#' 
+get_candidates_to_check <- function(data) {
+  data %>% 
+    dplyr::filter(decision == "no_judgement" & rank == min(rank)) %>% 
+    dplyr::slice(1)
+}
+
+
+#' Get candidates names
+#' 
+#' Looks for id_1 and if source is books or poster. 
+#' Then joins name from additional_infos df depending in source
+#' Does same for id_2.
+#' Then joins results for both together
+#' 
+get_candidates_names <- function(data) {
+  candidate_1 <- data %>% 
+    dplyr::distinct(id, source_1, id_1)
+  
+  if(candidate_1$source_1 == "book") {
+    candidate_1 <- candidate_1 %>% 
+      dplyr::left_join(candidates$books_additional_infos %>% 
+                         dplyr::distinct(author_id, name_1 = author), by = c("id_1" = "author_id"))
+  } else if (candidate_1$source_1 == "poster") { 
+    candidate_1 <- candidate_1 %>% 
+      dplyr::left_join(candidates$poster_additional_infos %>% 
+                         dplyr::distinct(author_id, name_1 = author), by = c("id_1" = "author_id"))
+  } else {
+    print("not implemented")
+  }
+  
+  candidate_2 <- data %>% 
+    dplyr::distinct(id, source_2, id_2)
+  
+  if(candidate_2$source_2 == "book") {
+    candidate_2 <- candidate_2 %>% 
+      dplyr::left_join(candidates$books_additional_infos %>% 
+                  dplyr::distinct(author_id, name_2 = author), by = c("id_2" = "author_id"))
+  } else if (candidate_2$source_2 == "poster") { 
+    candidate_2 <- candidate_2 %>% 
+      dplyr::left_join(candidates$poster_additional_infos %>% 
+                         dplyr::distinct(author_id, name_2 = author), by = c("id_2" = "author_id"))
+  } else {
+    print("not implemented")
+  }
+  
+  candidate_names <- dplyr::inner_join(candidate_1, candidate_2, by = "id")
+  candidate_names
+}
+
+
+#' Save the decision in dataframe and as a csv file
+#'
+#' @param data data with similarities
+#' @param candidates the two candidates to decide on
+#' @param decision: positive, negatove, not_sure, next (no decision)
+#' 
+save_decision <- function(data, candidates, decision) {
+  
+  if (decision == "positive") {
+    print("it's positive, baby")
+    result <- data %>%
+      dplyr::mutate(
+        decision = ifelse(id == candidates$id, "positive", decision),
+        updated_at = ifelse(id == candidates$id, Sys.time(), updated_at)
+      )
+    
+     write_csv(result, "data/result-entity-resolution.csv")
+     
+  } else if (decision == "negative") {
+    print("nope, not the same")
+    result <- data %>%
+      dplyr::mutate(
+        decision = ifelse(id == candidates$id, "negative", decision),
+        updated_at = ifelse(id == candidates$id, Sys.time(), updated_at)
+      )
+    
+     write_csv(result, "data/result-entity-resolution.csv")
+     
+  } else if (decision == "not_sure") {
+    print("can't decide, sorry. needs to be checked again")
+    result <- data %>%
+      dplyr::mutate(
+        decision = ifelse(id == candidates$id, "not_sure", decision),
+        updated_at = ifelse(id == candidates$id, Sys.time(), updated_at)
+      )
+    
+     write_csv(result, "data/result-entity-resolution.csv")
+     
+  } else if (decision == "next_candidates") {
+    print("want to check next candidates")
+  }
+  
+}
+```
+
+
+```{r get_data as df}
+candidates_to_check <- candidates$similarities %>% get_candidates_to_check()
+candidate_names <- candidates_to_check %>% get_candidates_names()
+```
+
+<!-- Sidebar {.sidebar} -->
+<!-- ===================================== -->
+
+<!-- ```{r} -->
+<!-- # shiny inputs defined here -->
+<!-- ``` -->
+
+Page 1
+=====================================  
+
+Column {data-width=30%}
+-------------------------------------
+
+### Decision
+
+```{r show_buttons}
+actionButton("button_positive", "Ja, identisch")
+br();br()
+actionButton("button_negative", "Nein, verschieden")
+br();br()
+actionButton("button_not_sure", "Unsicher")
+br();br()
+actionButton("button_next", "Skip")
+```
+
+```{r save_decision_after_click}
+
+# when button click, then save decision in csv file
+# it's an observeEvent, because nothing changes in app
+# see: https://mastering-shiny.org/basic-reactivity.html#observers
+observeEvent(input$button_positive, {
+  save_decision(candidates$similarities, candidates_to_check, "positive")
+})
+
+observeEvent(input$button_negative, {
+  save_decision(candidates$similarities, candidates_to_check, "negative")
+})
+
+observeEvent(input$button_not_sure, {
+  save_decision(candidates$similarities, candidates_to_check, "not_sure")
+})
+
+observeEvent(input$button_next, {
+  save_decision(candidates$similarities, candidates_to_check, "next")
+})
+```
+
+
+```{r show_next_candidates_after_decision}
+btn_positive <- reactive({
+  input$button_positive
+  save_decision(candidates$similarities, candidates_to_check, "positive")
+  candidates_to_check <- result %>% get_candidates_to_check()
+})
+
+```
+
+
+Column {data-width=70%}
+-------------------------------------
+
+### Candidate 1
+    
+```{r candiate_1_infos}
+candidate_1_name <- candidate_names %>% pull(name_1)
+h1(candidate_1_name)
+```
+   
+### Candidate 2
+    
+```{r candiate_2_infos}
+candidate_2_name <- candidate_names %>% pull(name_2)
+h1(candidate_2_name)
+```
+
+
+<!-- Page 2 -->
+<!-- =====================================      -->
+
+<!-- ### Chart 2 -->
+
+<!-- ```{r} -->
+<!-- ``` -->
