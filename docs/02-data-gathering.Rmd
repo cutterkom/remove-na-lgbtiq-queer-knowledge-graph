@@ -88,7 +88,7 @@ LEFT JOIN books_years ON book_year.year_id = books_years.year_id;
 
 Wide View on posters data.
 
-````sql
+```sql
 CREATE VIEW posters_wide AS
 SELECT 
 posters.poster_id,
