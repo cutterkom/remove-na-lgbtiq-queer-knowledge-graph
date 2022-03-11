@@ -1,6 +1,4 @@
-
-
-#' get a cancidate pair to check
+#' get a candidate pair to check
 #' 
 #' rule to choose
 #' - not yet checked: `decision == "no_judgement"`
@@ -12,7 +10,7 @@
 #' 
 get_candidates_to_check <- function(data) {
   data %>% 
-    dplyr::filter(decision == "no_judgement" & rank == min(rank) & id == min(id))
+    dplyr::filter(decision == "no_judgement" & rank == min(rank), row_number() == 1)
 }
 
 
@@ -21,7 +19,7 @@ get_candidates_to_check <- function(data) {
 #' Looks for id_1 and if source is books or poster. 
 #' Then joins name from additional_infos df depending in source
 #' Does same for id_2.
-#' Then joins results for both together
+#' Then joins datas for both together
 #' 
 get_candidates_names <- function(data) {
   candidate_1 <- data %>% 
@@ -45,7 +43,7 @@ get_candidates_names <- function(data) {
   if(candidate_2$source_2 == "book") {
     candidate_2 <- candidate_2 %>% 
       dplyr::left_join(candidates$books_additional_infos %>% 
-                  dplyr::distinct(author_id, name_2 = author), by = c("id_2" = "author_id"))
+                         dplyr::distinct(author_id, name_2 = author), by = c("id_2" = "author_id"))
   } else if (candidate_2$source_2 == "poster") { 
     candidate_2 <- candidate_2 %>% 
       dplyr::left_join(candidates$poster_additional_infos %>% 
@@ -57,112 +55,41 @@ get_candidates_names <- function(data) {
   candidate_names <- dplyr::inner_join(candidate_1, candidate_2, by = "id")
   candidate_names
 }
-  
-
-#######
 
 
-decision <- "next_candidates"
-
-save_decision <- function(data, candidates) {
+#' Save the decision in dataframe and as a csv file
+#'
+#' @param data data with similarities
+#' @param candidates the two candidates to decide on
+#' @param decision: positive, negatove, not_sure, next (no decision)
+#' 
+save_decision <- function(candidates, decision) {
   
   if (decision == "positive") {
+    query <- paste0("UPDATE matching_candidates_authors_books_posters SET decision = 'positive' WHERE id =", candidates$id, ";")
+    con <- connect_db()
+    dbExecute(con, query)
+    dbDisconnect(con); rm(con)
+    
     print("it's positive, baby")
-    result <- candidates_to_check %>% 
-      mutate(
-        decision = "positive",
-        updated_at = Sys.time())
-  } else if (decision == "positive") {
+    
+  } else if (decision == "negative") {
+    
+    query <- paste0("UPDATE matching_candidates_authors_books_posters SET decision = 'negative' WHERE id =", candidates$id, ";")
+    con <- connect_db()
+    dbExecute(con, query)
+    dbDisconnect(con); rm(con)
     print("nope, not the same")
-    result <- candidates_to_check %>% 
-      mutate(
-        decision = "negative",
-        updated_at = Sys.time())
+    
   } else if (decision == "not_sure") {
+    query <- paste0("UPDATE matching_candidates_authors_books_posters SET decision = 'not_sure' WHERE id =", candidates$id, ";")
+    con <- connect_db()
+    dbExecute(con, query)
+    dbDisconnect(con); rm(con)
     print("can't decide, sorry. needs to be checked again")
-    result <- candidates_to_check %>% 
-      mutate(
-        decision = "not_sure",
-        updated_at = Sys.time())
+    
   } else if (decision == "next_candidates") {
     print("want to check next candidates")
+    return(data)
   }
 }
-
-if (decision == "positive") {
-  print("it's positive, baby")
-  result <- candidates_to_check %>% 
-    mutate(
-      decision = "positive",
-      updated_at = Sys.time())
-} else if (decision == "positive") {
-  print("nope, not the same")
-  result <- candidates_to_check %>% 
-    mutate(
-      decision = "negative",
-      updated_at = Sys.time())
-} else if (decision == "not_sure") {
-  print("can't decide, sorry. needs to be checked again")
-  result <- candidates_to_check %>% 
-    mutate(
-      decision = "not_sure",
-      updated_at = Sys.time())
-} else if (decision == "next_candidates") {
-  print("want to check next candidates")
-}
-
-
-
-
-
-
-
-
-decision <- "positive"
-
-if (decision == "positive") {
-  print("it's positive, baby")
-  result <- candidates$similarities %>%
-    mutate(
-      decision = ifelse(id == candidates_to_check$id, "positive", decision),
-      updated_at = Sys.time()
-      )
-} else if (decision == "positive") {
-  print("nope, not the same")
-  result <- candidates_to_check %>% 
-    mutate(
-      decision = "negative",
-      updated_at = Sys.time())
-} else if (decision == "not_sure") {
-  print("can't decide, sorry. needs to be checked again")
-  result <- candidates_to_check %>% 
-    mutate(
-      decision = "not_sure",
-      updated_at = Sys.time())
-} else if (decision == "next_candidates") {
-  print("want to check next candidates")
-}
-  
-result
-
-
-candidates$similarities
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

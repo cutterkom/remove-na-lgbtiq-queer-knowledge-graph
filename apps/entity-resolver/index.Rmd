@@ -11,19 +11,17 @@ runtime: shiny
 library(flexdashboard)
 library(tidyverse)
 library(kabrutils)
+library(DBI)
 
 
 #load("apps/entity-resolver/data/candidates-authors.Rdata")
 load("data/candidates-authors.Rdata")
 
+#source("get_infos.R")
 ```
 
-
-
-```{r get_data functions}
-
-
-#' get a cancidate pair to check
+```{r}
+#' get a candidate pair to check
 #' 
 #' rule to choose
 #' - not yet checked: `decision == "no_judgement"`
@@ -35,8 +33,7 @@ load("data/candidates-authors.Rdata")
 #' 
 get_candidates_to_check <- function(data) {
   data %>% 
-    dplyr::filter(decision == "no_judgement" & rank == min(rank)) %>% 
-    dplyr::slice(1)
+    dplyr::filter(decision == "no_judgement" & rank == min(rank), row_number() == 1)
 }
 
 
@@ -45,7 +42,9 @@ get_candidates_to_check <- function(data) {
 #' Looks for id_1 and if source is books or poster. 
 #' Then joins name from additional_infos df depending in source
 #' Does same for id_2.
-#' Then joins results for both together
+#' Then joins datas for both together
+#' 
+#' not really good implemented yet,  because dependent on candidates$books_additional_infos which is quite unstructured
 #' 
 get_candidates_names <- function(data) {
   candidate_1 <- data %>% 
@@ -69,7 +68,7 @@ get_candidates_names <- function(data) {
   if(candidate_2$source_2 == "book") {
     candidate_2 <- candidate_2 %>% 
       dplyr::left_join(candidates$books_additional_infos %>% 
-                  dplyr::distinct(author_id, name_2 = author), by = c("id_2" = "author_id"))
+                         dplyr::distinct(author_id, name_2 = author), by = c("id_2" = "author_id"))
   } else if (candidate_2$source_2 == "poster") { 
     candidate_2 <- candidate_2 %>% 
       dplyr::left_join(candidates$poster_additional_infos %>% 
@@ -89,57 +88,48 @@ get_candidates_names <- function(data) {
 #' @param candidates the two candidates to decide on
 #' @param decision: positive, negatove, not_sure, next (no decision)
 #' 
-save_decision <- function(data, candidates, decision) {
+save_decision <- function(candidates, decision) {
   
   if (decision == "positive") {
+    query <- paste0("UPDATE matching_candidates_authors_books_posters SET decision = 'positive' WHERE id =", candidates$id, ";")
+    con <- connect_db()
+    dbExecute(con, query)
+    dbDisconnect(con); rm(con)
+    
     print("it's positive, baby")
-    result <- data %>%
-      dplyr::mutate(
-        decision = ifelse(id == candidates$id, "positive", decision),
-        updated_at = ifelse(id == candidates$id, Sys.time(), updated_at)
-      )
     
-     write_csv(result, "data/result-entity-resolution.csv")
-     
   } else if (decision == "negative") {
+    
+    query <- paste0("UPDATE matching_candidates_authors_books_posters SET decision = 'negative' WHERE id =", candidates$id, ";")
+    con <- connect_db()
+    dbExecute(con, query)
+    dbDisconnect(con); rm(con)
     print("nope, not the same")
-    result <- data %>%
-      dplyr::mutate(
-        decision = ifelse(id == candidates$id, "negative", decision),
-        updated_at = ifelse(id == candidates$id, Sys.time(), updated_at)
-      )
     
-     write_csv(result, "data/result-entity-resolution.csv")
-     
   } else if (decision == "not_sure") {
+    query <- paste0("UPDATE matching_candidates_authors_books_posters SET decision = 'not_sure' WHERE id =", candidates$id, ";")
+    con <- connect_db()
+    dbExecute(con, query)
+    dbDisconnect(con); rm(con)
     print("can't decide, sorry. needs to be checked again")
-    result <- data %>%
-      dplyr::mutate(
-        decision = ifelse(id == candidates$id, "not_sure", decision),
-        updated_at = ifelse(id == candidates$id, Sys.time(), updated_at)
-      )
     
-     write_csv(result, "data/result-entity-resolution.csv")
-     
   } else if (decision == "next_candidates") {
     print("want to check next candidates")
+    return(data)
   }
-  
 }
 ```
 
 
-```{r get_data as df}
-candidates_to_check <- candidates$similarities %>% get_candidates_to_check()
-candidate_names <- candidates_to_check %>% get_candidates_names()
+Sidebar {.sidebar}
+=====================================
+
+This is an entity resolver.
+It's about ... 
+
+```{r}
+actionButton("button_start", "Start")
 ```
-
-<!-- Sidebar {.sidebar} -->
-<!-- ===================================== -->
-
-<!-- ```{r} -->
-<!-- # shiny inputs defined here -->
-<!-- ``` -->
 
 Page 1
 =====================================  
@@ -155,60 +145,67 @@ br();br()
 actionButton("button_negative", "Nein, verschieden")
 br();br()
 actionButton("button_not_sure", "Unsicher")
-br();br()
-actionButton("button_next", "Skip")
 ```
 
-```{r save_decision_after_click}
+```{r get_candidates_from_db}
 
-# when button click, then save decision in csv file
-# it's an observeEvent, because nothing changes in app
-# see: https://mastering-shiny.org/basic-reactivity.html#observers
-observeEvent(input$button_positive, {
-  save_decision(candidates$similarities, candidates_to_check, "positive")
-})
-
-observeEvent(input$button_negative, {
-  save_decision(candidates$similarities, candidates_to_check, "negative")
-})
-
-observeEvent(input$button_not_sure, {
-  save_decision(candidates$similarities, candidates_to_check, "not_sure")
-})
-
-observeEvent(input$button_next, {
-  save_decision(candidates$similarities, candidates_to_check, "next")
-})
-```
-
-
-```{r show_next_candidates_after_decision}
-btn_positive <- reactive({
-  input$button_positive
-  save_decision(candidates$similarities, candidates_to_check, "positive")
-  candidates_to_check <- result %>% get_candidates_to_check()
-})
+candidates_to_check <- eventReactive(input$button_start, {
+   
+    con <- connect_db()
+    candidates <- tbl(con, "matching_candidates_authors_books_posters") %>% 
+      dplyr::filter(decision == "no_judgement") %>% 
+      dplyr::arrange(rank) %>% 
+      dplyr::filter(row_number() == 1) %>% 
+      dplyr::collect()
+    print(candidates)
+    DBI::dbDisconnect(con); rm(con)
+    return(candidates)
+  })
 
 ```
 
 
 Column {data-width=70%}
 -------------------------------------
+```{r get_candidate_names}
+candidate_names <- eventReactive(input$button_start, {
+    candidates_to_check() %>% get_candidates_names()
+  })
+```
 
 ### Candidate 1
     
 ```{r candiate_1_infos}
-candidate_1_name <- candidate_names %>% pull(name_1)
-h1(candidate_1_name)
+renderUI({h1(candidate_names() %>% pull(name_1))})
 ```
-   
+  
 ### Candidate 2
     
 ```{r candiate_2_infos}
-candidate_2_name <- candidate_names %>% pull(name_2)
-h1(candidate_2_name)
+renderUI({h1(candidate_names() %>% pull(name_2))})
 ```
 
+
+```{r save_decision_after_click_in_db}
+
+# when button click, then save decision in csv file
+# it's an observeEvent, because nothing changes in app
+# see: https://mastering-shiny.org/basic-reactivity.html#observers
+
+
+observeEvent(input$button_positive, {
+    print(candidates_to_check())
+    save_decision(candidates_to_check(), "positive")
+  })
+  
+observeEvent(input$button_negative, {
+    save_decision(candidates_to_check(), "negative")
+  })
+  
+observeEvent(input$button_not_sure, {
+    save_decision(candidates_to_check(), "not_sure")
+  })
+```
 
 <!-- Page 2 -->
 <!-- =====================================      -->

@@ -31,8 +31,8 @@ book_author_ids <- candidates %>%
 # Get additional infos ----------------------------------------------------
 
 posters_wide <- tbl(con, "posters_wide") %>% 
-  distinct(author_id, author) %>% 
   filter(author_id %in% poster_author_ids) %>% 
+  distinct(author_id, author) %>% 
   collect()
 
 books_wide <- tbl(con, "books_wide") %>% 
@@ -47,5 +47,7 @@ candidates <- list(
   "similarities" = candidates,
   "books_additional_infos" = books_wide,
   "poster_additional_infos" = posters_wide)
+
+saveRDS(candidates, file = "apps/entity-resolver/data/candidates.Rds")
 
 save(candidates, file = "apps/entity-resolver/data/candidates-authors.Rdata")
