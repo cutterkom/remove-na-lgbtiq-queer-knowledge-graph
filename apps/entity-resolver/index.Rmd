@@ -242,16 +242,17 @@ renderTable({
 
 
 observeEvent(input$button_positive, {
-    print(input$keep_candidate_2_label)
-    save_decision(candidates_to_check(), "positive", input$keep_candidate_2_label)
+  save_decision(candidates_to_check(), "positive", input$keep_candidate_2_label)
+  # after decision for YES, set checkbox back to default state
+  updateCheckboxInput(session,"keep_candidate_2_label", value = FALSE)
   })
   
 observeEvent(input$button_negative, {
-    save_decision(candidates_to_check(), "negative")
+  save_decision(candidates_to_check(), "negative")
   })
   
 observeEvent(input$button_not_sure, {
-    save_decision(candidates_to_check(), "not_sure")
+  save_decision(candidates_to_check(), "not_sure")
   })
 ```
 
