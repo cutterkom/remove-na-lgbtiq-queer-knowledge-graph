@@ -2,8 +2,7 @@
 title: "Who Is Who?"
 output: 
   flexdashboard::flex_dashboard:
-    orientation: column
-    vertical_layout: fill
+    vertical_layout: scroll
 runtime: shiny
 ---
 
@@ -13,11 +12,7 @@ library(tidyverse)
 library(kabrutils)
 library(DBI)
 
-
-#load("apps/entity-resolver/data/candidates-authors.Rdata")
 load("data/candidates-authors.Rdata")
-
-#source("get_infos.R")
 ```
 
 ```{r}
@@ -121,14 +116,14 @@ save_decision <- function(candidates, decision) {
 ```
 
 
-Sidebar {.sidebar}
+Beschreibung {.sidebar}
 =====================================
 
-This is an entity resolver.
-It's about ... 
+Bei `Start/Next` wird das nächste Kandidatenpaar angezeigt.
+Mit 
 
 ```{r}
-actionButton("button_start", "Start")
+actionButton("button_start", "Start/Next")
 ```
 
 Page 1
@@ -137,7 +132,9 @@ Page 1
 Column {data-width=30%}
 -------------------------------------
 
-### Decision
+### Entscheidung
+
+Sind die beiden Entitäten identisch oder nicht? Bist du unsicher?
 
 ```{r show_buttons}
 actionButton("button_positive", "Ja, identisch")
@@ -157,7 +154,7 @@ candidates_to_check <- eventReactive(input$button_start, {
       dplyr::arrange(rank) %>% 
       dplyr::filter(row_number() == 1) %>% 
       dplyr::collect()
-    print(candidates)
+    
     DBI::dbDisconnect(con); rm(con)
     return(candidates)
   })
@@ -171,18 +168,55 @@ Column {data-width=70%}
 candidate_names <- eventReactive(input$button_start, {
     candidates_to_check() %>% get_candidates_names()
   })
+
+candidate_sources <- eventReactive(input$button_start, { 
+    candidates_to_check() %>% select(source_1, source_2)
+  })
 ```
 
 ### Candidate 1
     
 ```{r candiate_1_infos}
-renderUI({h1(candidate_names() %>% pull(name_1))})
+
+renderUI({
+   tagList(
+    h1(candidate_names() %>% pull(name_1)),
+    p(paste("Source: ", candidate_sources() %>% pull(source_1))),
+   
+   )
+})
+
+renderTable({
+   if(candidate_sources() %>% pull(source_1) == "book") {
+     inner_join(candidates_to_check() %>% distinct(source_1, id_1), 
+           candidates$books_additional_infos %>% select(author_id, title = name, subtitle, publisher, isbn, location, year), 
+           by = c("id_1" = "author_id")) %>% 
+  select(-contains("source_"), -contains("id_")) 
+    }
+})
+
+
 ```
   
 ### Candidate 2
     
 ```{r candiate_2_infos}
-renderUI({h1(candidate_names() %>% pull(name_2))})
+
+renderUI({
+   tagList(
+    h1(candidate_names() %>% pull(name_2)),
+    p(paste("Source: ", candidate_sources() %>% pull(source_2)))
+   )
+})
+
+renderTable({
+   if(candidate_sources() %>% pull(source_2) == "book") {
+     inner_join(candidates_to_check() %>% distinct(source_2, id_2), 
+           candidates$books_additional_infos %>% select(author_id, title = name, subtitle, publisher, isbn, location, year), 
+           by = c("id_2" = "author_id")) %>% 
+  select(-contains("source_"), -contains("id_")) 
+    }
+})
 ```
 
 
