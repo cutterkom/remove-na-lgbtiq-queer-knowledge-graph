@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS `matching_candidates_authors_books_posters` (
   `value` float DEFAULT NULL,
   `rank` bigint(20) DEFAULT NULL,
   `decision` varchar(1501) COLLATE utf8mb3_german2_ci NOT NULL DEFAULT 'no_judgement',
+  `keep_label_2` int(1) COLLATE utf8mb3_german2_ci DEFAULT NULL,
   PRIMARY KEY `id` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_german2_ci COMMENT='Table to store calculation of similarities between entities. Afterwards there needs to be a human decision made. Decisions are written in this database.';
 "
