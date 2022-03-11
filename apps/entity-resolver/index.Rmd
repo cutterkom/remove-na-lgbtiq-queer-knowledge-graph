@@ -83,10 +83,16 @@ get_candidates_names <- function(data) {
 #' @param candidates the two candidates to decide on
 #' @param decision: positive, negatove, not_sure, next (no decision)
 #' 
-save_decision <- function(candidates, decision) {
+save_decision <- function(candidates, decision, ...) {
   
   if (decision == "positive") {
-    query <- paste0("UPDATE matching_candidates_authors_books_posters SET decision = 'positive' WHERE id =", candidates$id, ";")
+    
+    if(input$keep_candidate_2_label == TRUE) {
+      query <- paste0("UPDATE matching_candidates_authors_books_posters SET decision = 'positive', keep_label_2 = 1 WHERE id =", candidates$id, ";")
+    } else {
+      query <- paste0("UPDATE matching_candidates_authors_books_posters SET decision = 'positive' WHERE id =", candidates$id, ";")
+    }
+
     con <- connect_db()
     dbExecute(con, query)
     dbDisconnect(con); rm(con)
@@ -120,11 +126,17 @@ Beschreibung {.sidebar}
 =====================================
 
 Bei `Start/Next` wird das nächste Kandidatenpaar angezeigt.
-Mit 
 
 ```{r}
 actionButton("button_start", "Start/Next")
 ```
+
+
+### Anmerkungen
+
+* Wenn du dich für `Ja, identisch` entscheidest, wird der Name/das Label von `Candidate 1` behalten. Möchtest du das ändern und lieber den Namen von `Candidate 2` behalten, dann setze bitte den Hacken über dem `Ja`-Button.
+
+* Die Information wird direkt in der Datenbank gespeichert, aber der Merge an sich wird manuell angestoßen.
 
 Page 1
 =====================================  
@@ -137,11 +149,13 @@ Column {data-width=30%}
 Sind die beiden Entitäten identisch oder nicht? Bist du unsicher?
 
 ```{r show_buttons}
+checkboxInput("keep_candidate_2_label", "Behalte Name von Candidate 2")
 actionButton("button_positive", "Ja, identisch")
-br();br()
+hr(); br()
 actionButton("button_negative", "Nein, verschieden")
-br();br()
+br();hr(); br()
 actionButton("button_not_sure", "Unsicher")
+br();br()
 ```
 
 ```{r get_candidates_from_db}
@@ -228,8 +242,8 @@ renderTable({
 
 
 observeEvent(input$button_positive, {
-    print(candidates_to_check())
-    save_decision(candidates_to_check(), "positive")
+    print(input$keep_candidate_2_label)
+    save_decision(candidates_to_check(), "positive", input$keep_candidate_2_label)
   })
   
 observeEvent(input$button_negative, {
