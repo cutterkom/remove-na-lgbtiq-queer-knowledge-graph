@@ -60,3 +60,5 @@ _bookdown_files
 /venv/
 
 *.code-workspace
+
+*.Rdata
