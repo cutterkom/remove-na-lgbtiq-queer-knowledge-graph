@@ -58,3 +58,5 @@ themengeschichtspfad.pdf
 _bookdown_files
 
 /venv/
+
+*.code-workspace
