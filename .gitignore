@@ -59,3 +59,8 @@ _bookdown_files
 
 # venv
 venv
+
+*.Rdata
+*.ttl
+*.jsonld
+
