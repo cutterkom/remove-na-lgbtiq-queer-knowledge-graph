@@ -4,7 +4,7 @@ prefixes:
 
 sources:
   posters_wide:
-    table: posters_wide_distinct # needs to be distinct, not working with 
+    table: posters_wide
     queryFormulation: mysql
   
 mappings:
@@ -17,4 +17,4 @@ mappings:
       - [schema:datePublished, $(year)]
       - [schema:headline, $(title)]
       - [schema:size, $(size)]
-      # - [schema:keywords, $(keyword)] # not working, because not distinct
+      - [schema:keywords, $(keyword)]
