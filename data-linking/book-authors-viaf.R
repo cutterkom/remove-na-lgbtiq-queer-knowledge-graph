@@ -1,5 +1,7 @@
-# Connect forum author_id with VIAF
-# https://viaf.org/
+# title: Connect books_authors with VIAF
+# there is an API to the Viaf.org authority file that suggest an entity based on an input string. R-package viafr is used for it.
+# input: books_authors
+# output: el_viaf_books_authors
 
 library(tidyverse)
 library(viafr)
