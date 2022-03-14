@@ -1,5 +1,4 @@
 import os
-from icecream import ic
 import kglab
 
 namespaces = {
@@ -14,10 +13,10 @@ kg = kglab.KnowledgeGraph(
 
 kg.describe_ns()
 
-kg.materialize('config.ini');
+kg.materialize('configs/posters-config.ini')
 
 kg_string = kg.save_rdf_text(format="ttl")
 print(kg_string)
 
-kg.save_rdf("output/rdf-triples.ttl")
-kg.save_jsonld("output/rdf-triples.jsonld")
+kg.save_rdf("output/rdf-triples-poster.ttl")
+kg.save_jsonld("output/rdf-triples-poster.jsonld")
