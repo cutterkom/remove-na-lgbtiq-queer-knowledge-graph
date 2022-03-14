@@ -48,12 +48,12 @@ viaf_data_raw <- authors %>%
 viaf_data <- viaf_data_raw %>%
   filter(source_ids_scheme == "DNB") %>%
   #rename(id = author_id) %>% 
-  group_by(author_id) %>%
+  group_by(id) %>%
   filter(score == max(score)) %>%
   ungroup() %>%
-  distinct(author_id, author, viaf_id, gnd_id = source_ids_id, source_ids_scheme, score) %>%
+  distinct(id, author, viaf_id, gnd_id = source_ids_id, source_ids_scheme, score) %>%
   mutate(score = as.numeric(score)) %>%
-  right_join(authors, by = c("author_id", "author"))
+  right_join(authors, by = c("id", "author"))
 
 # cleaning ----------------------------------------------------------------
 
