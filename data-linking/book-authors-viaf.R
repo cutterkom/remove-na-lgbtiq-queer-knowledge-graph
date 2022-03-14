@@ -12,7 +12,10 @@ library(kabrutils)
 
 con <- connect_db()
 authors <- tbl(con, "books_authors") %>%
-  collect()
+  collect() %>% 
+  rename(id = author_id) %>% 
+  # remove `é` etc, but change Ö to OE instead of O
+  mutate(author = stringi::stri_trans_general(author, "de-ASCII; Latin-ASCII"))
 DBI::dbDisconnect(con); rm(con)
 
 
