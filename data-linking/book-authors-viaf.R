@@ -7,6 +7,7 @@ library(DBI)
 library(cli)
 library(dbx)
 library(kabrutils)
+library(testdat)
 
 # import from db ----------------------------------------------------------
 
@@ -66,9 +67,27 @@ viaf_data <- viaf_data %>%
 # Write in DB -------------------------------------------------------------
 
 import <- viaf_data %>%
-  select(id = author_id, viaf_id, gnd_id, score)
+  select(author_id = id, viaf_id, gnd_id, score)
+
+test_that(
+  desc = "unique values",
+  expect_unique(c(author_id, viaf_id, gnd_id), data = import)
+)
+
+create_table <- "
+CREATE TABLE IF NOT EXISTS `el_viaf_books_authors` (
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
+  `author_id` int(11) NOT NULL,
+  `viaf_id` VARCHAR(55) NOT NULL,
+  `gnd_id` VARCHAR(55),
+  `score` int(11),
+  PRIMARY KEY `id` (`author_id`, `viaf_id`, `gnd_id`),
+  CONSTRAINT `author_id` FOREIGN KEY (`author_id`) REFERENCES `books_authors` (`author_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_german2_ci COMMENT='Table to store links of books_authors to VIAF and GND.';
+"
 
 con <- connect_db()
-dbxUpsert(con, "books_authors_viaf_gnd", import, where_cols = c("id", "viaf_id", "gnd_id"))
-dbDisconnect(con)
-rm(con)
+dbExecute(con, create_table)
+dbAppendTable(con, "el_viaf_books_authors", import)
+dbDisconnect(con); rm(con)
