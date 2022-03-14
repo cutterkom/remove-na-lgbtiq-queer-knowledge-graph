@@ -63,4 +63,5 @@ venv
 *.Rdata
 *.ttl
 *.jsonld
+*.code-workspace
 
