@@ -12,7 +12,7 @@ library(tidyverse)
 library(kabrutils)
 library(DBI)
 library(testdat)
-library(shinyFeedback)
+library(shinyvalidate)
 
 load("data/candidates-authors.Rdata")
 
@@ -277,6 +277,7 @@ renderTable({
 
 ```
   
+
 ### Candidate 2
     
 ```{r candiate_2_infos}
@@ -327,10 +328,98 @@ observeEvent(input$button_not_sure, {
   })
 ```
 
-<!-- Page 2 -->
-<!-- =====================================      -->
+Manual ER
+=====================================
 
-<!-- ### Chart 2 -->
+Row
+-------------------------------------
+
+### Add a manual entry for entity resolution
+
+Du kannst hier manuell hinterlegen, wenn sich hinter zwei IDs die identische Identität verbirgt.
+
+### Candidate 1
+```{r manual_candidate_1}
+fields <- c("manual_source_1", "manual_id_1", "manual_source_2", "manual_id_2")
+
+selectInput("manual_source_1", "Quelle von Kandidat 1", choices = c("books" = "books", "poster" = "poster"))
+textInput("manual_id_1", "ID von Kandidat 1", NA)
+```
+
+<!-- ### Info Candidate 1 -->
 
 <!-- ```{r} -->
+
 <!-- ``` -->
+
+Row
+-------------------------------------
+
+### Save
+
+```{r}
+actionButton("manual_submit", "Submit")
+```
+
+### Candidate 2
+```{r manual_candidate_2}
+selectInput("manual_source_2", "Quelle von Kandidat 2", choices = c("books" = "books", "poster" = "poster"))
+textInput("manual_id_2", "ID von Kandidat 2", value = NA)
+checkboxInput("manual_keep_candidate_2_label", "Behalte Name von Candidate 2")
+```
+
+<!-- ### Info Candidate 2 -->
+
+<!-- ```{r} -->
+
+<!-- ``` -->
+
+
+```{r}
+# Validate input with ShinyValidator:
+# Id MUST be given
+# 1. Create an InputValidator object
+iv_manual <- InputValidator$new()
+# 2. Add validation rules
+iv_manual$add_rule("manual_id_1", sv_required())
+iv_manual$add_rule("manual_id_2", sv_required())
+# 3. Start displaying errors in the UI
+iv_manual$enable()
+  
+manual_input_data <- reactive({
+     req(iv_manual$is_valid())
+  
+  data <- tibble(
+    entities = "manual",
+    source_1 = input$manual_source_1,
+    source_2 = input$manual_source_2,
+    id_1 = input$manual_id_1,
+    id_2 = input$manual_id_2,
+    decision = "positive"
+  ) %>%
+    mutate(keep_label_2 = ifelse(input$manual_keep_candidate_2_label == TRUE, 1, NA))
+  data
+})
+
+observeEvent(input$manual_submit, {
+
+  con <- connect_db()
+  dbAppendTable(con, db_tbl_er_candidates, manual_input_data())
+
+  test_that(
+    desc = "double-check if this_decision was saved in db",
+      expect_equal(
+       tbl(con, db_tbl_er_candidates) %>%
+           filter(entities == "manual", decision == "positive") %>%
+           collect() %>%
+           inner_join(manual_input_data()) %>%
+         nrow(),
+        1
+      )
+    )
+      
+  DBI::dbDisconnect(con)
+  rm(con)
+})
+```
+
