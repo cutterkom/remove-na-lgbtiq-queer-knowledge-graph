@@ -16,7 +16,7 @@ library(shinyFeedback)
 
 load("data/candidates-authors.Rdata")
 
-db_tbl_candidates <- "er_candidates"
+db_tbl_er_candidates <- "er_candidates"
 ```
 
 ```{r}
@@ -96,9 +96,9 @@ save_decision <- function(candidates, decision, ...) {
 
   if (decision == "positive") {
     if (input$keep_candidate_2_label == TRUE) {
-      query <- paste0("UPDATE ", db_tbl_candidates, " SET decision = '", this_decision, "', keep_label_2 = 1 WHERE id =", candidates$id, ";")
+      query <- paste0("UPDATE ", db_tbl_er_candidates, " SET decision = '", this_decision, "', keep_label_2 = 1 WHERE id =", candidates$id, ";")
     } else {
-      query <- paste0("UPDATE ", db_tbl_candidates, " SET decision = '", this_decision, "' WHERE id =", this_candidate_id, ";")
+      query <- paste0("UPDATE ", db_tbl_er_candidates, " SET decision = '", this_decision, "' WHERE id =", this_candidate_id, ";")
     }
 
     con <- connect_db()
@@ -106,7 +106,7 @@ save_decision <- function(candidates, decision, ...) {
     test_that(
       desc = "double-check if this_decision was saved in db",
       expect_equal(
-        tbl(con, db_tbl_candidates) %>%
+        tbl(con, db_tbl_er_candidates) %>%
           filter(id == this_candidate_id, decision == this_decision) %>%
           collect() %>% nrow(),
         1
@@ -118,13 +118,13 @@ save_decision <- function(candidates, decision, ...) {
 
     print("it's positive, baby")
   } else if (decision == "negative") {
-    query <- paste0("UPDATE ", db_tbl_candidates, " SET decision = '", this_decision, "' WHERE id =", this_candidate_id, ";")
+    query <- paste0("UPDATE ", db_tbl_er_candidates, " SET decision = '", this_decision, "' WHERE id =", this_candidate_id, ";")
     con <- connect_db()
     dbExecute(con, query)
     test_that(
       desc = "double-check if this_decision was saved in db",
       expect_equal(
-        tbl(con, db_tbl_candidates) %>%
+        tbl(con, db_tbl_er_candidates) %>%
           filter(id == this_candidate_id, decision == this_decision) %>%
           collect() %>% nrow(),
         1
@@ -135,14 +135,14 @@ save_decision <- function(candidates, decision, ...) {
     rm(con)
     print("nope, not the same")
   } else if (decision == "not_sure") {
-    query <- paste0("UPDATE ", db_tbl_candidates, " SET decision = '", this_decision, "' WHERE id =", this_candidate_id, ";")
+    query <- paste0("UPDATE ", db_tbl_er_candidates, " SET decision = '", this_decision, "' WHERE id =", this_candidate_id, ";")
     con <- connect_db()
     dbExecute(con, query)
 
     test_that(
       desc = "double-check if this_decision was saved in db",
       expect_equal(
-        tbl(con, db_tbl_candidates) %>%
+        tbl(con, db_tbl_er_candidates) %>%
           filter(id == this_candidate_id, decision == this_decision) %>%
           collect() %>% nrow(),
         1
@@ -157,11 +157,38 @@ save_decision <- function(candidates, decision, ...) {
     return(data)
   }
 }
+
+#' Get entities that are available for resultion
+#' 
+#' Basically a distinct on db_tbl_er_candidates entities col.
+#' Is then used to fill a dropdown.
+#' @return df with distinct(er_candidates, entities)
+
+get_er_entities <- function() {
+  con <- connect_db()
+  entities <- tbl(con, db_tbl_er_candidates) %>% 
+    distinct(entities) %>% 
+    collect()
+  dbDisconnect(con)
+  rm(con)
+  return(entities)
+}
+
 ```
 
 
 Beschreibung {.sidebar}
 =====================================
+
+Welche Entitäten sollen aufgelöst werden?
+
+**NOCH NICHT IMPLEMENTIERT:**
+```{r}
+entities_list <- get_er_entities() %>% set_names(get_er_entities())
+selectInput("entities", label = "Entities", choices = entities_list)
+```
+
+
 
 Bei `Start/Next` wird das nächste Kandidatenpaar angezeigt.
 
@@ -201,7 +228,7 @@ br();br()
 candidates_to_check <- eventReactive(input$button_start, {
    
     con <- connect_db()
-    candidates <- tbl(con, db_tbl_candidates) %>% 
+    candidates <- tbl(con, db_tbl_er_candidates) %>% 
       dplyr::filter(decision == "no_judgement") %>% 
       dplyr::arrange(rank) %>% 
       dplyr::filter(row_number() == 1) %>% 
