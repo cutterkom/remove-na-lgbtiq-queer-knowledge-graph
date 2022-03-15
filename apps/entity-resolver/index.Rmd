@@ -12,6 +12,7 @@ library(tidyverse)
 library(kabrutils)
 library(DBI)
 library(testdat)
+library(shinyFeedback)
 
 load("data/candidates-authors.Rdata")
 
@@ -165,7 +166,7 @@ Beschreibung {.sidebar}
 Bei `Start/Next` wird das nächste Kandidatenpaar angezeigt.
 
 ```{r}
-actionButton("button_start", "Start/Next")
+actionButton("button_start", "Start/Next", class = "btn-primary")
 ```
 
 
@@ -187,11 +188,11 @@ Sind die beiden Entitäten identisch oder nicht? Bist du unsicher?
 
 ```{r show_buttons}
 checkboxInput("keep_candidate_2_label", "Behalte Name von Candidate 2")
-actionButton("button_positive", "Ja, identisch")
+actionButton("button_positive", "Ja, identisch", class = "btn-primary")
 hr(); br()
-actionButton("button_negative", "Nein, verschieden")
+actionButton("button_negative", "Nein, verschieden", class = "btn-primary")
 br();hr(); br()
-actionButton("button_not_sure", "Unsicher")
+actionButton("button_not_sure", "Unsicher", class = "btn-primary")
 br();br()
 ```
 
@@ -290,6 +291,7 @@ observeEvent(input$button_negative, {
   
 observeEvent(input$button_not_sure, {
   save_decision(candidates_to_check(), "not_sure")
+
   })
 ```
 
