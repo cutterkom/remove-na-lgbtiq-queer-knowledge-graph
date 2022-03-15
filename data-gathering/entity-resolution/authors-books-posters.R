@@ -9,6 +9,7 @@ library(quanteda)
 library(quanteda.textstats)
 library(DBI)
 library(config)
+library(testdat)
 
 source("R/deduplication-matching.R")
 source("R/utils.R")
@@ -59,18 +60,27 @@ bigrams <- corp %>%
 
 # Calculate similarities -> create candidate pairs -------------------------
 
-candidates <- calc_similarity(bigrams, method = "cosine", min_sim = 0.65) %>% 
+candidates <- calc_similarity(bigrams, method = "cosine", min_sim = 0.75) %>% 
   left_join(authors %>% select(-author), by = c("id_1" = "id")) %>% 
   left_join(authors %>% select(-author), by = c("id_2" = "id"), suffix = c("_1", "_2")) %>% 
   select(id_1 = author_id_1, id_2 = author_id_2, source_1, source_2, value, rank)
 
 # Write in DB -------------------------------------------------------------
 
+import <- candidates %>% 
+  mutate(entities = "authors_books_posters", .before = id_1)
+
+test_that(
+  desc = "uniqueness",
+  expect_unique(c("id_1", "id_2", "source_1", "source_2"), data = import)
+)
+
 create_table <- "
-CREATE TABLE IF NOT EXISTS `matching_candidates_authors_books_posters` (
+CREATE TABLE IF NOT EXISTS `er_candidates` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `entities` varchar(50) COLLATE utf8mb3_german2_ci NOT NULL,
   `source_1` varchar(50) COLLATE utf8mb3_german2_ci NOT NULL,
   `id_1` int(11) NOT NULL,
   `source_2` varchar(50) COLLATE utf8mb3_german2_ci NOT NULL,
@@ -85,5 +95,5 @@ CREATE TABLE IF NOT EXISTS `matching_candidates_authors_books_posters` (
 
 con <- connect_db()
 dbExecute(con, create_table)
-dbAppendTable(con, "matching_candidates_authors_books_posters", candidates)
+dbAppendTable(con, "er_candidates", import)
 dbDisconnect(con); rm(con)
