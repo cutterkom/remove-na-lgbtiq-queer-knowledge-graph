@@ -11,6 +11,7 @@ library(flexdashboard)
 library(tidyverse)
 library(kabrutils)
 library(DBI)
+library(testdat)
 
 load("data/candidates-authors.Rdata")
 
@@ -80,6 +81,8 @@ get_candidates_names <- function(data) {
 
 
 #' Save the decision in dataframe and as a csv file
+#' 
+#' Includes test after saving, that decision was saved in DB.
 #'
 #' @param data data with similarities
 #' @param candidates the two candidates to decide on
@@ -87,35 +90,67 @@ get_candidates_names <- function(data) {
 #' 
 save_decision <- function(candidates, decision, ...) {
   
+  this_candidate_id <- candidates$id
+  this_decision <- decision
+
   if (decision == "positive") {
-    
-    if(input$keep_candidate_2_label == TRUE) {
-      query <- paste0("UPDATE ", db_tbl_candidates, " SET decision = 'positive', keep_label_2 = 1 WHERE id =", candidates$id, ";")
+    if (input$keep_candidate_2_label == TRUE) {
+      query <- paste0("UPDATE ", db_tbl_candidates, " SET decision = '", this_decision, "', keep_label_2 = 1 WHERE id =", candidates$id, ";")
     } else {
-      query <- paste0("UPDATE ", db_tbl_candidates, " SET decision = 'positive' WHERE id =", candidates$id, ";")
+      query <- paste0("UPDATE ", db_tbl_candidates, " SET decision = '", this_decision, "' WHERE id =", this_candidate_id, ";")
     }
 
     con <- connect_db()
     dbExecute(con, query)
-    dbDisconnect(con); rm(con)
-    
+    test_that(
+      desc = "double-check if this_decision was saved in db",
+      expect_equal(
+        tbl(con, db_tbl_candidates) %>%
+          filter(id == this_candidate_id, decision == this_decision) %>%
+          collect() %>% nrow(),
+        1
+      )
+    )
+
+    dbDisconnect(con)
+    rm(con)
+
     print("it's positive, baby")
-    
   } else if (decision == "negative") {
-    
-    query <- paste0("UPDATE ", db_tbl_candidates, " SET decision = 'negative' WHERE id =", candidates$id, ";")
+    query <- paste0("UPDATE ", db_tbl_candidates, " SET decision = '", this_decision, "' WHERE id =", this_candidate_id, ";")
     con <- connect_db()
     dbExecute(con, query)
-    dbDisconnect(con); rm(con)
+    test_that(
+      desc = "double-check if this_decision was saved in db",
+      expect_equal(
+        tbl(con, db_tbl_candidates) %>%
+          filter(id == this_candidate_id, decision == this_decision) %>%
+          collect() %>% nrow(),
+        1
+      )
+    )
+
+    dbDisconnect(con)
+    rm(con)
     print("nope, not the same")
-    
   } else if (decision == "not_sure") {
-    query <- paste0("UPDATE ", db_tbl_candidates, " SET decision = 'not_sure' WHERE id =", candidates$id, ";")
+    query <- paste0("UPDATE ", db_tbl_candidates, " SET decision = '", this_decision, "' WHERE id =", this_candidate_id, ";")
     con <- connect_db()
     dbExecute(con, query)
-    dbDisconnect(con); rm(con)
+
+    test_that(
+      desc = "double-check if this_decision was saved in db",
+      expect_equal(
+        tbl(con, db_tbl_candidates) %>%
+          filter(id == this_candidate_id, decision == this_decision) %>%
+          collect() %>% nrow(),
+        1
+      )
+    )
+
+    dbDisconnect(con)
+    rm(con)
     print("can't decide, sorry. needs to be checked again")
-    
   } else if (decision == "next_candidates") {
     print("want to check next candidates")
     return(data)
