@@ -177,18 +177,19 @@ get_er_entities <- function() {
 ```
 
 
+Candidates
+=====================================  
+
 Beschreibung {.sidebar}
-=====================================
+-------------------------------------
 
 Welche Entitäten sollen aufgelöst werden?
 
 **NOCH NICHT IMPLEMENTIERT:**
 ```{r}
-entities_list <- get_er_entities() %>% set_names(get_er_entities())
+entities_list <- get_er_entities() %>% filter(entities != "manual") %>% set_names(get_er_entities() %>% filter(entities != "manual"))
 selectInput("entities", label = "Entities", choices = entities_list)
 ```
-
-
 
 Bei `Start/Next` wird das nächste Kandidatenpaar angezeigt.
 
@@ -202,9 +203,6 @@ actionButton("button_start", "Start/Next", class = "btn-primary")
 * Wenn du dich für `Ja, identisch` entscheidest, wird der Name/das Label von `Candidate 1` behalten. Möchtest du das ändern und lieber den Namen von `Candidate 2` behalten, dann setze bitte den Hacken über dem `Ja`-Button.
 
 * Die Information wird direkt in der Datenbank gespeichert, aber der Merge an sich wird manuell angestoßen.
-
-Page 1
-=====================================  
 
 Column {data-width=30%}
 -------------------------------------
