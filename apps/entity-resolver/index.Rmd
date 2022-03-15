@@ -278,20 +278,25 @@ renderTable({
 # it's an observeEvent, because nothing changes in app
 # see: https://mastering-shiny.org/basic-reactivity.html#observers
 
+# feedback https://mastering-shiny.org/action-feedback.html
+# feedback: "Entscheidung gespeichert" can be just shown after save_decision()
+# because if test in save_decision() fails, then whole app breaks :D
 
 observeEvent(input$button_positive, {
   save_decision(candidates_to_check(), "positive", input$keep_candidate_2_label)
   # after decision for YES, set checkbox back to default state
   updateCheckboxInput(session,"keep_candidate_2_label", value = FALSE)
+  showNotification("Entscheidung gespeichert. Klicke Start/Next...", duration = 2)
   })
   
 observeEvent(input$button_negative, {
   save_decision(candidates_to_check(), "negative")
+  showNotification("Entscheidung gespeichert. Klicke Start/Next...", duration = 2)
   })
   
 observeEvent(input$button_not_sure, {
   save_decision(candidates_to_check(), "not_sure")
-
+  showNotification("Entscheidung gespeichert. Klicke Start/Next...", duration = 2)
   })
 ```
 
