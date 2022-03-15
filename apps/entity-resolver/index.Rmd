@@ -19,6 +19,14 @@ load("data/candidates-authors.Rdata")
 db_tbl_er_candidates <- "er_candidates"
 ```
 
+
+```{r}
+# Update
+
+# - get new additional_infos in create-input-data.R
+# - add new source to get_candidates_names()
+```
+
 ```{r}
 #' get a candidate pair to check
 #' 
@@ -48,30 +56,42 @@ get_candidates_to_check <- function(data) {
 get_candidates_names <- function(data) {
   candidate_1 <- data %>% 
     dplyr::distinct(id, source_1, id_1)
+  print(candidate_1)
   
-  if(candidate_1$source_1 == "book") {
+  if(candidate_1$source_1 == "book_author") {
     candidate_1 <- candidate_1 %>% 
       dplyr::left_join(candidates$books_additional_infos %>% 
                          dplyr::distinct(author_id, name_1 = author), by = c("id_1" = "author_id"))
-  } else if (candidate_1$source_1 == "poster") { 
+  } else if (candidate_1$source_1 == "poster_author"){ 
     candidate_1 <- candidate_1 %>% 
       dplyr::left_join(candidates$poster_additional_infos %>% 
                          dplyr::distinct(author_id, name_1 = author), by = c("id_1" = "author_id"))
+    
+  } else if (candidate_1$source_1 == "book_publisher"){ 
+    print("here")
+    candidate_1 <- candidate_1 %>% 
+      dplyr::left_join(candidates$books_publisher_additional_infos %>% 
+                         dplyr::distinct(publisher_id, name_1 = publisher), by = c("id_1" = "publisher_id"))
   } else {
     print("not implemented")
   }
   
   candidate_2 <- data %>% 
     dplyr::distinct(id, source_2, id_2)
-  
-  if(candidate_2$source_2 == "book") {
+  if(candidate_2$source_2 == "book_author") {
     candidate_2 <- candidate_2 %>% 
       dplyr::left_join(candidates$books_additional_infos %>% 
                          dplyr::distinct(author_id, name_2 = author), by = c("id_2" = "author_id"))
-  } else if (candidate_2$source_2 == "poster") { 
+  } else if (candidate_2$source_2 == "poster_author"){ 
     candidate_2 <- candidate_2 %>% 
       dplyr::left_join(candidates$poster_additional_infos %>% 
                          dplyr::distinct(author_id, name_2 = author), by = c("id_2" = "author_id"))
+    
+  } else if (candidate_2$source_2 == "book_publisher"){ 
+    print("here")
+    candidate_2 <- candidate_2 %>% 
+      dplyr::left_join(candidates$books_publisher_additional_infos %>% 
+                         dplyr::distinct(publisher_id, name_2 = publisher), by = c("id_2" = "publisher_id"))
   } else {
     print("not implemented")
   }
@@ -185,12 +205,12 @@ Beschreibung {.sidebar}
 
 Welche Entitäten sollen aufgelöst werden?
 
-**NOCH NICHT IMPLEMENTIERT:**
 ```{r}
-entities_list_ <- get_er_entities() %>% 
+entities_list <- get_er_entities() %>% 
   filter(entities != "manual") %>% 
-  set_names(get_er_entities() %>% filter(entities != "manual"))
-selectInput("entities", label = "Entities", choices = entities_list)
+  as.list()
+names(entities_list) <- entities_list
+selectInput("entities", label = NULL, choices = entities_list)
 ```
 
 Bei `Start/Next` wird das nächste Kandidatenpaar angezeigt.
@@ -226,10 +246,11 @@ br();br()
 ```{r get_candidates_from_db}
 
 candidates_to_check <- eventReactive(input$button_start, {
-   
+   these_entities <- input$entities
+   print(these_entities)
     con <- connect_db()
     candidates <- tbl(con, db_tbl_er_candidates) %>% 
-      dplyr::filter(decision == "no_judgement") %>% 
+      dplyr::filter(entities == these_entities, decision == "no_judgement") %>% 
       dplyr::arrange(rank) %>% 
       dplyr::filter(row_number() == 1) %>% 
       dplyr::collect()
@@ -261,12 +282,13 @@ renderUI({
    tagList(
     h1(candidate_names() %>% pull(name_1)),
     p(paste("Source: ", candidate_sources() %>% pull(source_1))),
-   
+      p(paste("Item ID: ", candidate_names() %>% pull(id_1))),
+    p(paste("Candidate Pair ID: ", candidate_names() %>% pull(id)))
    )
 })
 
 renderTable({
-   if(candidate_sources() %>% pull(source_1) == "book") {
+   if(candidate_sources() %>% pull(source_1) == "book_author") {
      inner_join(candidates_to_check() %>% distinct(source_1, id_1), 
            candidates$books_additional_infos %>% select(author_id, title = name, subtitle, publisher, isbn, location, year), 
            by = c("id_1" = "author_id")) %>% 
@@ -285,7 +307,9 @@ renderTable({
 renderUI({
    tagList(
     h1(candidate_names() %>% pull(name_2)),
-    p(paste("Source: ", candidate_sources() %>% pull(source_2)))
+    p(paste("Source: ", candidate_sources() %>% pull(source_2))),
+    p(paste("Item ID: ", candidate_names() %>% pull(id_2))),
+    p(paste("Candidate Pair ID: ", candidate_names() %>% pull(id)))
    )
 })
 

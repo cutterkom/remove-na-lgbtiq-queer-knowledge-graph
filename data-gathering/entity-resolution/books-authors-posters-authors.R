@@ -22,11 +22,11 @@ min_sim <- 0.75
 con <- connect_db()
 books_authors <- tbl(con, "books_authors") %>%
   collect() %>% 
-  mutate(source = "book",
+  mutate(source = "book_author",
          id = paste(source, author_id, sep = "_"))
 posters_authors <- tbl(con, "posters_authors") %>%
   collect() %>% 
-  mutate(source = "poster",
+  mutate(source = "poster_author",
          id = paste(source, author_id, sep = "_"))
 dbDisconnect(con); rm(con)
 
