@@ -177,7 +177,7 @@ get_er_entities <- function() {
 ```
 
 
-Candidates
+Candidates ER
 =====================================  
 
 Beschreibung {.sidebar}
@@ -187,7 +187,9 @@ Welche Entitäten sollen aufgelöst werden?
 
 **NOCH NICHT IMPLEMENTIERT:**
 ```{r}
-entities_list <- get_er_entities() %>% filter(entities != "manual") %>% set_names(get_er_entities() %>% filter(entities != "manual"))
+entities_list_ <- get_er_entities() %>% 
+  filter(entities != "manual") %>% 
+  set_names(get_er_entities() %>% filter(entities != "manual"))
 selectInput("entities", label = "Entities", choices = entities_list)
 ```
 
