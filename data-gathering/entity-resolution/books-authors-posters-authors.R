@@ -1,7 +1,7 @@
 # title: Calculate Similarities for Human Eyes
-# desc: In order to find duplicates, the cosine similarities between bigrams on character level (shingles) is calculated and above 0.65 saved in DB. There they wait for a human judgement.
+# desc: In order to find duplicates, the cosine similarities between bigrams on character level (shingles) is calculated and above 0.75 saved in DB. There they wait for a human judgement.
 # input: DB tbl books_authors and posters_authors
-# output: DB tbl matching_authors_books_posters
+# output: DB tbl er_candidates
 
 library(tidyverse)
 library(kabrutils)
