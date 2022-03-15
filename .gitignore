@@ -62,6 +62,6 @@ _bookdown_files
 *.code-workspace
 
 *.Rdata
-
+*.Rds
 *.ttl
 *.jsonld
