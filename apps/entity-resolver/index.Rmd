@@ -13,6 +13,8 @@ library(kabrutils)
 library(DBI)
 
 load("data/candidates-authors.Rdata")
+
+db_tbl_candidates <- "er_candidates"
 ```
 
 ```{r}
@@ -88,9 +90,9 @@ save_decision <- function(candidates, decision, ...) {
   if (decision == "positive") {
     
     if(input$keep_candidate_2_label == TRUE) {
-      query <- paste0("UPDATE matching_candidates_authors_books_posters SET decision = 'positive', keep_label_2 = 1 WHERE id =", candidates$id, ";")
+      query <- paste0("UPDATE ", db_tbl_candidates, " SET decision = 'positive', keep_label_2 = 1 WHERE id =", candidates$id, ";")
     } else {
-      query <- paste0("UPDATE matching_candidates_authors_books_posters SET decision = 'positive' WHERE id =", candidates$id, ";")
+      query <- paste0("UPDATE ", db_tbl_candidates, " SET decision = 'positive' WHERE id =", candidates$id, ";")
     }
 
     con <- connect_db()
@@ -101,14 +103,14 @@ save_decision <- function(candidates, decision, ...) {
     
   } else if (decision == "negative") {
     
-    query <- paste0("UPDATE matching_candidates_authors_books_posters SET decision = 'negative' WHERE id =", candidates$id, ";")
+    query <- paste0("UPDATE ", db_tbl_candidates, " SET decision = 'negative' WHERE id =", candidates$id, ";")
     con <- connect_db()
     dbExecute(con, query)
     dbDisconnect(con); rm(con)
     print("nope, not the same")
     
   } else if (decision == "not_sure") {
-    query <- paste0("UPDATE matching_candidates_authors_books_posters SET decision = 'not_sure' WHERE id =", candidates$id, ";")
+    query <- paste0("UPDATE ", db_tbl_candidates, " SET decision = 'not_sure' WHERE id =", candidates$id, ";")
     con <- connect_db()
     dbExecute(con, query)
     dbDisconnect(con); rm(con)
@@ -163,7 +165,7 @@ br();br()
 candidates_to_check <- eventReactive(input$button_start, {
    
     con <- connect_db()
-    candidates <- tbl(con, "matching_candidates_authors_books_posters") %>% 
+    candidates <- tbl(con, db_tbl_candidates) %>% 
       dplyr::filter(decision == "no_judgement") %>% 
       dplyr::arrange(rank) %>% 
       dplyr::filter(row_number() == 1) %>% 
