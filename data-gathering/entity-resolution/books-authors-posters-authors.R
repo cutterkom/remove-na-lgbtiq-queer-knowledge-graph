@@ -15,6 +15,7 @@ source("R/deduplication-matching.R")
 source("R/utils.R")
 source("R/entity-cleaning.R")
 
+min_sim <- 0.75
 
 # Get data ----------------------------------------------------------------
 
@@ -60,7 +61,7 @@ bigrams <- corp %>%
 
 # Calculate similarities -> create candidate pairs -------------------------
 
-candidates <- calc_similarity(bigrams, method = "cosine", min_sim = 0.75) %>% 
+candidates <- calc_similarity(bigrams, method = "cosine", min_sim = min_sim) %>% 
   left_join(authors %>% select(-author), by = c("id_1" = "id")) %>% 
   left_join(authors %>% select(-author), by = c("id_2" = "id"), suffix = c("_1", "_2")) %>% 
   select(id_1 = author_id_1, id_2 = author_id_2, source_1, source_2, value, rank)
@@ -68,7 +69,7 @@ candidates <- calc_similarity(bigrams, method = "cosine", min_sim = 0.75) %>%
 # Write in DB -------------------------------------------------------------
 
 import <- candidates %>% 
-  mutate(entities = "authors_books_posters", .before = id_1)
+  mutate(entities = "books_authors_posters_authors", .before = id_1)
 
 test_that(
   desc = "uniqueness",

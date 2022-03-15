@@ -1,7 +1,7 @@
 # title: Calculate Similarities for Human Eyes
 # desc: In order to find duplicates, the cosine similarities between bigrams on character level (shingles) is calculated and above 0.75 saved in DB. There they wait for a human judgement.
-# input: DB tbl books_authors and posters_authors
-# output: DB tbl matching_authors_books_posters
+# input: DB tbl books_publishers and posters_authors
+# output: DB tbl er_candidates
 
 library(tidyverse)
 library(kabrutils)
@@ -15,21 +15,27 @@ source("R/deduplication-matching.R")
 source("R/utils.R")
 source("R/entity-cleaning.R")
 
+min_sim <- 0.75
+
 
 # Get data ----------------------------------------------------------------
 
 con <- connect_db()
-books_authors <- tbl(con, "books_authors") %>%
+books_publishers <- tbl(con, "books_publishers") %>%
   collect() %>% 
-  mutate(source = "book",
-         id = paste(source, author_id, sep = "_"))
+  mutate(source = "book_publisher",
+         id = paste(source, publisher_id, sep = "_")) %>% 
+  rename(name = publisher,
+         item_id = publisher_id)
 posters_authors <- tbl(con, "posters_authors") %>%
   collect() %>% 
-  mutate(source = "poster",
-         id = paste(source, author_id, sep = "_"))
+  mutate(source = "poster_author",
+         id = paste(source, author_id, sep = "_")) %>% 
+  rename(name = author,
+         item_id = author_id)
 dbDisconnect(con); rm(con)
 
-authors <- bind_rows(books_authors, posters_authors)
+entities <- bind_rows(books_publishers, posters_authors)
 
 
 # Get string mappings -----------------------------------------------------
@@ -37,8 +43,7 @@ authors <- bind_rows(books_authors, posters_authors)
 # used to remove authors who seem to be organisations
 string_mappings <- get(file = "static/string-mapping.yml") 
 
-bigrams_authors <- authors %>% 
-  select(id, name = author) %>% 
+bigrams_entities <- entities %>% 
   clean_string(col = "name") %>% 
   filter(
     !str_detect(tolower(name), paste0(string_mappings$nonsense, collapse = "|")),
@@ -48,7 +53,7 @@ bigrams_authors <- authors %>%
 
 # Prepare text data -------------------------------------------------------
 
-corp <- corpus(bigrams_authors, text_field = "name", docid_field = "id")
+corp <- corpus(bigrams_entities, text_field = "name", docid_field = "id")
 toks <- tokens(corp)
 
 # create bigrams on word level = shingles
@@ -60,15 +65,39 @@ bigrams <- corp %>%
 
 # Calculate similarities -> create candidate pairs -------------------------
 
-candidates <- calc_similarity(bigrams, method = "cosine", min_sim = 0.75) %>% 
-  left_join(authors %>% select(-author), by = c("id_1" = "id")) %>% 
-  left_join(authors %>% select(-author), by = c("id_2" = "id"), suffix = c("_1", "_2")) %>% 
-  select(id_1 = author_id_1, id_2 = author_id_2, source_1, source_2, value, rank)
+candidates <- calc_similarity(bigrams, method = "cosine", min_sim = min_sim) %>% 
+  left_join(entities %>% select(-name), by = c("id_1" = "id")) %>% 
+  left_join(entities %>% select(-name), by = c("id_2" = "id"), suffix = c("_1", "_2")) %>% 
+  select(id_1 = item_id_1, id_2 = item_id_2, source_1, source_2, value, rank) %>% 
+  filter(source_1 %in% c("book_publisher", "poster_author") | source_2 %in% c("book_publisher"))
+
+
+# Get Names ---------------------------------------------------------------
+
+# candidates_with_names <- candidates %>% 
+#   mutate(
+#     id_1 = 
+#       case_when(
+#         str_detect(source_1, "book") ~ paste0("book_publisher_", id_1),
+#         str_detect(source_1, "poster") ~ paste0("poster_author_", id_1),
+#         #source_1 == "poster" ~ paste0("poster_", id_1),
+#         TRUE ~ "no_source_sth_wrong"
+#       ),
+#     id_2 = 
+#       case_when(
+#         str_detect(source_2, "book") ~ paste0("book_publisher_", id_2),
+#         str_detect(source_2, "poster") ~ paste0("poster_author_", id_2),
+#         TRUE ~ "no_source_sth_wrong"
+#       )
+#   ) %>% 
+#   left_join(entities %>% select(id, name), by = c("id_1" = "id")) %>% 
+#   left_join(entities %>% select(id, name), by = c("id_2" = "id"), suffix = c("_1", "_2"))
+
 
 # Write in DB -------------------------------------------------------------
 
 import <- candidates %>% 
-  mutate(entities = "authors_books_posters", .before = id_1)
+  mutate(entities = "books_publishers_posters_authors", .before = id_1)
 
 test_that(
   desc = "uniqueness",
