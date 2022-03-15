@@ -44,9 +44,9 @@ DBI::dbDisconnect(con); rm(con)
 # Export data -------------------------------------------------------------
 
 candidates <- list(
-  "similarities" = candidates,
-  "books_additional_infos" = books_wide,
-  "poster_additional_infos" = posters_wide)
+  "similarities" = candidates %>% mutate(across(everything(), as.character)),
+  "books_additional_infos" = books_wide %>% mutate(across(everything(), as.character)),
+  "poster_additional_infos" = posters_wide %>% mutate(across(everything(), as.character)))
 
 saveRDS(candidates, file = "apps/entity-resolver/data/candidates.Rds")
 
