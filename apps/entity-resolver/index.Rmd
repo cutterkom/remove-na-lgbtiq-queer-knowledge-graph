@@ -116,7 +116,7 @@ save_decision <- function(candidates, decision, ...) {
 
   if (decision == "positive") {
     if (input$keep_candidate_2_label == TRUE) {
-      query <- paste0("UPDATE ", db_tbl_er_candidates, " SET decision = '", this_decision, "', keep_label_2 = 1 WHERE id =", candidates$id, ";")
+      query <- paste0("UPDATE ", db_tbl_er_candidates, " SET decision = '", this_decision, "', keep_label_2 = 1 WHERE id =", this_candidate_id, ";")
     } else {
       query <- paste0("UPDATE ", db_tbl_er_candidates, " SET decision = '", this_decision, "' WHERE id =", this_candidate_id, ";")
     }
@@ -261,6 +261,52 @@ candidates_to_check <- eventReactive(input$button_start, {
 
 ```
 
+### New Label
+
+Are both provided labels not correct? Then insert a new one:
+
+```{r new_name}
+
+# it's possible that both names are not correct
+# here you can set a new name
+
+textInput("new_label", "Insert New Label", NA)
+actionButton("new_label_submit", "Submit")
+
+new_label <- reactive({
+  
+  data <- candidates_to_check() %>% 
+    mutate(new_label = input$new_label)
+  
+})
+
+# write new name in db
+observeEvent(input$new_label_submit, {
+  
+  this_candidate_id <- new_label() %>% pull(id)
+  this_new_label <- new_label() %>% pull(new_label)
+    
+  query <- paste0("UPDATE ", db_tbl_er_candidates, " SET new_label = '", this_new_label, "' WHERE id =", this_candidate_id, ";")
+  
+  con <- connect_db()
+  dbExecute(con, query)
+  
+  test_that(
+    desc = "double-check if this_new_label was saved in db",
+    expect_equal(
+      tbl(con, db_tbl_er_candidates) %>%
+        filter(id == this_candidate_id, !is.na(new_label)) %>%
+        collect() %>% nrow(),
+      1
+    )
+  )
+  
+  dbDisconnect(con)
+  rm(con)
+})
+
+```
+
 
 Column {data-width=70%}
 -------------------------------------
@@ -314,7 +360,7 @@ renderUI({
 })
 
 renderTable({
-   if(candidate_sources() %>% pull(source_2) == "book") {
+   if(candidate_sources() %>% pull(source_2) == "book_author") {
      inner_join(candidates_to_check() %>% distinct(source_2, id_2), 
            candidates$books_additional_infos %>% select(author_id, title = name, subtitle, publisher, isbn, location, year), 
            by = c("id_2" = "author_id")) %>% 
@@ -381,7 +427,7 @@ Row
 
 ### Save
 
-```{r}
+```{r submit_manual_er}
 actionButton("manual_submit", "Submit")
 ```
 
@@ -399,7 +445,7 @@ checkboxInput("manual_keep_candidate_2_label", "Behalte Name von Candidate 2")
 <!-- ``` -->
 
 
-```{r}
+```{r validate_save_manual_candidates}
 # Validate input with ShinyValidator:
 # Id MUST be given
 # 1. Create an InputValidator object
@@ -425,6 +471,7 @@ manual_input_data <- reactive({
   data
 })
 
+# save data to db after click
 observeEvent(input$manual_submit, {
 
   con <- connect_db()
