@@ -384,7 +384,7 @@ observeEvent(input$button_positive, {
   save_decision(candidates_to_check(), "positive", input$keep_candidate_2_label)
   # after decision for YES, set checkbox back to default state
   updateCheckboxInput(session,"keep_candidate_2_label", value = FALSE)
-  updateTextInput(session,"new_label", value = NULL)
+  updateTextInput(session, "new_label", value = "")
   showNotification("Entscheidung gespeichert. Klicke Start/Next...", duration = 2)
   })
   
