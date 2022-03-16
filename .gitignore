@@ -67,4 +67,4 @@ venv
 *.ttl
 *.jsonld
 *.code-workspace
-
+*.Rds

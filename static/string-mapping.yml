@@ -1,0 +1,16 @@
+default:
+  organisation:
+    - "verlag"
+    - "e.v."
+    - "kollektiv"
+    - "gmbh"
+    - "bundeszentrale"
+    - "landeszentrale"
+    - "hilfe"
+    - "aids-hilfe"
+    - "aidshilfe"
+  nonsense:
+    - "\\?"
+    - "et.al."
+    - "et .al."
+
