@@ -56,11 +56,14 @@ themengeschichtspfad.pdf
 
 # bookdown
 _bookdown_files
-
+_book
+/docs/libs/*
+doc/*.html
 # venv
 venv
 
 *.Rdata
+*.Rds
 *.ttl
 *.jsonld
 *.code-workspace
