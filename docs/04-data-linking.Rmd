@@ -1,0 +1,21 @@
+---
+title: "Data Linking"
+author: "Katharina Brunner"
+date: "3/11/2022"
+output: html_document
+---
+
+# Data Linking
+
+The internal data are linked to various external data sources.
+
+Database naming:
+
+`el_SOURCE_ENTITY`
+
+## VIAF
+
+To [VIAF](http://viaf.org/) by using the `viafr` R-package. 
+It suggest a VIAF entity when providing a string.
+
+* db table: `el_viaf_books_authors`

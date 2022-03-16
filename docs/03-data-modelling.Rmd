@@ -11,3 +11,19 @@ In this document you'll find explainations and descriptions of the data model us
 
 Remove NA collects data about real world entities, such as people, organizations or locations, and the relationships between them.
 
+
+## Create RDF files from database
+
+RDF files created with `RML` rules.
+
+Scripts in `data-modelling`
+
+1. run parser:
+
+  - for posters: `yarrrml-parser -i mappings/posters-rules.yml -o mappings/posters-mapping.r2rml.ttl -f R2RML`
+  - for books: `yarrrml-parser -i mappings/books-rules.yml -o mappings/books-mapping.r2rml.ttl -f R2RML`
+
+2. create RDF files with `python3 create-rdf.py`
+
+
+
