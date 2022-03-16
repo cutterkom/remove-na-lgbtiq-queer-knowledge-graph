@@ -11,10 +11,6 @@ library(DBI)
 library(config)
 library(testdat)
 
-source("R/deduplication-matching.R")
-source("R/utils.R")
-source("R/entity-cleaning.R")
-
 min_sim <- 0.75
 
 

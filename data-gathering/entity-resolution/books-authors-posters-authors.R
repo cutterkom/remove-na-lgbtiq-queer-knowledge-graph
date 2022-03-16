@@ -11,10 +11,9 @@ library(DBI)
 library(config)
 library(testdat)
 
-source("R/deduplication-matching.R")
-source("R/utils.R")
-source("R/entity-cleaning.R")
+# Config ------------------------------------------------------------------
 
+# set minimum similary usined in similarity calculation, see ?kabrutils::calc_similarity
 min_sim <- 0.75
 
 # Get data ----------------------------------------------------------------
