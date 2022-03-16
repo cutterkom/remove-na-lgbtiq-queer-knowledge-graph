@@ -113,3 +113,23 @@ LEFT JOIN poster_keyword ON posters.poster_id = poster_keyword.poster_id
 LEFT JOIN posters_keywords ON posters_keywords.keyword_id = posters_keywords.keyword_id
 ;
 ```
+
+## Entity Resolution
+
+Deduplication, entitiy resolultion, entity linking etc. is a main and re-accuring task in this project. 
+
+A first setup to tackle the task is two-fold: 
+
+### 1. Calculate text similarities between entitity stings based on cosine similarity
+
+* based on `quanteda`
+* scripts under `data-gathering/entity-resolution`
+* cosine minimum similiarty is set to 0.75 (for authors and publishers from posters and books)
+
+### 2. Human decision making
+
+* Shiny app called "Who is Who?" to show possible matching candidates
+* decision by button clicking
+* code in `apps/entity-resolver`
+
+![](img/who-is-who-ex.png)
