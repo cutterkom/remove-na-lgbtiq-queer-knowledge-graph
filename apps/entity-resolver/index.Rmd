@@ -271,7 +271,7 @@ Are both provided labels not correct? Then insert a new one:
 # here you can set a new name
 
 textInput("new_label", "Insert New Label", NA)
-actionButton("new_label_submit", "Submit")
+actionButton("new_label_submit", "Submit", class = "btn-primary")
 
 new_label <- reactive({
   
@@ -384,6 +384,7 @@ observeEvent(input$button_positive, {
   save_decision(candidates_to_check(), "positive", input$keep_candidate_2_label)
   # after decision for YES, set checkbox back to default state
   updateCheckboxInput(session,"keep_candidate_2_label", value = FALSE)
+  updateTextInput(session,"new_label", value = NULL)
   showNotification("Entscheidung gespeichert. Klicke Start/Next...", duration = 2)
   })
   
