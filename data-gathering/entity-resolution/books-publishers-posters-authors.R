@@ -61,11 +61,13 @@ bigrams <- corp %>%
 
 # Calculate similarities -> create candidate pairs -------------------------
 
+only_posters <- tibble(source_1 = "poster_author", source_2 = "poster_author")
+
 candidates <- calc_similarity(bigrams, method = "cosine", min_sim = min_sim) %>% 
   left_join(entities %>% select(-name), by = c("id_1" = "id")) %>% 
   left_join(entities %>% select(-name), by = c("id_2" = "id"), suffix = c("_1", "_2")) %>% 
   select(id_1 = item_id_1, id_2 = item_id_2, source_1, source_2, value, rank) %>% 
-  filter(source_1 %in% c("book_publisher", "poster_author") | source_2 %in% c("book_publisher"))
+  anti_join(only_posters, by = c("source_1", "source_2"))
 
 
 # Get Names ---------------------------------------------------------------
