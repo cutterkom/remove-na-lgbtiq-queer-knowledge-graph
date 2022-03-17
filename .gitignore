@@ -40,6 +40,7 @@ vignettes/*.pdf
 
 # R Environment Variables
 .Renviron
+.Rprofile
 
 # pkgdown site
 # docs/
@@ -54,7 +55,7 @@ themengeschichtspfad.pdf
 *.ctt4
 *.xlsx
 
-/renv/library
+/renv
 
 # bookdown
 _bookdown_files
