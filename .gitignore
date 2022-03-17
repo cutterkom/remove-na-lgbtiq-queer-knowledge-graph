@@ -54,6 +54,8 @@ themengeschichtspfad.pdf
 *.ctt4
 *.xlsx
 
+/renv/library
+
 # bookdown
 _bookdown_files
 _book
