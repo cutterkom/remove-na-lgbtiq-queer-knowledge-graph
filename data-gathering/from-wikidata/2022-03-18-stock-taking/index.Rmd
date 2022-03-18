@@ -1,0 +1,245 @@
+---
+title: "Stock Taking: How big is the queer Wikidata"
+date: "2022-03-18T00:00:00"
+status: "private"
+slug: "stock-taking-how-big-is-queer-wikidata"
+output: hugodown::md_document
+---
+
+My reference for how much queer^[I use queer, LGBT and LGBTIQ* as synonyms.] history is in linked data is Wikidata. 
+So the first step is to take stock.
+
+I do that in two ways: 
+
+1. Take **LGBTIQ* properties** and fetch all items that have this relation
+2. Take **main LGBTIQ* items** and look up which items have a relation
+
+## Technical note
+
+Of course, I could run many different SPARQL queries.
+A more efficient way for my workflows is using the package {tidywikidatar} that offers, like the name suggests, tools to retrieve data in a [tidy (read: recangular) way](https://r4ds.had.co.nz/tidy-data.html). 
+
+## Setup 
+
+```{r, message=F, warning=F}
+library(tidywikidatar) # tidy queries
+library(WikidataR) # SPARQL queries
+library(tidyverse)
+
+# use caching from tidywikidatar
+tw_enable_cache()
+tw_set_cache_folder(path = fs::path(fs::path_home_r(), "R", "tw_data"))
+tw_set_language(language = "en")
+tw_create_cache_folder(ask = FALSE)
+tw_get_cache_folder()
+```
+
+## LGBTIQ* main items
+
+The [Wikidata:WikiProject LGBT](https://www.wikidata.org/wiki/Wikidata:WikiProject_LGBT/Models) lists main items and suggested properties for these items.
+I transferred these to a table in order to use them to get data from Wikidata in bulk.
+
+```{r, warning=F, message=F}
+lgbt_items <- read_tsv("../../../static/wikidata-queer-items.tsv") %>% 
+  mutate(q = str_extract(item, "Q[0-9]+"),
+         p = str_extract_all(related_property, "P[0-9]+")) %>% 
+  unnest(p)
+```
+
+I take every item-property-combination from the input file and get all sub-items.
+
+```{r, warning=FALSE, message=FALSE, cache=TRUE}
+subitems <- lgbt_items %>%
+  pmap_dfr(function(...) {
+    current <- tibble(...) %>% 
+      select(item, topic, q, p)
+
+    if (current$topic %in% c("Places & organizations")) {
+      current %>%
+        tw_query() %>%
+        bind_cols(current) %>% 
+        mutate(country_id = tw_get_p(id, "P17")) %>% 
+        unnest(country_id) %>% 
+        mutate(country = tw_get_label(id = country_id))
+    } else {
+      current %>%
+        tw_query() %>%
+        bind_cols(current)
+    }
+  }) %>% 
+  select(topic, item, p, p, subitem = id, label, description, country_id, country)
+```
+
+So there are `r nrow(subitems)` I can find with this approach.
+But be aware, that there are duplicates, e.g. because I ask partly for two properties or one subitem can be an LGBT bar as well as a lesbian bar.
+
+When I take this into account, there are `r subitems %>% distinct(subitem, label, topic) %>% nrow()` distinct subitems available. 
+
+Counted by topic:
+
+```{r}
+topic_share <- subitems %>%
+  count(topic) %>%
+  mutate(pct = n / sum(n)) %>% 
+  arrange(desc(pct))
+```
+
+As a chart: 
+
+```{r}
+topic_share %>% 
+  ggplot(aes(reorder(topic, -n), n)) +
+  geom_col() +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 90))
+  
+```
+
+Counted by topic and item:
+
+```{r}
+topic_item_share <- subitems %>%
+  count(topic, item) %>%
+  mutate(pct = n / sum(n)) %>% 
+  arrange(desc(pct))
+```
+
+That's quite a long longtail:
+
+```{r}
+topic_item_share %>% 
+  ggplot(aes(reorder(item, -n), n)) +
+  geom_col() +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 90))
+```
+
+
+Since my project revolves around German LGBTIQ* history, country information is important.
+For items having the topic `Places & organizations` is queried the country information if available.
+
+Just 16 location that are LGBTIQ* related are based in Germany.
+Or are labeled as some kind of queer location. For example the famous hotel, bar, sauna "Deutsche Eiche" in Munich ([German Wikipedia](https://de.wikipedia.org/wiki/Hotel_Deutsche_Eiche)) has no indication of its role for the gay scene on [Wikidata](https://www.wikidata.org/wiki/Q1630878).
+
+```{r}
+subitems %>% 
+  filter(topic == "Places & organizations") %>% 
+  count(country, sort = T)
+```
+
+Also, no LGBT archives from Germany can be found in the data, even if they exist as Wikipedia item, for instance the archive I am with: [Forum Queeres Archiv](https://www.wikidata.org/wiki/Q100743737). There are really some low hanging fruits out there...
+
+## LGBTIQ* properties
+
+Now the same with properties. 
+
+```{r, warning=F, message=F}
+lgbt_properties <- read_tsv("../../../static/wikidata-queer-properties.tsv") %>% 
+  rename(p = id)
+```
+
+```{r}
+items_with_properties <- lgbt_properties %>%
+  filter(!data_type %in% c("Item", "Lexeme")) %>% 
+  pmap_dfr(function(...) {
+    current <- tibble(...) %>% 
+      select(property, p)
+    print(current)
+    current %>% pull(p) %>% 
+      tw_get_all_with_p() %>% 
+      bind_cols(current)
+  }) %>% 
+  select(property, p, everything())
+```
+
+As counts by propery: 
+
+```{r}
+properties_share <- items_with_properties %>%
+  count(property) %>%
+  mutate(pct = n / sum(n)) %>% 
+  arrange(desc(pct))
+```
+
+## Persons, that are not heterosexual
+
+This time, I use plain SPARQL to get the data, [based on that query](https://www.wikidata.org/wiki/Wikidata:WikiProject_LGBT/Queries#LGBT_people_born,_residing,_or_working_in_New_York_City).
+
+```{r}
+non_heterosexuals <- query_wikidata(
+  '
+  SELECT DISTINCT ?person ?personLabel ?sexualorientationLabel ?sexorgenderLabel
+  WHERE {
+    ?person wdt:P31 wd:Q5 . #?person is a human
+  
+    { 
+      ?person wdt:P21 ?sexorgender. #?person has ?sexorgender
+      #?sexorgender is not male, female, cisgender male, cigender female, or cisgender person
+      FILTER(?sexorgender NOT IN (wd:Q6581097, wd:Q6581072, wd:Q15145778, wd:Q15145779, wd:Q1093205)). 
+    } UNION {
+      ?person wdt:P91 ?sexualorientation . #?person has ?sexualorientation
+      FILTER(?sexualorientation != wd:Q1035954). #?sexualorientation is not heterosexual
+    }
+    SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+}'
+) %>% as_tibble()
+
+```
+
+```{r}
+non_heterosexuals %>% 
+  count(sexualorientationLabel, sort = T)
+```
+Woah, what are those `r non_heterosexuals %>% filter(is.na(sexualorientationLabel)) %>% nrow()` that have an empty label?
+Are these subversive attempts to undermine labels that deal with sexual orientation?
+
+A sample shows: Not impossible, but probably not.
+For instance, quite a lot are painting with humans. Or "anonymous masters", artists whose sex or gender is unknown, might be queer persons, might be not.
+So this must be taken with a grain of salt.
+
+(For quite some time now, I want to write a blog post about [the book "Queer Data" by Kevin Guyan](https://kevinguyan.com/queer-data/). This would be an excellent link.)
+
+Since the focus of Remove NA is the city of Munich I want to see: What are non-heterosexual or non-cis persons that are somehow linked to Munich? 
+
+```{r}
+munich <- query_wikidata('
+# LGBT that are linked to Munich
+SELECT DISTINCT ?person ?personLabel ?sexualorientationLabel ?sexorgenderLabel
+  WHERE {
+    ?person wdt:P31 wd:Q5 . #?person is a human
+    BIND(wd:Q1726 as ?place). #Q1726 is Munich
+    
+    { 
+      ?person wdt:P21 ?sexorgender. #?person has ?sexorgender
+      #?sexorgender is not male, female, cisgender male, cigender female, or cisgender person
+      FILTER(?sexorgender NOT IN (wd:Q6581097, wd:Q6581072, wd:Q15145778, wd:Q15145779, wd:Q1093205)). 
+    } UNION {
+      ?person wdt:P91 ?sexualorientation . #?person has ?sexualorientation
+      FILTER(?sexualorientation != wd:Q1035954). #?sexualorientation is not heterosexual
+    }
+    
+    {
+      ?person wdt:P19/wdt:P131* ?place. #?person was born in ?place
+    }
+    UNION {
+      ?person wdt:P551/wdt:P131* ?place. #?person resides in ?place
+    }
+    UNION {
+      ?person wdt:P937/wdt:P131* ?place. #?person works in ?place
+    }
+
+    SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+}
+') %>% as_tibble()
+```
+
+```{r}
+munich
+```
+
+
+## What comes next
+
+These queries are just a first glimpse into queer Wikidata and what I want to do in my project `Remove NA`.
