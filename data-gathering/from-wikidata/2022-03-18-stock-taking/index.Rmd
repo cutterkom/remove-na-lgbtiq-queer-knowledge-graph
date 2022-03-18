@@ -43,17 +43,20 @@ lgbt_items <- read_tsv("../../../static/wikidata-queer-items.tsv") %>%
   mutate(q = str_extract(item, "Q[0-9]+"),
          p = str_extract_all(related_property, "P[0-9]+")) %>% 
   unnest(p)
+
+DT::datatable(lgbt_items)
 ```
 
 I take every item-property-combination from the input file and get all sub-items.
 
-```{r, warning=FALSE, message=FALSE, cache=TRUE}
+```{r, warning=FALSE, message=FALSE}
 subitems <- lgbt_items %>%
   pmap_dfr(function(...) {
     current <- tibble(...) %>% 
       select(item, topic, q, p)
 
-    if (current$topic %in% c("Places & organizations")) {
+    if (current$topic %in% c("Places & organizations", "Arts & culture")) {
+      
       current %>%
         tw_query() %>%
         bind_cols(current) %>% 
@@ -94,9 +97,7 @@ topic_share %>%
   ggplot(aes(reorder(topic, -n), n)) +
   geom_col() +
   theme_minimal() +
-  theme(
-    axis.text.x = element_text(angle = 90))
-  
+  theme(axis.text.x = element_text(angle = 90))
 ```
 
 Counted by topic and item:
@@ -121,6 +122,7 @@ topic_item_share %>%
     axis.text.x = element_text(angle = 90))
 ```
 
+## Subitems by country
 
 Since my project revolves around German LGBTIQ* history, country information is important.
 For items having the topic `Places & organizations` is queried the country information if available.
@@ -131,10 +133,18 @@ Or are labeled as some kind of queer location. For example the famous hotel, bar
 ```{r}
 subitems %>% 
   filter(topic == "Places & organizations") %>% 
-  count(country, sort = T)
+  count(country, sort = T) %>% 
+  DT::datatable()
 ```
 
 Also, no LGBT archives from Germany can be found in the data, even if they exist as Wikipedia item, for instance the archive I am with: [Forum Queeres Archiv](https://www.wikidata.org/wiki/Q100743737). There are really some low hanging fruits out there...
+
+```{r}
+subitems %>% 
+  filter(country == "Germany") %>% 
+  DT::datatable()
+```
+
 
 ## LGBTIQ* properties
 
@@ -147,13 +157,12 @@ lgbt_properties <- read_tsv("../../../static/wikidata-queer-properties.tsv") %>%
 DT::datatable(lgbt_properties)
 ```
 
-```{r}
+```{r warning=FALSE, message=FALSE}
 items_with_properties <- lgbt_properties %>%
   filter(!data_type %in% c("Item", "Lexeme")) %>% 
   pmap_dfr(function(...) {
     current <- tibble(...) %>% 
       select(property, p)
-    print(current)
     current %>% pull(p) %>% 
       tw_get_all_with_p() %>% 
       bind_cols(current)
@@ -178,7 +187,7 @@ DT::datatable(properties_share)
 
 This time, I use plain SPARQL to get the data, [based on that query](https://www.wikidata.org/wiki/Wikidata:WikiProject_LGBT/Queries#LGBT_people_born,_residing,_or_working_in_New_York_City).
 
-```{r}
+```{r, message=F, warning=F}
 non_heterosexuals <- query_wikidata(
   '
   SELECT DISTINCT ?person ?personLabel ?sexualorientationLabel ?sexorgenderLabel
@@ -200,7 +209,7 @@ non_heterosexuals <- query_wikidata(
 DT::datatable(non_heterosexuals)
 ```
 
-```{r}
+```{r, message=F, warning=F}
 non_heterosexuals %>% 
   count(sexualorientationLabel, sort = T) %>% 
   DT::datatable()
@@ -214,9 +223,11 @@ So this must be taken with a grain of salt.
 
 (For quite some time now, I want to write a blog post about [the book "Queer Data" by Kevin Guyan](https://kevinguyan.com/queer-data/). This would be an excellent link.)
 
+## Non-heterosexual persons linked to Munich
+
 Since the focus of Remove NA is the city of Munich I want to see: What are non-heterosexual or non-cis persons that are somehow linked to Munich? 
 
-```{r}
+```{r, message=F, warning=F}
 munich <- query_wikidata('
 # LGBT that are linked to Munich
 SELECT DISTINCT ?person ?personLabel ?sexualorientationLabel ?sexorgenderLabel
@@ -250,6 +261,8 @@ SELECT DISTINCT ?person ?personLabel ?sexualorientationLabel ?sexorgenderLabel
 DT::datatable(munich)
 ```
 
-## What comes next
 
-These queries are just a first glimpse into queer Wikidata and what I want to do in my project `Remove NA`.
+## What's next?
+
+These queries are just superficial, relatively obvious queries.
+But they are a benchmark for future developements.
