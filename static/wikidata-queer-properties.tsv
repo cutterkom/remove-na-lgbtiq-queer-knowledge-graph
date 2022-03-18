@@ -1,0 +1,17 @@
+property	id	data_type	desc
+Visual AIDS Artist+ Registry ID	P7926		
+sex or gender	P21	Item	sex or gender identity of human or animal. For human: male, female, non-binary, intersex, transgender female, transgender male, agender. For animal: male organism, female organism. Groups of same gender use subclass of (P279)
+sexual orientation	P91	Item	the sexual orientation of the person — use IF AND ONLY IF they have stated it themselves, unambiguously, or it has been widely agreed upon by historians after their death
+Homosaurus ID (V2)	P6417	External identifier	identifier for an authorized term in version 2 of Homosaurus: An International LGBTQ+ Linked Data Vocabulary
+personal pronoun	P6553	Lexeme	personal pronoun(s) this person goes by
+Represent Me ID	P6554	External identifier	identifier of games on Represent Me
+LGBTFansDB character ID	P6780	External identifier	identifier for a character entry on LGBT fans deserve better database
+LezWatch.TV actor ID	P7105	External identifier	IDs for actors listed in the LezWatch.TV actor database
+LezWatch.TV character ID	P7106	External identifier	IDs for characters listed in the LezWatch.TV character database
+LezWatch.TV show ID	P7107	External identifier	ID for shows listed in LezWatch.TV show database
+500 Queer Scientists profile	P8243	External identifier	profile on 500 Queer Scientists database
+Mediaqueer.ca artist ID	P8244	External identifier	
+Mediaqueer.ca movie ID	P8245	External identifier	
+LGBT Danmark online dictionary ID	P8285	External identifier	identifier in LGBT Danmark's online dictionary
+GSSO ID	P9827	External identifier	identifier for controlled vocabulary in the GSSO (Gender, Sex, and Sexual Orientation) ontology
+Homosaurus ID (V3)	P10192	External identifier	identifier for an authorized term in version 3 of Homosaurus: An International LGBTQ+ Linked Data Vocabulary
