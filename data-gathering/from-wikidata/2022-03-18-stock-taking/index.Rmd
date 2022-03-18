@@ -3,7 +3,7 @@ title: "Stock Taking: How big is the queer Wikidata"
 date: "2022-03-18T00:00:00"
 status: "private"
 slug: "stock-taking-how-big-is-queer-wikidata"
-output: hugodown::md_document
+output: rmdformats::robobook
 ---
 
 My reference for how much queer^[I use queer, LGBT and LGBTIQ* as synonyms.] history is in linked data is Wikidata. 
@@ -14,12 +14,11 @@ I do that in two ways:
 1. Take **LGBTIQ* properties** and fetch all items that have this relation
 2. Take **main LGBTIQ* items** and look up which items have a relation
 
-## Technical note
+## Setup
 
 Of course, I could run many different SPARQL queries.
-A more efficient way for my workflows is using the package {tidywikidatar} that offers, like the name suggests, tools to retrieve data in a [tidy (read: recangular) way](https://r4ds.had.co.nz/tidy-data.html). 
-
-## Setup 
+A more efficient way for my workflows is using the package {tidywikidatar} that offers, like the name suggests, tools to retrieve data in a [tidy (read: recangular) way](https://r4ds.had.co.nz/tidy-data.html).
+But I'll also use SPARQL for a bit more complex queries with {WikidataR}.
 
 ```{r, message=F, warning=F}
 library(tidywikidatar) # tidy queries
@@ -68,6 +67,8 @@ subitems <- lgbt_items %>%
     }
   }) %>% 
   select(topic, item, p, p, subitem = id, label, description, country_id, country)
+
+DT::datatable(subitems)
 ```
 
 So there are `r nrow(subitems)` I can find with this approach.
@@ -82,6 +83,8 @@ topic_share <- subitems %>%
   count(topic) %>%
   mutate(pct = n / sum(n)) %>% 
   arrange(desc(pct))
+
+DT::datatable(topic_share)
 ```
 
 As a chart: 
@@ -103,6 +106,8 @@ topic_item_share <- subitems %>%
   count(topic, item) %>%
   mutate(pct = n / sum(n)) %>% 
   arrange(desc(pct))
+
+DT::datatable(topic_item_share)
 ```
 
 That's quite a long longtail:
@@ -138,6 +143,8 @@ Now the same with properties.
 ```{r, warning=F, message=F}
 lgbt_properties <- read_tsv("../../../static/wikidata-queer-properties.tsv") %>% 
   rename(p = id)
+
+DT::datatable(lgbt_properties)
 ```
 
 ```{r}
@@ -152,6 +159,8 @@ items_with_properties <- lgbt_properties %>%
       bind_cols(current)
   }) %>% 
   select(property, p, everything())
+
+DT::datatable(items_with_properties)
 ```
 
 As counts by propery: 
@@ -161,6 +170,8 @@ properties_share <- items_with_properties %>%
   count(property) %>%
   mutate(pct = n / sum(n)) %>% 
   arrange(desc(pct))
+
+DT::datatable(properties_share)
 ```
 
 ## Persons, that are not heterosexual
@@ -186,11 +197,13 @@ non_heterosexuals <- query_wikidata(
 }'
 ) %>% as_tibble()
 
+DT::datatable(non_heterosexuals)
 ```
 
 ```{r}
 non_heterosexuals %>% 
-  count(sexualorientationLabel, sort = T)
+  count(sexualorientationLabel, sort = T) %>% 
+  DT::datatable()
 ```
 Woah, what are those `r non_heterosexuals %>% filter(is.na(sexualorientationLabel)) %>% nrow()` that have an empty label?
 Are these subversive attempts to undermine labels that deal with sexual orientation?
@@ -233,12 +246,9 @@ SELECT DISTINCT ?person ?personLabel ?sexualorientationLabel ?sexorgenderLabel
     SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
 }
 ') %>% as_tibble()
-```
 
-```{r}
-munich
+DT::datatable(munich)
 ```
-
 
 ## What comes next
 
