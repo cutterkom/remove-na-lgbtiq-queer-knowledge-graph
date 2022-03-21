@@ -1,8 +1,9 @@
 library(tidyverse)
 library(pdftools)
 
-pdf <- "data-gathering/data/input/themengeschichtspfad.pdf"
-pdf_data_list <- pdf_data(pdf = pdf)
+# in order to get font info, there cannot be a fullscreen image in the pdf
+pdf <- "data-gathering/data/input/themengeschichtspfad-no-fullpage-images.pdf"
+pdf_data_list <- pdf_data(pdf = pdf, font_info = TRUE)
 
 # set page number as name of df in list
 pdf_data_list <- setNames(pdf_data_list, c(1:length(pdf_data)))
