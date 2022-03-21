@@ -290,7 +290,7 @@ All three are stored in a MariaDB.</p>
 <span id="cb3-19"><a href="data-gathering.html#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="kw">LEFT</span> <span class="kw">JOIN</span> posters_years <span class="kw">ON</span> posters_years.year_id <span class="op">=</span> poster_year.year_id</span>
 <span id="cb3-20"><a href="data-gathering.html#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="co">-- add keywords</span></span>
 <span id="cb3-21"><a href="data-gathering.html#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="kw">LEFT</span> <span class="kw">JOIN</span> poster_keyword <span class="kw">ON</span> posters.poster_id <span class="op">=</span> poster_keyword.poster_id</span>
-<span id="cb3-22"><a href="data-gathering.html#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="kw">LEFT</span> <span class="kw">JOIN</span> posters_keywords <span class="kw">ON</span> posters_keywords.keyword_id <span class="op">=</span> posters_keywords.keyword_id</span>
+<span id="cb3-22"><a href="data-gathering.html#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="kw">LEFT</span> <span class="kw">JOIN</span> posters_keywords <span class="kw">ON</span> posters_keywords.keyword_id <span class="op">=</span> poster_keyword.keyword_id</span>
 <span id="cb3-23"><a href="data-gathering.html#cb3-23" aria-hidden="true" tabindex="-1"></a>;</span></code></pre></div>
 </div>
 </div>
@@ -317,6 +317,7 @@ All three are stored in a MariaDB.</p>
 <li>Shiny app called “Who is Who?” to show possible matching candidates</li>
 <li>decision by button clicking</li>
 <li>code in <code>apps/entity-resolver</code></li>
+<li>results saved in <code>er_candidates</code></li>
 </ul>
 <p><img src="img/who-is-who-ex.png" /></p>
 
