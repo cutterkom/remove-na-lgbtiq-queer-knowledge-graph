@@ -62,7 +62,7 @@ _book
 doc/*.html
 # venv
 /renv
-
+/venv
 
 *.Rdata
 *.Rds
