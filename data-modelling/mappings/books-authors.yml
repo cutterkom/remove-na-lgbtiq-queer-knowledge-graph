@@ -1,0 +1,38 @@
+prefixes:
+  ex: "http://example.com/"
+  ex2: "http://example.com/author/"
+  schema: "https://schema.org/"
+
+authors: Katharina Brunner <kontakt@katharinabrunner.de>
+  
+sources:
+  books:
+    table: books_wide
+    queryFormulation: mysql
+
+mappings:
+  BookMapping:
+    sources: books
+    s: ex:$(book_id)
+    po:
+      - [a, schema:Book]
+      - [schema:name, $(name)]
+      - [schema:isbn, $(isbn)]
+      - p: schema:author
+        o: 
+        - mapping: AuthorMapping
+          condition:
+            function: equal
+            parameters:
+              - [str1, $(book_id)]
+              - [str2, $(book_id)]
+
+  AuthorMapping:
+    sources: books
+    s: ex2:$(author_id)
+    po:
+      - [a, schema:Author]
+      - [schema:author, $(author)]
+
+
+
