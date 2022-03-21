@@ -60,7 +60,7 @@ themengeschichtspfad.pdf
 # bookdown
 _bookdown_files
 _book
-/docs/libs/*
+!/docs/libs/*
 doc/*.html
 # venv
 venv
