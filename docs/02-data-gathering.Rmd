@@ -134,5 +134,6 @@ A first setup to tackle the task is two-fold:
 * Shiny app called "Who is Who?" to show possible matching candidates
 * decision by button clicking
 * code in `apps/entity-resolver`
+* results saved in `er_candidates`
 
 ![](img/who-is-who-ex.png)
