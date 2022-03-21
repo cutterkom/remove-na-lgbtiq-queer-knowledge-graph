@@ -22,8 +22,11 @@ Scripts in `data-modelling`
 
   - for posters: `yarrrml-parser -i mappings/posters-rules.yml -o mappings/posters-mapping.r2rml.ttl -f R2RML`
   - for books: `yarrrml-parser -i mappings/books-rules.yml -o mappings/books-mapping.r2rml.ttl -f R2RML`
+  - for books and authors (best version!) `yarrrml-parser -i mappings/books-authors.yml -o mappings/books-authors.r2rml.ttl -f R2RML`
 
 2. create RDF files with `python3 create-rdf.py`
+
+
 
 
 
