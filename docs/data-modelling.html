@@ -4,11 +4,11 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>3 Data Modelling | Data Modelling</title>
-  <meta name="description" content="3 Data Modelling | Data Modelling" />
+  <title>3 Data Modelling | Data Linking</title>
+  <meta name="description" content="3 Data Modelling | Data Linking" />
   <meta name="generator" content="bookdown 0.24 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="3 Data Modelling | Data Modelling" />
+  <meta property="og:title" content="3 Data Modelling | Data Linking" />
   <meta property="og:type" content="book" />
   
   
@@ -16,7 +16,7 @@
   
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="3 Data Modelling | Data Modelling" />
+  <meta name="twitter:title" content="3 Data Modelling | Data Linking" />
   
   
   
@@ -31,8 +31,8 @@
   
   
 <link rel="prev" href="data-gathering.html"/>
-
-<script src="libs/header-attrs-2.11/header-attrs.js"></script>
+<link rel="next" href="data-linking.html"/>
+<script src="libs/header-attrs-2.13/header-attrs.js"></script>
 <script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
@@ -50,8 +50,9 @@
 
 
 
-<link href="libs/anchor-sections-1.0.1/anchor-sections.css" rel="stylesheet" />
-<script src="libs/anchor-sections-1.0.1/anchor-sections.js"></script>
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
 
 
 <style type="text/css">
@@ -132,20 +133,36 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       <nav role="navigation">
 
 <ul class="summary">
-<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Intro</a></li>
-<li class="chapter" data-level="2" data-path="data-gathering.html"><a href="data-gathering.html"><i class="fa fa-check"></i><b>2</b> Data Gathering</a>
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Intro<span></span></a>
 <ul>
-<li class="chapter" data-level="2.1" data-path="data-gathering.html"><a href="data-gathering.html#infrastructure"><i class="fa fa-check"></i><b>2.1</b> Infrastructure</a>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#virtual-environments-and-dependency-management"><i class="fa fa-check"></i><b>1.1</b> Virtual Environments and dependency management<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="data-gathering.html"><a href="data-gathering.html"><i class="fa fa-check"></i><b>2</b> Data Gathering<span></span></a>
 <ul>
-<li class="chapter" data-level="2.1.1" data-path="data-gathering.html"><a href="data-gathering.html#mariadb"><i class="fa fa-check"></i><b>2.1.1</b> MariaDB</a></li>
-</ul></li>
-<li class="chapter" data-level="2.2" data-path="data-gathering.html"><a href="data-gathering.html#citavi-daten"><i class="fa fa-check"></i><b>2.2</b> Citavi-Daten</a>
+<li class="chapter" data-level="2.1" data-path="data-gathering.html"><a href="data-gathering.html#infrastructure"><i class="fa fa-check"></i><b>2.1</b> Infrastructure<span></span></a>
 <ul>
-<li class="chapter" data-level="2.2.1" data-path="data-gathering.html"><a href="data-gathering.html#books-data-model"><i class="fa fa-check"></i><b>2.2.1</b> Books data model</a></li>
-<li class="chapter" data-level="2.2.2" data-path="data-gathering.html"><a href="data-gathering.html#poster-data-model"><i class="fa fa-check"></i><b>2.2.2</b> Poster data model</a></li>
+<li class="chapter" data-level="2.1.1" data-path="data-gathering.html"><a href="data-gathering.html#mariadb"><i class="fa fa-check"></i><b>2.1.1</b> MariaDB<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="2.2" data-path="data-gathering.html"><a href="data-gathering.html#citavi-data-dumps"><i class="fa fa-check"></i><b>2.2</b> Citavi data dumps<span></span></a>
+<ul>
+<li class="chapter" data-level="2.2.1" data-path="data-gathering.html"><a href="data-gathering.html#books-data-model"><i class="fa fa-check"></i><b>2.2.1</b> Books data model<span></span></a></li>
+<li class="chapter" data-level="2.2.2" data-path="data-gathering.html"><a href="data-gathering.html#poster-data-model"><i class="fa fa-check"></i><b>2.2.2</b> Poster data model<span></span></a></li>
+<li class="chapter" data-level="2.2.3" data-path="data-gathering.html"><a href="data-gathering.html#views"><i class="fa fa-check"></i><b>2.2.3</b> Views<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="2.3" data-path="data-gathering.html"><a href="data-gathering.html#entity-resolution"><i class="fa fa-check"></i><b>2.3</b> Entity Resolution<span></span></a>
+<ul>
+<li class="chapter" data-level="2.3.1" data-path="data-gathering.html"><a href="data-gathering.html#calculate-text-similarities-between-entitity-stings-based-on-cosine-similarity"><i class="fa fa-check"></i><b>2.3.1</b> Calculate text similarities between entitity stings based on cosine similarity<span></span></a></li>
+<li class="chapter" data-level="2.3.2" data-path="data-gathering.html"><a href="data-gathering.html#human-decision-making"><i class="fa fa-check"></i><b>2.3.2</b> Human decision making<span></span></a></li>
 </ul></li>
 </ul></li>
-<li class="chapter" data-level="3" data-path="data-modelling.html"><a href="data-modelling.html"><i class="fa fa-check"></i><b>3</b> Data Modelling</a></li>
+<li class="chapter" data-level="3" data-path="data-modelling.html"><a href="data-modelling.html"><i class="fa fa-check"></i><b>3</b> Data Modelling<span></span></a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="data-modelling.html"><a href="data-modelling.html#create-rdf-files-from-database"><i class="fa fa-check"></i><b>3.1</b> Create RDF files from database<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="data-linking.html"><a href="data-linking.html"><i class="fa fa-check"></i><b>4</b> Data Linking<span></span></a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="data-linking.html"><a href="data-linking.html#viaf"><i class="fa fa-check"></i><b>4.1</b> VIAF<span></span></a></li>
+</ul></li>
 </ul>
 
       </nav>
@@ -155,7 +172,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       <div class="body-inner">
         <div class="book-header" role="navigation">
           <h1>
-            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Data Modelling</a>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Data Linking</a>
           </h1>
         </div>
 
@@ -163,19 +180,34 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="data-modelling" class="section level1" number="3">
-<h1><span class="header-section-number">3</span> Data Modelling</h1>
+<div id="data-modelling" class="section level1 hasAnchor" number="3">
+<h1><span class="header-section-number">3</span> Data Modelling<a href="data-modelling.html#data-modelling" class="anchor-section" aria-label="Anchor link to header"></a></h1>
 <p>In this document you’ll find explainations and descriptions of the data model used in the <code>Remove NA</code> project.</p>
 <p>Remove NA collects data about real world entities, such as people, organizations or locations, and the relationships between them.</p>
+<div id="create-rdf-files-from-database" class="section level2 hasAnchor" number="3.1">
+<h2><span class="header-section-number">3.1</span> Create RDF files from database<a href="data-modelling.html#create-rdf-files-from-database" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>RDF files created with <code>RML</code> rules.</p>
+<p>Scripts in <code>data-modelling</code></p>
+<ol style="list-style-type: decimal">
+<li>run parser:</li>
+</ol>
+<ul>
+<li>for posters: <code>yarrrml-parser -i mappings/posters-rules.yml -o mappings/posters-mapping.r2rml.ttl -f R2RML</code></li>
+<li>for books: <code>yarrrml-parser -i mappings/books-rules.yml -o mappings/books-mapping.r2rml.ttl -f R2RML</code></li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li>create RDF files with <code>python3 create-rdf.py</code></li>
+</ol>
 
+</div>
 </div>
             </section>
 
           </div>
         </div>
       </div>
-<a href="data-gathering.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-
+<a href="data-gathering.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="data-linking.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>

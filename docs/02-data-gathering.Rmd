@@ -56,6 +56,7 @@ books_series.series_id,
 books_years.year_id,
 books.name, 
 books_authors.author,
+books.isbn,
 books.subtitle, 
 books.title_supplement,
 books_editors.editor,
@@ -87,7 +88,7 @@ LEFT JOIN books_years ON book_year.year_id = books_years.year_id;
 
 Wide View on posters data.
 
-````sql
+```sql
 CREATE VIEW posters_wide AS
 SELECT 
 posters.poster_id,
@@ -112,3 +113,26 @@ LEFT JOIN poster_keyword ON posters.poster_id = poster_keyword.poster_id
 LEFT JOIN posters_keywords ON posters_keywords.keyword_id = poster_keyword.keyword_id
 ;
 ```
+
+## Entity Resolution
+
+Deduplication, entitiy resolultion, entity linking etc. is a main and re-accuring task in this project. 
+
+A first setup to tackle the task is two-fold: 
+
+1. Calculate text similarities between entitity stings based on cosine similarity
+2. Human decision making
+
+### Calculate text similarities between entitity stings based on cosine similarity
+
+* based on `quanteda`
+* scripts under `data-gathering/entity-resolution`
+* cosine minimum similiarty is set to 0.75 (for authors and publishers from posters and books)
+
+### Human decision making
+
+* Shiny app called "Who is Who?" to show possible matching candidates
+* decision by button clicking
+* code in `apps/entity-resolver`
+
+![](img/who-is-who-ex.png)

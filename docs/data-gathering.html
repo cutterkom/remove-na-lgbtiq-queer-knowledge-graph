@@ -4,11 +4,11 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>2 Data Gathering | Data Modelling</title>
-  <meta name="description" content="2 Data Gathering | Data Modelling" />
+  <title>2 Data Gathering | Data Linking</title>
+  <meta name="description" content="2 Data Gathering | Data Linking" />
   <meta name="generator" content="bookdown 0.24 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="2 Data Gathering | Data Modelling" />
+  <meta property="og:title" content="2 Data Gathering | Data Linking" />
   <meta property="og:type" content="book" />
   
   
@@ -16,7 +16,7 @@
   
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="2 Data Gathering | Data Modelling" />
+  <meta name="twitter:title" content="2 Data Gathering | Data Linking" />
   
   
   
@@ -32,7 +32,7 @@
   
 <link rel="prev" href="index.html"/>
 <link rel="next" href="data-modelling.html"/>
-<script src="libs/header-attrs-2.11/header-attrs.js"></script>
+<script src="libs/header-attrs-2.13/header-attrs.js"></script>
 <script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
@@ -50,8 +50,9 @@
 
 
 
-<link href="libs/anchor-sections-1.0.1/anchor-sections.css" rel="stylesheet" />
-<script src="libs/anchor-sections-1.0.1/anchor-sections.js"></script>
+<link href="libs/anchor-sections-1.1.0/anchor-sections.css" rel="stylesheet" />
+<link href="libs/anchor-sections-1.1.0/anchor-sections-hash.css" rel="stylesheet" />
+<script src="libs/anchor-sections-1.1.0/anchor-sections.js"></script>
 
 
 <style type="text/css">
@@ -132,20 +133,36 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       <nav role="navigation">
 
 <ul class="summary">
-<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Intro</a></li>
-<li class="chapter" data-level="2" data-path="data-gathering.html"><a href="data-gathering.html"><i class="fa fa-check"></i><b>2</b> Data Gathering</a>
+<li class="chapter" data-level="1" data-path="index.html"><a href="index.html"><i class="fa fa-check"></i><b>1</b> Intro<span></span></a>
 <ul>
-<li class="chapter" data-level="2.1" data-path="data-gathering.html"><a href="data-gathering.html#infrastructure"><i class="fa fa-check"></i><b>2.1</b> Infrastructure</a>
+<li class="chapter" data-level="1.1" data-path="index.html"><a href="index.html#virtual-environments-and-dependency-management"><i class="fa fa-check"></i><b>1.1</b> Virtual Environments and dependency management<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="2" data-path="data-gathering.html"><a href="data-gathering.html"><i class="fa fa-check"></i><b>2</b> Data Gathering<span></span></a>
 <ul>
-<li class="chapter" data-level="2.1.1" data-path="data-gathering.html"><a href="data-gathering.html#mariadb"><i class="fa fa-check"></i><b>2.1.1</b> MariaDB</a></li>
-</ul></li>
-<li class="chapter" data-level="2.2" data-path="data-gathering.html"><a href="data-gathering.html#citavi-daten"><i class="fa fa-check"></i><b>2.2</b> Citavi-Daten</a>
+<li class="chapter" data-level="2.1" data-path="data-gathering.html"><a href="data-gathering.html#infrastructure"><i class="fa fa-check"></i><b>2.1</b> Infrastructure<span></span></a>
 <ul>
-<li class="chapter" data-level="2.2.1" data-path="data-gathering.html"><a href="data-gathering.html#books-data-model"><i class="fa fa-check"></i><b>2.2.1</b> Books data model</a></li>
-<li class="chapter" data-level="2.2.2" data-path="data-gathering.html"><a href="data-gathering.html#poster-data-model"><i class="fa fa-check"></i><b>2.2.2</b> Poster data model</a></li>
+<li class="chapter" data-level="2.1.1" data-path="data-gathering.html"><a href="data-gathering.html#mariadb"><i class="fa fa-check"></i><b>2.1.1</b> MariaDB<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="2.2" data-path="data-gathering.html"><a href="data-gathering.html#citavi-data-dumps"><i class="fa fa-check"></i><b>2.2</b> Citavi data dumps<span></span></a>
+<ul>
+<li class="chapter" data-level="2.2.1" data-path="data-gathering.html"><a href="data-gathering.html#books-data-model"><i class="fa fa-check"></i><b>2.2.1</b> Books data model<span></span></a></li>
+<li class="chapter" data-level="2.2.2" data-path="data-gathering.html"><a href="data-gathering.html#poster-data-model"><i class="fa fa-check"></i><b>2.2.2</b> Poster data model<span></span></a></li>
+<li class="chapter" data-level="2.2.3" data-path="data-gathering.html"><a href="data-gathering.html#views"><i class="fa fa-check"></i><b>2.2.3</b> Views<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="2.3" data-path="data-gathering.html"><a href="data-gathering.html#entity-resolution"><i class="fa fa-check"></i><b>2.3</b> Entity Resolution<span></span></a>
+<ul>
+<li class="chapter" data-level="2.3.1" data-path="data-gathering.html"><a href="data-gathering.html#calculate-text-similarities-between-entitity-stings-based-on-cosine-similarity"><i class="fa fa-check"></i><b>2.3.1</b> Calculate text similarities between entitity stings based on cosine similarity<span></span></a></li>
+<li class="chapter" data-level="2.3.2" data-path="data-gathering.html"><a href="data-gathering.html#human-decision-making"><i class="fa fa-check"></i><b>2.3.2</b> Human decision making<span></span></a></li>
 </ul></li>
 </ul></li>
-<li class="chapter" data-level="3" data-path="data-modelling.html"><a href="data-modelling.html"><i class="fa fa-check"></i><b>3</b> Data Modelling</a></li>
+<li class="chapter" data-level="3" data-path="data-modelling.html"><a href="data-modelling.html"><i class="fa fa-check"></i><b>3</b> Data Modelling<span></span></a>
+<ul>
+<li class="chapter" data-level="3.1" data-path="data-modelling.html"><a href="data-modelling.html#create-rdf-files-from-database"><i class="fa fa-check"></i><b>3.1</b> Create RDF files from database<span></span></a></li>
+</ul></li>
+<li class="chapter" data-level="4" data-path="data-linking.html"><a href="data-linking.html"><i class="fa fa-check"></i><b>4</b> Data Linking<span></span></a>
+<ul>
+<li class="chapter" data-level="4.1" data-path="data-linking.html"><a href="data-linking.html#viaf"><i class="fa fa-check"></i><b>4.1</b> VIAF<span></span></a></li>
+</ul></li>
 </ul>
 
       </nav>
@@ -155,7 +172,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       <div class="body-inner">
         <div class="book-header" role="navigation">
           <h1>
-            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Data Modelling</a>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Data Linking</a>
           </h1>
         </div>
 
@@ -163,14 +180,14 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="data-gathering" class="section level1" number="2">
-<h1><span class="header-section-number">2</span> Data Gathering</h1>
+<div id="data-gathering" class="section level1 hasAnchor" number="2">
+<h1><span class="header-section-number">2</span> Data Gathering<a href="data-gathering.html#data-gathering" class="anchor-section" aria-label="Anchor link to header"></a></h1>
 <p>The first step is to merge different data sources.
 The scripts for this can be found in the repo under <code>data-gathering</code>.</p>
-<div id="infrastructure" class="section level2" number="2.1">
-<h2><span class="header-section-number">2.1</span> Infrastructure</h2>
-<div id="mariadb" class="section level3" number="2.1.1">
-<h3><span class="header-section-number">2.1.1</span> MariaDB</h3>
+<div id="infrastructure" class="section level2 hasAnchor" number="2.1">
+<h2><span class="header-section-number">2.1</span> Infrastructure<a href="data-gathering.html#infrastructure" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<div id="mariadb" class="section level3 hasAnchor" number="2.1.1">
+<h3><span class="header-section-number">2.1.1</span> MariaDB<a href="data-gathering.html#mariadb" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>Initial converted data from Citavi and other sources are stored in a MariaDB.
 Install and setup on <a href="https://mariadb.com/kb/en/installing-mariadb-on-macos-using-homebrew/">Mac with <code>homebrew</code></a>.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb1-1"><a href="data-gathering.html#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">DATABASE</span> lgbtiq_kg </span>
@@ -181,29 +198,127 @@ Install and setup on <a href="https://mariadb.com/kb/en/installing-mariadb-on-ma
 <span id="cb1-6"><a href="data-gathering.html#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="kw">ALTER</span> <span class="fu">USER</span> <span class="st">&#39;root&#39;</span>@<span class="st">&#39;localhost&#39;</span> <span class="kw">IDENTIFIED</span> <span class="kw">BY</span> <span class="st">&#39;NEW_PASSWORD&#39;</span>;</span></code></pre></div>
 </div>
 </div>
-<div id="citavi-daten" class="section level2" number="2.2">
-<h2><span class="header-section-number">2.2</span> Citavi-Daten</h2>
+<div id="citavi-data-dumps" class="section level2 hasAnchor" number="2.2">
+<h2><span class="header-section-number">2.2</span> Citavi data dumps<a href="data-gathering.html#citavi-data-dumps" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>Scripts: <code>data-gathering/from-citavi/</code></p>
-<p>There are three exports from Citavi databases that are normalized: <code>poster</code>, <code>books</code>, <code>digital</code>.
+<p>There are three exports from Citavi data dumps that are normalized: <code>poster</code>, <code>books</code>, <code>digital</code>.
 All three are stored in a MariaDB.</p>
 <p>Naming convention:</p>
 <ul>
 <li>plurale: data -&gt; <code>books_years</code></li>
 <li>singular: relations -&gt; <code>book_years</code>: relationship between <code>book_id</code> and <code>year_id</code></li>
 </ul>
-<div id="books-data-model" class="section level3" number="2.2.1">
-<h3><span class="header-section-number">2.2.1</span> Books data model</h3>
+<div id="books-data-model" class="section level3 hasAnchor" number="2.2.1">
+<h3><span class="header-section-number">2.2.1</span> Books data model<a href="data-gathering.html#books-data-model" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <div class="figure">
 <img src="img/dm-books.png" alt="" />
 <p class="caption">books data model</p>
 </div>
 </div>
-<div id="poster-data-model" class="section level3" number="2.2.2">
-<h3><span class="header-section-number">2.2.2</span> Poster data model</h3>
+<div id="poster-data-model" class="section level3 hasAnchor" number="2.2.2">
+<h3><span class="header-section-number">2.2.2</span> Poster data model<a href="data-gathering.html#poster-data-model" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <div class="figure">
 <img src="img/dm-posters.png" alt="" />
 <p class="caption">poster data model</p>
 </div>
+</div>
+<div id="views" class="section level3 hasAnchor" number="2.2.3">
+<h3><span class="header-section-number">2.2.3</span> Views<a href="data-gathering.html#views" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div id="books" class="section level4 hasAnchor" number="2.2.3.1">
+<h4><span class="header-section-number">2.2.3.1</span> Books<a href="data-gathering.html#books" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p>A wide view on all books</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb2-1"><a href="data-gathering.html#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">VIEW</span> books_wide <span class="kw">AS</span></span>
+<span id="cb2-2"><a href="data-gathering.html#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> </span>
+<span id="cb2-3"><a href="data-gathering.html#cb2-3" aria-hidden="true" tabindex="-1"></a>books.book_id, </span>
+<span id="cb2-4"><a href="data-gathering.html#cb2-4" aria-hidden="true" tabindex="-1"></a>books_authors.author_id,</span>
+<span id="cb2-5"><a href="data-gathering.html#cb2-5" aria-hidden="true" tabindex="-1"></a>books_editors.editor_id,</span>
+<span id="cb2-6"><a href="data-gathering.html#cb2-6" aria-hidden="true" tabindex="-1"></a>books_locations.location_id,</span>
+<span id="cb2-7"><a href="data-gathering.html#cb2-7" aria-hidden="true" tabindex="-1"></a>books_publishers.publisher_id,</span>
+<span id="cb2-8"><a href="data-gathering.html#cb2-8" aria-hidden="true" tabindex="-1"></a>books_series.series_id,</span>
+<span id="cb2-9"><a href="data-gathering.html#cb2-9" aria-hidden="true" tabindex="-1"></a>books_years.year_id,</span>
+<span id="cb2-10"><a href="data-gathering.html#cb2-10" aria-hidden="true" tabindex="-1"></a>books.name, </span>
+<span id="cb2-11"><a href="data-gathering.html#cb2-11" aria-hidden="true" tabindex="-1"></a>books_authors.author,</span>
+<span id="cb2-12"><a href="data-gathering.html#cb2-12" aria-hidden="true" tabindex="-1"></a>books.isbn,</span>
+<span id="cb2-13"><a href="data-gathering.html#cb2-13" aria-hidden="true" tabindex="-1"></a>books.subtitle, </span>
+<span id="cb2-14"><a href="data-gathering.html#cb2-14" aria-hidden="true" tabindex="-1"></a>books.title_supplement,</span>
+<span id="cb2-15"><a href="data-gathering.html#cb2-15" aria-hidden="true" tabindex="-1"></a>books_editors.editor,</span>
+<span id="cb2-16"><a href="data-gathering.html#cb2-16" aria-hidden="true" tabindex="-1"></a>books_locations.location,</span>
+<span id="cb2-17"><a href="data-gathering.html#cb2-17" aria-hidden="true" tabindex="-1"></a>books_publishers.publisher,</span>
+<span id="cb2-18"><a href="data-gathering.html#cb2-18" aria-hidden="true" tabindex="-1"></a>books_series.series,</span>
+<span id="cb2-19"><a href="data-gathering.html#cb2-19" aria-hidden="true" tabindex="-1"></a>books_years.<span class="dt">year</span></span>
+<span id="cb2-20"><a href="data-gathering.html#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> books</span>
+<span id="cb2-21"><a href="data-gathering.html#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="co">-- add authors</span></span>
+<span id="cb2-22"><a href="data-gathering.html#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="kw">LEFT</span> <span class="kw">JOIN</span> book_author <span class="kw">ON</span> books.book_id <span class="op">=</span> book_author.book_id</span>
+<span id="cb2-23"><a href="data-gathering.html#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="kw">LEFT</span> <span class="kw">JOIN</span> books_authors <span class="kw">ON</span> book_author.author_id <span class="op">=</span> books_authors.author_id</span>
+<span id="cb2-24"><a href="data-gathering.html#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="co">-- add editors</span></span>
+<span id="cb2-25"><a href="data-gathering.html#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="kw">LEFT</span> <span class="kw">JOIN</span> book_editor <span class="kw">ON</span> books.book_id<span class="op">=</span> book_editor.book_id</span>
+<span id="cb2-26"><a href="data-gathering.html#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="kw">LEFT</span> <span class="kw">JOIN</span> books_editors <span class="kw">ON</span> book_editor.editor_id <span class="op">=</span> books_editors.editor_id</span>
+<span id="cb2-27"><a href="data-gathering.html#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="co">-- add locatiONs</span></span>
+<span id="cb2-28"><a href="data-gathering.html#cb2-28" aria-hidden="true" tabindex="-1"></a><span class="kw">LEFT</span> <span class="kw">JOIN</span> book_locatiON <span class="kw">ON</span> books.book_id<span class="op">=</span> book_locatiON.book_id</span>
+<span id="cb2-29"><a href="data-gathering.html#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="kw">LEFT</span> <span class="kw">JOIN</span> books_locatiONs <span class="kw">ON</span> book_locatiON.locatiON_id <span class="op">=</span> books_locatiONs.locatiON_id</span>
+<span id="cb2-30"><a href="data-gathering.html#cb2-30" aria-hidden="true" tabindex="-1"></a><span class="co">-- add publishers</span></span>
+<span id="cb2-31"><a href="data-gathering.html#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="kw">LEFT</span> <span class="kw">JOIN</span> book_publisher <span class="kw">ON</span> books.book_id<span class="op">=</span> book_publisher.book_id</span>
+<span id="cb2-32"><a href="data-gathering.html#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="kw">LEFT</span> <span class="kw">JOIN</span> books_publishers <span class="kw">ON</span> book_publisher.publisher_id <span class="op">=</span> books_publishers.publisher_id</span>
+<span id="cb2-33"><a href="data-gathering.html#cb2-33" aria-hidden="true" tabindex="-1"></a><span class="co">-- add series</span></span>
+<span id="cb2-34"><a href="data-gathering.html#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="kw">LEFT</span> <span class="kw">JOIN</span> book_series <span class="kw">ON</span> books.book_id<span class="op">=</span> book_series.book_id</span>
+<span id="cb2-35"><a href="data-gathering.html#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="kw">LEFT</span> <span class="kw">JOIN</span> books_series <span class="kw">ON</span> book_series.series_id <span class="op">=</span> books_series.series_id</span>
+<span id="cb2-36"><a href="data-gathering.html#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="co">-- add years</span></span>
+<span id="cb2-37"><a href="data-gathering.html#cb2-37" aria-hidden="true" tabindex="-1"></a><span class="kw">LEFT</span> <span class="kw">JOIN</span> book_year <span class="kw">ON</span> books.book_id<span class="op">=</span> book_year.book_id</span>
+<span id="cb2-38"><a href="data-gathering.html#cb2-38" aria-hidden="true" tabindex="-1"></a><span class="kw">LEFT</span> <span class="kw">JOIN</span> books_years <span class="kw">ON</span> book_year.year_id <span class="op">=</span> books_years.year_id;</span></code></pre></div>
+</div>
+<div id="posters" class="section level4 hasAnchor" number="2.2.3.2">
+<h4><span class="header-section-number">2.2.3.2</span> Posters<a href="data-gathering.html#posters" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p>Wide View on posters data.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb3-1"><a href="data-gathering.html#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">VIEW</span> posters_wide <span class="kw">AS</span></span>
+<span id="cb3-2"><a href="data-gathering.html#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> </span>
+<span id="cb3-3"><a href="data-gathering.html#cb3-3" aria-hidden="true" tabindex="-1"></a>posters.poster_id,</span>
+<span id="cb3-4"><a href="data-gathering.html#cb3-4" aria-hidden="true" tabindex="-1"></a>posters_authors.author_id,</span>
+<span id="cb3-5"><a href="data-gathering.html#cb3-5" aria-hidden="true" tabindex="-1"></a>posters_years.year_id,</span>
+<span id="cb3-6"><a href="data-gathering.html#cb3-6" aria-hidden="true" tabindex="-1"></a>posters_keywords.keyword_id,</span>
+<span id="cb3-7"><a href="data-gathering.html#cb3-7" aria-hidden="true" tabindex="-1"></a>posters.title,</span>
+<span id="cb3-8"><a href="data-gathering.html#cb3-8" aria-hidden="true" tabindex="-1"></a>posters.<span class="kw">size</span>,</span>
+<span id="cb3-9"><a href="data-gathering.html#cb3-9" aria-hidden="true" tabindex="-1"></a>posters_authors.author,</span>
+<span id="cb3-10"><a href="data-gathering.html#cb3-10" aria-hidden="true" tabindex="-1"></a>posters_years.<span class="dt">year</span>,</span>
+<span id="cb3-11"><a href="data-gathering.html#cb3-11" aria-hidden="true" tabindex="-1"></a>posters_keywords.keyword</span>
+<span id="cb3-12"><a href="data-gathering.html#cb3-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-13"><a href="data-gathering.html#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> posters</span>
+<span id="cb3-14"><a href="data-gathering.html#cb3-14" aria-hidden="true" tabindex="-1"></a><span class="co">-- add authors</span></span>
+<span id="cb3-15"><a href="data-gathering.html#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="kw">LEFT</span> <span class="kw">JOIN</span> poster_author <span class="kw">ON</span> posters.poster_id <span class="op">=</span> poster_author.poster_id</span>
+<span id="cb3-16"><a href="data-gathering.html#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="kw">LEFT</span> <span class="kw">JOIN</span> posters_authors <span class="kw">ON</span> posters_authors.author_id <span class="op">=</span> poster_author.author_id</span>
+<span id="cb3-17"><a href="data-gathering.html#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="co">-- add years</span></span>
+<span id="cb3-18"><a href="data-gathering.html#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="kw">LEFT</span> <span class="kw">JOIN</span> poster_year <span class="kw">ON</span> posters.poster_id <span class="op">=</span> poster_year.poster_id</span>
+<span id="cb3-19"><a href="data-gathering.html#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="kw">LEFT</span> <span class="kw">JOIN</span> posters_years <span class="kw">ON</span> posters_years.year_id <span class="op">=</span> poster_year.year_id</span>
+<span id="cb3-20"><a href="data-gathering.html#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="co">-- add keywords</span></span>
+<span id="cb3-21"><a href="data-gathering.html#cb3-21" aria-hidden="true" tabindex="-1"></a><span class="kw">LEFT</span> <span class="kw">JOIN</span> poster_keyword <span class="kw">ON</span> posters.poster_id <span class="op">=</span> poster_keyword.poster_id</span>
+<span id="cb3-22"><a href="data-gathering.html#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="kw">LEFT</span> <span class="kw">JOIN</span> posters_keywords <span class="kw">ON</span> posters_keywords.keyword_id <span class="op">=</span> posters_keywords.keyword_id</span>
+<span id="cb3-23"><a href="data-gathering.html#cb3-23" aria-hidden="true" tabindex="-1"></a>;</span></code></pre></div>
+</div>
+</div>
+</div>
+<div id="entity-resolution" class="section level2 hasAnchor" number="2.3">
+<h2><span class="header-section-number">2.3</span> Entity Resolution<a href="data-gathering.html#entity-resolution" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Deduplication, entitiy resolultion, entity linking etc. is a main and re-accuring task in this project.</p>
+<p>A first setup to tackle the task is two-fold:</p>
+<ol style="list-style-type: decimal">
+<li>Calculate text similarities between entitity stings based on cosine similarity</li>
+<li>Human decision making</li>
+</ol>
+<div id="calculate-text-similarities-between-entitity-stings-based-on-cosine-similarity" class="section level3 hasAnchor" number="2.3.1">
+<h3><span class="header-section-number">2.3.1</span> Calculate text similarities between entitity stings based on cosine similarity<a href="data-gathering.html#calculate-text-similarities-between-entitity-stings-based-on-cosine-similarity" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<ul>
+<li>based on <code>quanteda</code></li>
+<li>scripts under <code>data-gathering/entity-resolution</code></li>
+<li>cosine minimum similiarty is set to 0.75 (for authors and publishers from posters and books)</li>
+</ul>
+</div>
+<div id="human-decision-making" class="section level3 hasAnchor" number="2.3.2">
+<h3><span class="header-section-number">2.3.2</span> Human decision making<a href="data-gathering.html#human-decision-making" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<ul>
+<li>Shiny app called “Who is Who?” to show possible matching candidates</li>
+<li>decision by button clicking</li>
+<li>code in <code>apps/entity-resolver</code></li>
+</ul>
+<p><img src="img/who-is-who-ex.png" /></p>
 
 </div>
 </div>
