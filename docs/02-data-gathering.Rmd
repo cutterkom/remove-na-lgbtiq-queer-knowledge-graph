@@ -110,7 +110,7 @@ LEFT JOIN poster_year ON posters.poster_id = poster_year.poster_id
 LEFT JOIN posters_years ON posters_years.year_id = poster_year.year_id
 -- add keywords
 LEFT JOIN poster_keyword ON posters.poster_id = poster_keyword.poster_id
-LEFT JOIN posters_keywords ON posters_keywords.keyword_id = posters_keywords.keyword_id
+LEFT JOIN posters_keywords ON posters_keywords.keyword_id = poster_keyword.keyword_id
 ;
 ```
 

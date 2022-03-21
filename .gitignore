@@ -55,15 +55,14 @@ themengeschichtspfad.pdf
 *.ctt4
 *.xlsx
 
-/renv
-
 # bookdown
 _bookdown_files
 _book
 !/docs/libs/*
 doc/*.html
 # venv
-venv
+/renv
+
 
 *.Rdata
 *.Rds
