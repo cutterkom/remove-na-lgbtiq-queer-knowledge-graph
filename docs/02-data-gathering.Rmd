@@ -120,13 +120,16 @@ Deduplication, entitiy resolultion, entity linking etc. is a main and re-accurin
 
 A first setup to tackle the task is two-fold: 
 
-### 1. Calculate text similarities between entitity stings based on cosine similarity
+1. Calculate text similarities between entitity stings based on cosine similarity
+2. Human decision making
+
+### Calculate text similarities between entitity stings based on cosine similarity
 
 * based on `quanteda`
 * scripts under `data-gathering/entity-resolution`
 * cosine minimum similiarty is set to 0.75 (for authors and publishers from posters and books)
 
-### 2. Human decision making
+### Human decision making
 
 * Shiny app called "Who is Who?" to show possible matching candidates
 * decision by button clicking
