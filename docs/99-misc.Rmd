@@ -1,0 +1,10 @@
+---
+title: "Misc"
+author: "Katharina Brunner"
+date: "3/21/2022"
+output: html_document
+---
+
+# Misc
+
+Render docs: `bookdown::render_book("docs/", output_dir = ".")`
