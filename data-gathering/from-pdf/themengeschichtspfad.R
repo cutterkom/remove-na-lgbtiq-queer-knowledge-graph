@@ -1,5 +1,12 @@
+# title: Get clean text from Themengeschichtspfad 
+# desc: Themengeschichtspfad is a book in which Forum Queeres Archiv narrates about queer history in Munich. Everything is related to certain locations within the city. This script extracts text and locations from the pdf. Important: pages with full screen images need to be deleted, otherwise pdftools won't get detailed data. It's a bug.)
+# input: themengeschichtspfad-no-fullpage-images.pdf
+# output: text_tgp
+
 library(tidyverse)
 library(pdftools)
+library(kabrutils)
+library(DBI)
 
 # in order to get font info, there cannot be a fullscreen image in the pdf
 pdf <- "data-gathering/data/input/themengeschichtspfad-no-fullpage-images.pdf"
@@ -45,17 +52,41 @@ pdf_as_data
 
 collapsed_text <- pdf_as_data %>% 
   group_by(page, format) %>%
-  summarise(text_string = glue::glue_collapse(text, sep = " ", last = ""), .groups = "drop") %>% 
-  mutate(text_string = str_replace_all(text_string, "\\s-\\s|-\\s", "")) %>% 
-  # remove, when text_string is only page number
+  summarise(text = glue::glue_collapse(text, sep = " ", last = ""), .groups = "drop") %>% 
+  mutate(text = str_replace_all(text, "\\s-\\s|-\\s", "")) %>% 
+  # remove, when text is only page number
   # page number not correct, since I had to remove full screen image pages
   filter(format != "page") %>% 
   mutate(
     location = 
       case_when(
-        format == "location_header" ~ text_string,
-        format == "heading" ~ str_extract(text_string, ".+(?=:)"),
+        format == "location_header" ~ text,
+        format == "heading" ~ str_extract(text, ".+(?=:)"),
         TRUE ~ "München"
       )
   ) %>% 
   fill(location, .direction = "down")
+
+# Import in DB ------------------------------------------------------------
+
+import <- collapsed_text
+
+create_table <- "
+CREATE TABLE IF NOT EXISTS `text_tgp` (
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime DEFAULT NULL ON UPDATE current_timestamp(),
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `page` int(11) DEFAULT NULL COMMENT 'page number not totally correct, because full image pages were removed from pdf',
+  `format` varchar(20) COLLATE utf8mb3_german2_ci DEFAULT NULL COMMENT 'p, header, image caption ...',
+  `text` varchar(2000) COLLATE utf8mb3_german2_ci DEFAULT NULL COMMENT 'cleaned for Bindestriche',
+  `location` varchar(100) COLLATE utf8mb3_german2_ci DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `text` (`text`(1024)),
+  KEY `loc` (`location`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_german2_ci;
+"
+
+con <- connect_db()
+dbExecute(con, create_table)
+dbAppendTable(con, "text_tgp", import)
+dbDisconnect(con); rm(con)
