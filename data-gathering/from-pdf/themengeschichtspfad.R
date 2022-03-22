@@ -48,13 +48,14 @@ collapsed_text <- pdf_as_data %>%
   summarise(text_string = glue::glue_collapse(text, sep = " ", last = ""), .groups = "drop") %>% 
   mutate(text_string = str_replace_all(text_string, "\\s-\\s|-\\s", "")) %>% 
   # remove, when text_string is only page number
-  filter(format != "page")
-
-collapsed_text %>% 
+  # page number not correct, since I had to remove full screen image pages
+  filter(format != "page") %>% 
   mutate(
     location = 
       case_when(
         format == "location_header" ~ text_string,
-        TRUE ~ NA_character_
-      ) 
-  )%>% View
+        format == "heading" ~ str_extract(text_string, ".+(?=:)"),
+        TRUE ~ "München"
+      )
+  ) %>% 
+  fill(location, .direction = "down")
