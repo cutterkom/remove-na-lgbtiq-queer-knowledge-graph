@@ -77,7 +77,7 @@ CREATE TABLE IF NOT EXISTS `text_tgp` (
   `updated_at` datetime DEFAULT NULL ON UPDATE current_timestamp(),
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `page` int(11) DEFAULT NULL COMMENT 'page number not totally correct, because full image pages were removed from pdf',
-  `format` varchar(20) COLLATE utf8mb3_german2_ci DEFAULT NULL COMMENT 'p, header, image caption ...',
+  `format` varchar(25) COLLATE utf8mb3_german2_ci DEFAULT NULL COMMENT 'p, header, image caption ...',
   `text` varchar(2000) COLLATE utf8mb3_german2_ci DEFAULT NULL COMMENT 'cleaned for Bindestriche',
   `location` varchar(100) COLLATE utf8mb3_german2_ci DEFAULT NULL,
   PRIMARY KEY (`id`),
