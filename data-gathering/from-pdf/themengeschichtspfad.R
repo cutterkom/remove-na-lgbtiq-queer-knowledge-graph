@@ -46,7 +46,7 @@ pdf_as_data
 collapsed_text <- pdf_as_data %>% 
   group_by(page, format) %>%
   summarise(text_string = glue::glue_collapse(text, sep = " ", last = ""), .groups = "drop") %>% 
-  mutate(text_string = str_replace(text_string, "\\s-\\s|-\\s", "")) %>% 
+  mutate(text_string = str_replace_all(text_string, "\\s-\\s|-\\s", "")) %>% 
   # remove, when text_string is only page number
   filter(format != "page")
 
