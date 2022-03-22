@@ -16,7 +16,7 @@ pdf_as_data <- bind_rows(pdf_data_list, .id = "page") %>%
     # mark content: before and after can be ignored
     content = 
       case_when(
-        page >= 14 & page < 150 ~ 1,
+        page >= 14 & page < 149 ~ 1,
         TRUE ~ 0
       )
   ) %>% 
@@ -50,4 +50,11 @@ collapsed_text <- pdf_as_data %>%
   # remove, when text_string is only page number
   filter(format != "page")
 
-collapsed_text
+collapsed_text %>% 
+  mutate(
+    location = 
+      case_when(
+        format == "location_header" ~ text_string,
+        TRUE ~ NA_character_
+      ) 
+  )%>% View
