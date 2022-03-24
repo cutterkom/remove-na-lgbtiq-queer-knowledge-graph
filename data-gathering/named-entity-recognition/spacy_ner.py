@@ -10,6 +10,9 @@
 import spacy
 import rubrix as rb
 
+# delete, if exists
+rb.delete(name="chronik_ner")
+
 # %%
 # get data
 # connect to db
@@ -72,13 +75,13 @@ nlp = spacy.load("de_core_news_sm")
 
 records = []
 
-for record in df.index:
+for record in dataset.index:
     # We only need the text of each instance
-    text = df['text'][record]
+    text = dataset['text'][record]
     # get id for rubrix record metadata
-    id = df['id'][record].tolist() # not allowed to be int64
-    date = df['date'][record]
-    year = df['year'][record].tolist() # not allowed to be int64
+    id = dataset['id'][record].tolist() # not allowed to be int64
+    date = dataset['date'][record]
+    year = dataset['year'][record].tolist() # not allowed to be int64
     
     
     # spaCy Doc creation
@@ -107,19 +110,17 @@ rb.log(records=records, name="chronik_ner")
 
 #%% Add addresses as entity, big model
 nlp = spacy.load("de_core_news_lg")
-#List of Entities and Patterns
-street_labels = ".*(platz|[Ss]tra[ssß]e|str)"
+
+
+street_labels = ".*(platz|[Ss]tra[ssß]e|str|anger)$"
 
 patterns = [
-    # Lothringer Straße 23
-    {"label": "ADR", "pattern": [{"SHAPE": "Xxxxx"}, {"TEXT": {"REGEX": street_labels}}, {"IS_DIGIT": True}]},
-    # Müllerstr. 26
-    {"label": "ADR", "pattern": [{"TEXT": {"REGEX": street_labels}}, {"IS_PUNCT": True}, {"IS_DIGIT": True}]},
-    # Müllerstraße 26
-    {"label": "ADR", "pattern": [{"TEXT": {"REGEX": street_labels}}, {"IS_DIGIT": True}]},
-    # Müllerstraße or Odeonsplatz    
-    {"label": "ADR", "pattern": [{"TEXT": {"REGEX": street_labels}}]},
+    # Müllerstraße 20
+    {"label": "ADR", "pattern": [ {"TEXT": {"REGEX": street_labels}}, {"IS_PUNCT": True, "OP": "?"}, {"SHAPE": {"IN": ["d", "dd", "ddd", "dddx", "ddx", "dx", "d.", "dd.", "ddd."]}, "OP": "?"}]},
+    # Müller Straße 20
+    {"label": "ADR", "pattern": [{"SHAPE": "Xxxxx", "OP": "?"}, {"TEXT": "Straße"}, {"IS_PUNCT": True, "OP": "?"}, {"SHAPE": {"IN": ["d", "dd", "ddd", "dddx", "ddx", "dx", "d.", "dd.", "ddd."]}, "OP": "?"}]}
     ]
+
 # check if entity_ruler exists
 try:
     ruler
@@ -127,8 +128,6 @@ except NameError:
     ruler = nlp.add_pipe("entity_ruler", before="ner")
 
 ruler.add_patterns(patterns)
-
-
 
 records = []
 
