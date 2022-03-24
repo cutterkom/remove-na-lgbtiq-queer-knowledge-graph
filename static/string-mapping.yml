@@ -13,4 +13,8 @@ default:
     - "\\?"
     - "et.al."
     - "et .al."
-
+  entities:
+    organisations:
+      lesbian:
+        - "Kofra"
+        - "LeTra"
