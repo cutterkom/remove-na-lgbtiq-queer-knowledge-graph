@@ -6,7 +6,6 @@ ner_pipe = pipeline("ner")
 sequence = """Hugging Face Inc. is a company based in New York City. Its headquarters are in DUMBO,
 therefore very close to the Manhattan Bridge which is visible from the window."""
 
-#%%
 # %%
 # get data
 # connect to db
@@ -14,17 +13,17 @@ from sqlalchemy import create_engine
 import pandas as pd
 engine = create_engine("mysql+pymysql://root:root@localhost:3306/lgbtiq_kg")
 
-df = pd.read_sql_table(
+dataset = pd.read_sql_table(
     'text_chronik', 
     con=engine)
 
-df["text"] = df["title"] + " - " + df["text"]
-df.head()
+dataset["text"] = dataset["title"] + " - " + dataset["text"]
+dataset.head()
 
 #%%
-# load dataset from pandas df to hg Dataset
+# load dataset from pandas dataset to hg Dataset
 from datasets import Dataset
-dataset = Dataset.from_pandas(df)
+dataset = Dataset.from_pandas(dataset)
 print(dataset)
 
 #%%
@@ -43,10 +42,12 @@ type(dataset)
 from transformers import pipeline, AutoModelForTokenClassification, AutoTokenizer
 model = AutoModelForTokenClassification.from_pretrained("dbmdz/bert-base-german-cased")
 
-tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
+#tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
+tokenizer = AutoTokenizer.from_pretrained("dbmdz/bert-base-german-cased")
 
+#%%
 #chronik_ner = pipeline("ner", model=model, tokenizer=tokenizer)
-chronik_ner = pipeline("ner", model=model, framework="pt")
+chronik_ner = pipeline("ner", model=model, framework="pt", tokenizer=tokenizer)
 
    
 
@@ -87,7 +88,7 @@ entities
 for item in result for prediction in item["predictions"] 
 
 #%%
-encoding = tokenizer("sdfsdf sdfasf", return_offsets_mapping = True)
+encoding = tokenizer("sdatasetsdataset sdatasetasf", return_offsets_mapping = True)
 print(type(encoding))
 encoding.tokens()
 encoding.token_to_chars()
@@ -163,9 +164,9 @@ for record in d:
     ]
     #print(entities)
 
-    #tokens = tokenizer(text).tokens()
+    tokens = tokenizer(text).tokens()
     #print(tokens)
-    tokens = text.split()
+    #tokens = text.split()
 
     record = rb.TokenClassificationRecord(
         text=text,
@@ -179,8 +180,13 @@ for record in d:
     
 print(records)
 
-
+#%%
 rb.log(records=records, name="hf_chronik_ner")
-# %%
+q# %%
 print(records)
 
+
+# %%
+tokens = tokenizer(input_text, return_offsets_mapping = True)
+print(type(encoding))
+tokens.tokens()
