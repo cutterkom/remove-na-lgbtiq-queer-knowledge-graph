@@ -23,7 +23,7 @@ db_tbl_er_candidates <- "er_candidates"
 ```{r}
 # Update
 
-# - get new additional_infos in create-input-data.R
+# - get new additional_infos in get-additional-infos.R
 # - add new source to get_candidates_names()
 ```
 
@@ -54,11 +54,13 @@ get_candidates_to_check <- function(data) {
 #' not really good implemented yet,  because dependent on candidates$books_additional_infos which is quite unstructured
 #' 
 get_candidates_names <- function(data) {
+  
   candidate_1 <- data %>% 
     dplyr::distinct(id, source_1, id_1)
+  
   print(candidate_1)
   
-  if(candidate_1$source_1 == "book_author") {
+  if (candidate_1$source_1 == "book_author") {
     candidate_1 <- candidate_1 %>% 
       dplyr::left_join(candidates$books_additional_infos %>% 
                          dplyr::distinct(author_id, name_1 = author), by = c("id_1" = "author_id"))
@@ -78,7 +80,8 @@ get_candidates_names <- function(data) {
   
   candidate_2 <- data %>% 
     dplyr::distinct(id, source_2, id_2)
-  if(candidate_2$source_2 == "book_author") {
+  
+  if (candidate_2$source_2 == "book_author") {
     candidate_2 <- candidate_2 %>% 
       dplyr::left_join(candidates$books_additional_infos %>% 
                          dplyr::distinct(author_id, name_2 = author), by = c("id_2" = "author_id"))
