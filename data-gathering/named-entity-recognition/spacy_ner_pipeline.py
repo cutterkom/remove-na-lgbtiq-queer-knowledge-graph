@@ -4,19 +4,23 @@ import spacy
 
 nlp = spacy.load("de_core_news_lg")
 
-text = "LeZ – lesbisch-queeres Zentrum - Oberbürgermeister Dieter Reiter übergibt den Schlüssel zum neuen lesbisch-queeren Zentrum LeZ – lesbisch-queeres Zentrum in der Müllerstraße 26 und am Odeonsplatz. Von-der-Tann-Straße 23, Buschingstr. 19 and Lothringer Straße 23"
-text = "Lothringer Straße 34, Busching Straße 10 Straßenkino Reichenbachstr. 51 Bayerstraße 77a Blumenstraße 11 Richardstraße 22. Müllerstr. 26; Von-der-Tann-Straße 23a Odeonsplatz Lothringer Straße Frauenkneipe Schmlazstraße"
-#text = "sdafsa 51 Reichenbachstr. 51."
+text = "dsf fdsfsa Korfa e.V. und auch Mi Les e.V. und Forum Homosexualität e.V.  Forum Queeres Archiv e.V.  FrauenWohnen eG und der Fischer Verlag"
 # Create the EntityRuler
 # before ner, otherwise LOC would sometimes overrule ADR
 
 street_labels = ".*(platz|[Ss]tra[ssß]e|str|anger)$"
+org_labels = "e\.V\.|eG|Verlag"
 
 patterns = [
     {"label": "ADR", "pattern": [ {"TEXT": {"REGEX": street_labels}}, {"IS_PUNCT": True, "OP": "?"}, {"SHAPE": {"IN": ["d", "dd", "ddd", "dddx", "ddx", "dx", "d.", "dd.", "ddd."]}, "OP": "?"}]},
-    {"label": "ADRddd", "pattern": [{"SHAPE": "Xxxxx", "OP": "?"}, {"TEXT": "Straße"}, {"IS_PUNCT": True, "OP": "?"}, {"SHAPE": {"IN": ["d", "dd", "ddd", "dddx", "ddx", "dx", "d.", "dd.", "ddd."]}, "OP": "?"}]}
+    {"label": "ADRddd", "pattern": [{"SHAPE": "Xxxxx", "OP": "?"}, {"TEXT": "Straße"}, {"IS_PUNCT": True, "OP": "?"}, {"SHAPE": {"IN": ["d", "dd", "ddd", "dddx", "ddx", "dx", "d.", "dd.", "ddd."]}, "OP": "?"}]},
+    {"label": "ORGA", "pattern": [
+        {"SHAPE": {"IN": ["Xx", "Xxxxx"]}, "OP": "?"}, 
+        {"SHAPE": {"IN": ["Xx", "Xxxxx"]}, "OP": "?"}, 
+        {"SHAPE": {"IN": ["Xx", "Xxxxx"]}}, 
+        {"TEXT": {"REGEX": org_labels}}]},
     ]
-    
+
 
 # check if entity_ruler exists
 try:

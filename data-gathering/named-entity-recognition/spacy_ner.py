@@ -162,7 +162,7 @@ for record in dataset.index:
         )
     )
 
+#%%
 rb.log(records=records, name="chronik_ner")
 
 # rb.delete(name="chronik_ner")
-# %%
