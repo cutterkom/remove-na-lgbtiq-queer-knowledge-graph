@@ -6,6 +6,7 @@
 library(tidyverse)
 library(rvest)
 library(kabrutils)
+library(DBI)
 
 URL <- "https://forummuenchen.org/lgbtiq-chronik/"
 nodes <- read_html(URL) %>% html_nodes(".timeline-item")
@@ -17,10 +18,16 @@ chronik <- tibble(
   title = nodes %>% extract_text("h3"),
   date = nodes %>% extract_text(".timeline-date"),
   text = nodes %>% extract_text("p"),
-  location = ifelse(nodes %>% as.character() %>% str_detect("muc") == TRUE, "München", NA)
+  location = ifelse(nodes %>% as.character() %>% str_detect("muc") == TRUE, "München", NA),
+  group = 
+    case_when(
+      nodes %>% as.character() %>% str_detect("timeline-icon star") == TRUE ~ "misc",
+      nodes %>% as.character() %>% str_detect("timeline-icon round") == TRUE ~ "lesbian",
+      nodes %>% as.character() %>% str_detect("timeline-icon square") == TRUE ~ "gay",
+      TRUE ~ NA_character_)
 ) %>%
-  unnest(c(title, date, text, location)) %>%
-  group_by(title, date, location) %>%
+  unnest(c(title, date, text, location, group)) %>%
+  group_by(title, date, location, group) %>%
   summarise(
     text = glue::glue_collapse(text, sep = " "),
     .groups = "drop"
@@ -42,6 +49,7 @@ CREATE TABLE IF NOT EXISTS `text_chronik` (
   `title` varchar(255) COLLATE utf8mb3_german2_ci DEFAULT NULL,
   `text` varchar(2000) COLLATE utf8mb3_german2_ci DEFAULT NULL,
   `location` varchar(100) COLLATE utf8mb3_german2_ci DEFAULT NULL,
+  `group` varchar(100) COLLATE utf8mb3_german2_ci DEFAULT NULL,
   `date` varchar(100) COLLATE utf8mb3_german2_ci DEFAULT NULL,
   `year` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
