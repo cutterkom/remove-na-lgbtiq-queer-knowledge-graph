@@ -1,7 +1,7 @@
 # title: Create distinct entities from manual entity resolution
 # desc: Takes authors and publishers and check, if they were in the manual entitiy resolution process. If so, then entitiy gets a new ID. Also, some first rough guesses are made if an entity is an organisation, club or person. 
 # input: books_authors, book_publishers, posters_authors, er_candidates
-# output: 
+# output: lgbtiq_kg_clean.entities
 
 
 library(tidyverse)
