@@ -51,3 +51,46 @@ for token in doc:
     print(token.text, token.shape_)
 
 # %%
+from sqlalchemy import create_engine
+import pandas as pd
+engine = create_engine("mysql+pymysql://root:root@localhost:3306/lgbtiq_kg_clean")
+
+dataset = pd.read_sql_table(
+    'entities', 
+    con=engine)
+
+print(dataset[["id", "name"]])
+#print(dataset)
+
+#%%
+
+# PhraseMatcher
+import json
+from spacy.lang.de import German
+
+nlp = German()
+doc = nlp("Sittenstrolche Tschechien könnte der Slowakei dabei helfen, ihren Luftraum zu schützen")
+
+# Importiere den PhraseMatcher und initialisiere ihn
+from spacy.matcher import PhraseMatcher
+
+matcher = PhraseMatcher(nlp.vocab)
+
+# add pattern per org, person, club
+# dann adden
+patterns = list(nlp.pipe(dataset["name"]))
+matcher.add("COUNTRY", None, *patterns)
+
+# Wende den Matcher auf das Test-Dokument an und drucke das Resultat
+matches = matcher(doc)
+print([doc[start:end] for match_id, start, end in matches])
+
+# %%
+for match_id, start, end in matches:
+    rule_id = nlp.vocab.strings[match_id]  # get the unicode ID, i.e. 'COMPANY'
+    span = doc[start : end]  # get the matched slice of the doc
+    print(rule_id, span.text)
+# %%
+print(patterns)
+
+# %%
