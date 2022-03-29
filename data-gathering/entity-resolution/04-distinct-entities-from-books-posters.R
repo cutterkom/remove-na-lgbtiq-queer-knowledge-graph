@@ -44,7 +44,17 @@ dbDisconnect(con); rm(con)
 
 entities_raw <- bind_rows(books_publishers, posters_authors, books_authors) %>% 
   mutate(item_id = as.character(item_id)) %>% 
-  filter(!name %in% c("?"))
+  filter(!name %in% c("?")) %>% 
+  mutate(
+    name = case_when(
+      str_detect(name, "Koordinierungsstelle für") ~ "Koordinierungsstelle für gleichgeschlechtliche Lebensweisen Stadt München",
+      name == "AIDS-Hilfe Nürnberg-Erlangen-Fürth" ~ "AIDS-Hilfe Nürnberg-Erlangen-Fürth e.V.",
+      name == "D. A. F. Sade" ~ "Donatien Alphonse François Marquis de Sade",
+      id == "book_author_724" ~ "Donatien Alphonse François Marquis de Sade",
+      name == "Marquis Sade" ~ "Donatien Alphonse François Marquis de Sade",
+      name == "Donatien Alphonse François de Sade" ~ "Donatien Alphonse François Marquis de Sade",
+      TRUE ~ name)
+  )
 
 # Resolve manual decisions and create a new ID for those ------------------
 
@@ -97,7 +107,9 @@ new_ids <- new_ids_raw %>%
     name = case_when(
       str_detect(name, "Koordinierungsstelle für") ~ "Koordinierungsstelle für gleichgeschlechtliche Lebensweisen Stadt München",
       name == "AIDS-Hilfe Nürnberg-Erlangen-Fürth" ~ "AIDS-Hilfe Nürnberg-Erlangen-Fürth e.V.",
-      name == "D. A. F. Sade" ~ "Donatien Alphonse François de Sade",
+      name == "D. A. F. Sade" ~ "Donatien Alphonse François Marquis de Sade",
+      name == "Marquis Sade" ~ "Donatien Alphonse François Marquis de Sade",
+      name == "Donatien Alphonse François de Sade" ~ "Donatien Alphonse François Marquis de Sade",
       TRUE ~ name)
   )
 
