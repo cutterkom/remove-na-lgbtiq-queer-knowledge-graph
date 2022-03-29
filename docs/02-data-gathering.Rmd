@@ -137,3 +137,11 @@ A first setup to tackle the task is two-fold:
 * results saved in `er_candidates`
 
 ![](img/who-is-who-ex.png)
+
+
+#### Adding new candidates
+
+To update the Shiny app in order to resolve new candidates these two steps are needed: 
+
+* get new additional_infos in get-additional-infos.R
+* add new source to get_candidates_names()
