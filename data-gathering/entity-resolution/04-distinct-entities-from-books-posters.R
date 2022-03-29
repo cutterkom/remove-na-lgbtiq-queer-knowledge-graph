@@ -8,6 +8,7 @@ library(tidyverse)
 library(kabrutils)
 library(config)
 library(testdat)
+library(DBI)
 
 
 # Get data ----------------------------------------------------------------
@@ -205,7 +206,7 @@ string_mappings <- config::get(file = "static/string-mapping.yml")
 orgs_indicator <- paste0(string_mappings$organisation, collapse = "|")
 
 
-entities <- entities %>% 
+entities_final <- entities_final %>% 
   mutate(
     org = 
       case_when(
@@ -242,6 +243,11 @@ test_that(
   expect_unique(c("id"), data = import)
 )
 
+
+# This table will be saved in a new database ------------------------------
+
+# CREATE DATABASE lgbtiq_kg_clean;
+
 create_table <- "
 CREATE TABLE IF NOT EXISTS `entities` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
@@ -255,7 +261,7 @@ CREATE TABLE IF NOT EXISTS `entities` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_german2_ci COMMENT='Table distinct entities from books_authors, book_publishers and posters_authors.';
 "
 
-con <- connect_db()
+con <- connect_db(credential_name = "db_clean")
 dbExecute(con, create_table)
 dbAppendTable(con, "entities", import)
 dbDisconnect(con); rm(con)
