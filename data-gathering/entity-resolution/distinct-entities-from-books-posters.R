@@ -7,6 +7,7 @@
 library(tidyverse)
 library(kabrutils)
 library(config)
+library(testdat)
 
 
 # Get data ----------------------------------------------------------------
@@ -41,31 +42,32 @@ er_candidates <- tbl(con, "er_candidates") %>%
 dbDisconnect(con); rm(con)
 
 entities_raw <- bind_rows(books_publishers, posters_authors, books_authors) %>% 
-  mutate(item_id = as.character(item_id))
+  mutate(item_id = as.character(item_id)) %>% 
+  filter(!name %in% c("?"))
 
+# Resolve manual decisions and create a new ID for those ------------------
 
-# Entity resolution: Define new id's --------------------------------------
-
-new_ids <- er_candidates %>%
+new_ids_raw <- er_candidates %>%
   filter(decision == "positive") %>%
   pmap_dfr(function(...) {
     
     current <- tibble(...) %>% 
       mutate(id_1 = paste0(source_1, "_", id_1),
              id_2 = paste0(source_2, "_", id_2))
-
+    
     candidate_1 <- entities_raw %>% 
       inner_join(current, by = c("id" = "id_1")) %>% 
-      mutate(new_id = paste0("er_", er_id)) %>% 
-      select(id, new_id, name_1 = name, keep_label_2, new_label)
-
+      mutate(id_new = paste0("er_", er_id)) %>% 
+      select(id, id_new, name_1 = name, keep_label_2, new_label)
+    
+    
     candidate_2 <- entities_raw %>% 
       inner_join(current, by = c("id" = "id_2")) %>% 
-      mutate(new_id = paste0("er_", er_id)) %>% 
-      select(id, new_id, name_2 = name, keep_label_2, new_label)
+      mutate(id_new = paste0("er_", er_id)) %>% 
+      select(id, id_new, name_2 = name, keep_label_2, new_label)
     
     er_pair <- candidate_1 %>% 
-      full_join(candidate_2, by = c("id", "new_id", "keep_label_2", "new_label")) %>% 
+      left_join(candidate_2, by = c("id_new", "keep_label_2", "new_label"), suffix = c("_1", "_2")) %>% 
       mutate(
         name = 
           case_when(
@@ -74,12 +76,22 @@ new_ids <- er_candidates %>%
             TRUE ~ name_1
           )
       ) %>% 
-      select(id = new_id, name) %>% 
       filter(!is.na(name))
     
     er_pair
-  }) %>% 
-  distinct() %>% 
+    
+  }) 
+
+
+# Save mapping of old to new ID -------------------------------------------
+
+id_mappings <- new_ids_raw %>% select(id_new, id_1, id_2)
+
+
+# minor tweaks in new_ids df ----------------------------------------------
+
+new_ids <- new_ids_raw %>% 
+  select(id = id_new, name) %>% 
   mutate(
     name = case_when(
       str_detect(name, "Koordinierungsstelle für") ~ "Koordinierungsstelle für gleichgeschlechtliche Lebensweisen Stadt München",
@@ -99,16 +111,43 @@ duplicate_new_ids <- new_ids %>%
                count(name, sort = T) %>% 
                filter(n>1), by = "name") %>% 
   group_by(name) %>% 
-  filter(row_number() == 1) %>% 
-  ungroup() %>% 
-  select(-n)
+  mutate(
+    id_new = first(id)
+  ) %>% 
+  ungroup() %>%
+  select(id_new, id_old = id, name)
+
+duplicate_new_ids_for_mapping <- duplicate_new_ids %>% 
+  filter(id_new != id_old)
+
+
+# Add to ID mapping -------------------------------------------------------
+
+id_mappings <- bind_rows(
+  id_mappings, 
+  
+  # map id (incl. "old" er_id's) and add to mappings df
+  er_candidates %>% 
+    filter(decision == "positive") %>% 
+    mutate(id_1 = paste0(source_1, "_", id_1),
+           id_2 = paste0(source_2, "_", id_2),
+           er_new = paste0("er_", er_id)) %>% 
+    left_join(duplicate_new_ids_for_mapping, by = c("er_new" = "id_new")) %>%
+    mutate(er_id = paste0("er_", er_id)) %>% 
+    select(id_new = er_id, id_1, id_2, er_old = id_old)) %>% 
+  distinct() %>% 
+  filter(!is.na(id_new))
+
+
+# add de-deduplicated IDs to df with all new entities ---------------------
 
 new_ids_final <- bind_rows(
   new_ids %>% anti_join(new_ids %>% 
-              count(name, sort = T) %>% 
-              filter(n>1), by = "name"),
-  duplicate_new_ids
+                          count(name, sort = T) %>% 
+                          filter(n>1), by = "name"),
+  duplicate_new_ids %>% select(id = id_new, name)
 )
+
 
 
 # Add to other entities ---------------------------------------------------
@@ -128,8 +167,37 @@ remove_from_entities <- bind_rows(
 entities <- entities_raw %>% 
   anti_join(remove_from_entities, by = c("item_id", "source")) %>% 
   select(id, name) %>% 
-  bind_rows(new_ids_final)
+  bind_rows(new_ids_final) %>% 
+  distinct()
   
+# There are still some duplicates,  removed here --------------------------
+
+duplicate_entities <- entities %>% 
+  inner_join(entities %>% 
+               count(name, sort = T) %>% 
+               filter(n>1) %>% 
+               filter(!name %in% c("Forum", "Bruno Gmünder")), by = "name") %>% 
+  select(-n) %>% 
+  group_by(name) %>% 
+  mutate(rowid = row_number()) %>% 
+  ungroup() %>% 
+  pivot_wider(id_col = name, names_from  = rowid, values_from = id) %>% 
+  rename(id_old = `1`, id_new = `2`)
+
+
+# Same removed ones in mapping df -----------------------------------------
+
+id_mappings <- bind_rows(id_mappings, duplicate_entities %>% select(id_new, er_old = id_old))
+  
+# Add de-duduplicated to entities df --------------------------------------
+
+
+entities_final <- bind_rows(
+  entities %>% anti_join(entities %>% 
+                          count(name, sort = T) %>% 
+                          filter(n>1), by = "name"),
+  duplicate_entities %>% select(id = id_new, name)
+)
 
 # Get mappings: What's probably an Org or a Club (e.V.)? -----------------
 
@@ -149,7 +217,7 @@ entities <- entities %>%
       case_when(
         tolower(name) %>% str_detect("e\\.v") ~ 1,
         TRUE ~ 0
-    ),
+      ),
     # if not an org or club, but a book_author, then person
     person = 
       case_when(
@@ -161,29 +229,8 @@ entities <- entities %>%
       ),
     org = as.factor(org),
     club = as.factor(club)
-  ) %>% 
-  filter(!name %in% c("München", "?"))
+  )
 
-
-# There are still some duplicates,  removed here --------------------------
-
-duplicate_entities <- entities %>% 
-  inner_join(entities %>% 
-               count(name, sort = T) %>% 
-               filter(n>1) %>% 
-               filter(!name %in% c("Forum", "Bruno Gmünder")), by = "name") %>% 
-  group_by(name) %>% 
-  filter(row_number() == 2) %>% 
-  ungroup() %>% 
-  select(-n)
-
-
-entities_final <- bind_rows(
-  entities %>% anti_join(entities %>% 
-                          count(name, sort = T) %>% 
-                          filter(n>1), by = "name"),
-  duplicate_entities
-)
 
 
 # Write in DB -------------------------------------------------------------
