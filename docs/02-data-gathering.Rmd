@@ -145,3 +145,8 @@ To update the Shiny app in order to resolve new candidates these two steps are n
 
 * get new additional_infos in get-additional-infos.R
 * add new source to get_candidates_names()
+
+## New database with cleaned entries
+
+In `lgbtiq_kg_clean` live all deduplicated entities.
+So to say the end result of all scripts in `data-gathering/entitiy-resolution`
