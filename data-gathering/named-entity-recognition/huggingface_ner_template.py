@@ -17,72 +17,47 @@ dataset.head()
 from datasets import Dataset
 dataset = Dataset.from_pandas(dataset)
 
-# %%
-from transformers import pipeline, AutoModelForTokenClassification, AutoTokenizer
-tokenizer = AutoTokenizer.from_pretrained("Davlan/distilbert-base-multilingual-cased-ner-hrl")
-model = AutoModelForTokenClassification.from_pretrained("Davlan/distilbert-base-multilingual-cased-ner-hrl")
+from transformers import pipeline
+classifier = pipeline("ner", "Davlan/distilbert-base-multilingual-cased-ner-hrl")
 
-#%%
-chronik_ner = pipeline("ner", model=model, framework="pt", tokenizer=tokenizer)
-# %%
-def predict(dataset):
-    return {"predictions": chronik_ner(dataset['text'])}
-
-#%%
-result = dataset.select(range(1)).map(predict, batched=True, batch_size=4)
-print(result)
-
-#%%
-for item in result:
-    for prediction in item["predictions"]:
-        print(prediction["entity"], prediction['score'])
-
-# %%
 import rubrix as rb
 # this works kind of, expect rubrix issue
 d = dataset.select(range(1))
 
 records = []
 
-for record in d:
+for record in dataset:
     
     text = record['text']
-    print(text)
+    #print(text)
     id = record['id']
     date = record['date']
     year = record['year']
 
-    result = predict(record)
-    print(result)
-
-    entities = [
-        (prediction["entity"], prediction["start"], prediction["end"], prediction["score"]) 
-        for prediction in item["predictions"] for item in result
-    ]
-    #print(entities)
-
-    tokens = tokenizer(text).tokens()
-    #print(tokens)
-    #tokens = text.split()
+    # Tokens as subword tokens
+    batch_encoding = classifier.tokenizer(text)
+   
+    # However, we would like word tokens
+    words, last_id = [], None
+    for word_id in batch_encoding.word_ids():
+        if word_id is None or word_id == last_id:
+            continue
+        char_span = batch_encoding.word_to_chars(word_id)
+        words.append(text[char_span.start:char_span.end])
+        last_id = word_id
+        
+    words
+    predictions = classifier(text, aggregation_strategy="first")
 
     record = rb.TokenClassificationRecord(
         text=text,
-        tokens=tokens,
+        tokens=words,
         metadata={'id': id, 'date': date, 'year': year},
-        prediction=entities,
-        prediction_agent="distilbert-base-uncased-finetuned-sst-2-english"
+        prediction=[(pred["entity_group"], pred["start"], pred["end"]) for pred in predictions],
+        prediction_agent="hugging_face_distilbert"
 
     )
     records.append(record)
-    
-print(records)
 
-#%%
-rb.log(records=records, name="hf_chronik_ner")
-
-
-
-# %%
-tokens = tokenizer(d['text'], return_offsets_mapping = True)
-tokens.tokens()
+rb.log(records=records, name="chronik_ner")
 # %%
