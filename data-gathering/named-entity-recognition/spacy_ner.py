@@ -33,92 +33,96 @@ dataset.head()
 # get entities foe earch row and save them as rubrix records
 
 # big German modell
-nlp = spacy.load("de_core_news_lg")
+# nlp = spacy.load("de_core_news_lg")
 
-records = []
+# records = []
 
-for record in dataset.index:
-    # We only need the text of each instance
-    text = dataset['text'][record]
-    # get id for rubrix record metadata
-    id = dataset['id'][record].tolist() # not allowed to be int64
-    date = dataset['date'][record]
-    year = dataset['year'][record].tolist() # not allowed to be int64
+# for record in dataset.index:
+#     # We only need the text of each instance
+#     text = dataset['text'][record]
+#     # get id for rubrix record metadata
+#     id = dataset['id'][record].tolist() # not allowed to be int64
+#     date = dataset['date'][record]
+#     year = dataset['year'][record].tolist() # not allowed to be int64
     
     
-    # spaCy Doc creation
-    doc = nlp(text)
-    # Entity annotations
-    entities = [
-        (ent.label_, ent.start_char, ent.end_char)
-        for ent in doc.ents
-    ]
+#     # spaCy Doc creation
+#     doc = nlp(text)
+#     # Entity annotations
+#     entities = [
+#         (ent.label_, ent.start_char, ent.end_char)
+#         for ent in doc.ents
+#     ]
 
-    # Pre-tokenized input text
-    tokens = [token.text for token in doc]
+#     # Pre-tokenized input text
+#     tokens = [token.text for token in doc]
 
-    # Rubrix TokenClassificationRecord list
-    records.append(
-        rb.TokenClassificationRecord(
-            text=text,
-            tokens=tokens,
-            metadata={'id': id, 'date': date, 'year': year}, # log the intents for exploration of specific intents
-            prediction=entities,
-            prediction_agent="de_core_news_lg",
-        )
-    )
+#     # Rubrix TokenClassificationRecord list
+#     records.append(
+#         rb.TokenClassificationRecord(
+#             text=text,
+#             tokens=tokens,
+#             metadata={'id': id, 'date': date, 'year': year}, # log the intents for exploration of specific intents
+#             prediction=entities,
+#             prediction_agent="de_core_news_lg",
+#         )
+#     )
 
-rb.log(records=records, name="chronik_ner")
+# rb.log(records=records, name="chronik_ner")
 # %%
 # small german modell
-nlp = spacy.load("de_core_news_sm")
+# nlp = spacy.load("de_core_news_sm")
 
-records = []
+# records = []
 
-for record in dataset.index:
-    # We only need the text of each instance
-    text = dataset['text'][record]
-    # get id for rubrix record metadata
-    id = dataset['id'][record].tolist() # not allowed to be int64
-    date = dataset['date'][record]
-    year = dataset['year'][record].tolist() # not allowed to be int64
+# for record in dataset.index:
+#     # We only need the text of each instance
+#     text = dataset['text'][record]
+#     # get id for rubrix record metadata
+#     id = dataset['id'][record].tolist() # not allowed to be int64
+#     date = dataset['date'][record]
+#     year = dataset['year'][record].tolist() # not allowed to be int64
     
     
-    # spaCy Doc creation
-    doc = nlp(text)
-    # Entity annotations
-    entities = [
-        (ent.label_, ent.start_char, ent.end_char)
-        for ent in doc.ents
-    ]
+#     # spaCy Doc creation
+#     doc = nlp(text)
+#     # Entity annotations
+#     entities = [
+#         (ent.label_, ent.start_char, ent.end_char)
+#         for ent in doc.ents
+#     ]
 
-    # Pre-tokenized input text
-    tokens = [token.text for token in doc]
+#     # Pre-tokenized input text
+#     tokens = [token.text for token in doc]
 
-    # Rubrix TokenClassificationRecord list
-    records.append(
-        rb.TokenClassificationRecord(
-            text=text,
-            tokens=tokens,
-            metadata={'id': id, 'date': date, 'year': year}, # log the intents for exploration of specific intents
-            prediction=entities,
-            prediction_agent="de_core_news_sm",
-        )
-    )
+#     # Rubrix TokenClassificationRecord list
+#     records.append(
+#         rb.TokenClassificationRecord(
+#             text=text,
+#             tokens=tokens,
+#             metadata={'id': id, 'date': date, 'year': year}, # log the intents for exploration of specific intents
+#             prediction=entities,
+#             prediction_agent="de_core_news_sm",
+#         )
+#     )
 
-rb.log(records=records, name="chronik_ner")
+# rb.log(records=records, name="chronik_ner")
 
 #%% Add addresses as entity, big model
 nlp = spacy.load("de_core_news_lg")
 
 
-street_labels = ".*(platz|[Ss]tra[ssß]e|str|anger)$"
+street_labels = "Sendlinger Tor|Viktualienmarkt|.*(platz|[Ss]tra[ssß]e|str|anger)$"
+org_labels = "e\.V\.|eG|Verlag"
 
 patterns = [
-    # Müllerstraße 20
     {"label": "ADR", "pattern": [ {"TEXT": {"REGEX": street_labels}}, {"IS_PUNCT": True, "OP": "?"}, {"SHAPE": {"IN": ["d", "dd", "ddd", "dddx", "ddx", "dx", "d.", "dd.", "ddd."]}, "OP": "?"}]},
-    # Müller Straße 20
-    {"label": "ADR", "pattern": [{"SHAPE": "Xxxxx", "OP": "?"}, {"TEXT": "Straße"}, {"IS_PUNCT": True, "OP": "?"}, {"SHAPE": {"IN": ["d", "dd", "ddd", "dddx", "ddx", "dx", "d.", "dd.", "ddd."]}, "OP": "?"}]}
+    {"label": "ADR", "pattern": [{"SHAPE": "Xxxxx", "OP": "?"}, {"TEXT": "Straße"}, {"IS_PUNCT": True, "OP": "?"}, {"SHAPE": {"IN": ["d", "dd", "ddd", "dddx", "ddx", "dx", "d.", "dd.", "ddd."]}, "OP": "?"}]},
+    {"label": "ORG", "pattern": [
+        {"SHAPE": {"IN": ["Xx", "Xxxxx"]}, "OP": "?"}, 
+        {"SHAPE": {"IN": ["Xx", "Xxxxx"]}, "OP": "?"}, 
+        {"SHAPE": {"IN": ["Xx", "Xxxxx"]}}, 
+        {"TEXT": {"REGEX": org_labels}}]},
     ]
 
 # check if entity_ruler exists
@@ -158,7 +162,7 @@ for record in dataset.index:
             tokens=tokens,
             metadata={'id': id, 'date': date, 'year': year}, # log the intents for exploration of specific intents
             prediction=entities,
-            prediction_agent="ADR_de_core_news_lg",
+            prediction_agent="spacy_de_core_news_lg",
         )
     )
 
