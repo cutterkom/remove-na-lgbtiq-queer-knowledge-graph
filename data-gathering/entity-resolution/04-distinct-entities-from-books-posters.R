@@ -171,7 +171,7 @@ entities <- entities_raw %>%
   bind_rows(new_ids_final) %>% 
   distinct()
   
-# There are still some duplicates,  removed here --------------------------
+# There are still some duplicates, removed here --------------------------
 
 duplicate_entities <- entities %>% 
   inner_join(entities %>% 
@@ -188,7 +188,7 @@ duplicate_entities <- entities %>%
 
 # Same removed ones in mapping df -----------------------------------------
 
-id_mappings <- bind_rows(id_mappings, duplicate_entities %>% select(id_new, er_old = id_old))
+id_mappings <- bind_rows(id_mappings, duplicate_entities %>% select(id_new, id_1 = id_old))
   
 # Add de-duduplicated to entities df --------------------------------------
 
@@ -266,3 +266,24 @@ dbExecute(con, create_table)
 dbAppendTable(con, "entities", import)
 dbDisconnect(con); rm(con)
 
+
+
+# Save mappings table -----------------------------------------------------
+
+import <- id_mappings
+
+create_table <- "
+CREATE TABLE `id_mapping` (
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
+  `id_new` varchar(50) DEFAULT NULL,
+  `id_1` varchar(50) DEFAULT NULL,
+  `id_2` varchar(50) DEFAULT NULL,
+  `er_old` varchar(50) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='Table that saves old IDs from manual mapping processes. Look up in lgbtiq_kg database.';
+"
+
+con <- connect_db(credential_name = "db_clean")
+dbExecute(con, create_table)
+dbAppendTable(con, "id_mapping", import)
+dbDisconnect(con); rm(con)
