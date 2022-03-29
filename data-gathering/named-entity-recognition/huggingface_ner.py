@@ -1,10 +1,3 @@
-#%%
-from transformers import pipeline
-
-ner_pipe = pipeline("ner")
-
-sequence = """Hugging Face Inc. is a company based in New York City. Its headquarters are in DUMBO,
-therefore very close to the Manhattan Bridge which is visible from the window."""
 
 # %%
 # get data
@@ -20,134 +13,20 @@ dataset = pd.read_sql_table(
 dataset["text"] = dataset["title"] + " - " + dataset["text"]
 dataset.head()
 
-#%%
 # load dataset from pandas dataset to hg Dataset
 from datasets import Dataset
 dataset = Dataset.from_pandas(dataset)
-print(dataset)
 
-#%%
-ner_results = ner_pipe(sequence)
-print(ner_results)
-#%%
-for entity in ner_pipe(sequence):
-    print(entity)
-# %%
-for record in dataset:
-    for entity in ner_pipe(record):
-        print(entity)
-# %%
-type(dataset)
-# %%
-from transformers import pipeline, AutoModelForTokenClassification, AutoTokenizer
-model = AutoModelForTokenClassification.from_pretrained("dbmdz/bert-base-german-cased")
+from transformers import pipeline
+classifier = pipeline("ner", "Davlan/distilbert-base-multilingual-cased-ner-hrl")
 
-#tokenizer = AutoTokenizer.from_pretrained("bert-base-cased")
-tokenizer = AutoTokenizer.from_pretrained("dbmdz/bert-base-german-cased")
-
-#%%
-#chronik_ner = pipeline("ner", model=model, tokenizer=tokenizer)
-chronik_ner = pipeline("ner", model=model, framework="pt", tokenizer=tokenizer)
-
-   
-
-# %%
-# ner one row
-dataset[2]['text'], chronik_ner(dataset[2]['text'])
-# %%
-def predict(dataset):
-    return {"predictions": chronik_ner(dataset['text'])}
-
-# add .select(range(10)) before map if you just want to test this quickly with 10 items
-result = dataset.select(range(1)).map(predict, batched=True, batch_size=4)
-
-#%%
-print(result)
-
-#%%
-for item in result:
-    for prediction in item["predictions"]:
-        print(prediction["entity"], prediction['score'])
-
-#%%
-for item in result:
-    print(item)
-
-#%% 
-for item in result:
-    print(item["predictions"][["end"]])
-    
-
-#%%
-entities = [
-    (prediction["entity"], prediction["start"], prediction["end"]) for item in result for prediction in item["predictions"] 
-]
-entities
-
-#%%
-for item in result for prediction in item["predictions"] 
-
-#%%
-encoding = tokenizer("sdatasetsdataset sdatasetasf", return_offsets_mapping = True)
-print(type(encoding))
-encoding.tokens()
-encoding.token_to_chars()
-
-# %%
 import rubrix as rb
-
-records = []
-for item in result:
-
-    # We only need the text of each instance
-    text = item['text']
-    # get id for rubrix record metadata
-    id = item['id']#.tolist() # not allowed to be int64
-    date = item['date']
-    year = item['year']#.tolist() # not allowed to be int64
-
-    tokens = tokenizer(text)
-
-    entities = [
-        (prediction["entity"], prediction["start"], prediction["end"], prediction["score"]) 
-        for prediction in item["predictions"] 
-    ]
-    #print(entities)
-
-    record = rb.TokenClassificationRecord(
-        text=text,
-        tokens=tokens.tokens(),
-        metadata={'id': id, 'date': date, 'year': year},
-        prediction=entities,
-        prediction_agent="distilbert-base-uncased-finetuned-sst-2-english"
-
-    )
-    records.append(record)
-
-
-records
-#rb.log(records=records, name="chronik_ner_hf")
-# %%
-type(ner_preds)
-# %%
-ner_preds.select(range(10))
-# %%
-for record in dataset:
-    print(record)
-# %%
-
-# %%
-for record in dataset:
-    tokens = tokenizer(text).tokens()
-    print(tokens)
-
-# %%
 # this works kind of, expect rubrix issue
 d = dataset.select(range(1))
 
 records = []
 
-for record in d:
+for record in dataset:
     
     text = record['text']
     #print(text)
@@ -155,38 +34,30 @@ for record in d:
     date = record['date']
     year = record['year']
 
-    result = predict(record)
-    # print(result)
-
-    entities = [
-        (prediction["entity"], prediction["start"], prediction["end"], prediction["score"]) 
-        for item in result
-    ]
-    #print(entities)
-
-    tokens = tokenizer(text).tokens()
-    #print(tokens)
-    #tokens = text.split()
+    # Tokens as subword tokens
+    batch_encoding = classifier.tokenizer(text)
+   
+    # However, we would like word tokens
+    words, last_id = [], None
+    for word_id in batch_encoding.word_ids():
+        if word_id is None or word_id == last_id:
+            continue
+        char_span = batch_encoding.word_to_chars(word_id)
+        words.append(text[char_span.start:char_span.end])
+        last_id = word_id
+        
+    words
+    predictions = classifier(text, aggregation_strategy="first")
 
     record = rb.TokenClassificationRecord(
         text=text,
-        tokens=tokens,
+        tokens=words,
         metadata={'id': id, 'date': date, 'year': year},
-        prediction=entities,
-        prediction_agent="distilbert-base-uncased-finetuned-sst-2-english"
+        prediction=[(pred["entity_group"], pred["start"], pred["end"]) for pred in predictions],
+        prediction_agent="hugging_face_distilbert"
 
     )
     records.append(record)
-    
-print(records)
 
-#%%
-rb.log(records=records, name="hf_chronik_ner")
-q# %%
-print(records)
-
-
+rb.log(records=records, name="chronik_ner")
 # %%
-tokens = tokenizer(input_text, return_offsets_mapping = True)
-print(type(encoding))
-tokens.tokens()
