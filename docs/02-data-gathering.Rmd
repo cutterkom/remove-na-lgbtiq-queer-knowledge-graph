@@ -150,3 +150,54 @@ To update the Shiny app in order to resolve new candidates these two steps are n
 
 In `lgbtiq_kg_clean` live all deduplicated entities.
 So to say the end result of all scripts in `data-gathering/entitiy-resolution`
+
+View `books_wide`: 
+
+```sql
+
+CREATE VIEW books_wide AS
+SELECT 
+entities.id, 
+books_authors.book_id, 
+entities.name, 
+books.name AS title,
+books.subtitle,
+books.isbn
+FROM entities
+INNER JOIN books_authors ON entities.id = books_authors.id
+LEFT JOIN books ON books.book_id = books_authors.book_id;
+```
+
+View `psoters_wide`: 
+```sql
+CREATE VIEW posters_wide AS
+SELECT 
+entities.id, 
+posters_authors.poster_id, 
+entities.name,
+posters.title,
+posters.short_title,
+posters.filename,
+posters.size,
+posters_years.year
+FROM entities
+INNER JOIN posters_authors ON entities.id = posters_authors.id
+LEFT JOIN posters ON posters.poster_id = posters_authors.poster_id
+LEFT JOIN posters_years ON posters.poster_id = posters_years.year_id;;
+
+```
+
+
+View `entities_per_type`: Which entity appears where?
+
+```sql
+CREATE VIEW entities_per_type AS
+SELECT 
+entities.id, 
+entities.name,
+books_authors.book_id,
+posters_authors.poster_id 
+FROM entities
+LEFT JOIN books_authors ON entities.id = books_authors.id
+LEFT JOIN posters_authors ON entities.id = posters_authors.id;
+```
