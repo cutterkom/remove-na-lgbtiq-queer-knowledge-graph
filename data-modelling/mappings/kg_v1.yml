@@ -1,5 +1,6 @@
 prefixes:
-  ex: "http://example.com/"
+  ex_author: "http://example.com/author/"
+  ex_publisher: "http://example.com/publisher/"
   ex_poster: "http://example.com/poster/"
   ex_book: "http://example.com/book/"
   schema: "https://schema.org/"
@@ -16,6 +17,12 @@ sources:
   entities:
     table: entities_per_type
     queryFormulation: mysql
+  publishers:
+    queryFormulation: mysql
+    query: |
+      SELECT DISTINCT id, NAME, publisher_book_id 
+      FROM entities_per_type
+      WHERE publisher_book_id IS NOT NULL;
     
 
 mappings:
@@ -34,13 +41,28 @@ mappings:
             parameters:
               - [str1, $(book_id)]
               - [str2, $(book_id)]
+      - p: schema:publisher
+        o: 
+        - mapping: PublisherMapping
+          condition:
+            function: equal
+            parameters:
+              - [str1, $(book_id)]
+              - [str2, $(publisher_book_id)]              
 
   AuthorMapping:
     sources: entities
-    s: ex:$(id)
+    s: ex_author:$(id)
     po:
       - [a, schema:Author]
       - [schema:author, $(name)]
+  
+  PublisherMapping:
+    sources: publishers
+    s: ex_publisher:$(id)
+    po:
+      - [a, schema:Organisation]
+      - [schema:name, $(name)]      
 
   PosterMapping:
     sources: posters
