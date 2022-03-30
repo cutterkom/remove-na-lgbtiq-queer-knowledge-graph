@@ -1,0 +1,60 @@
+prefixes:
+  ex: "http://example.com/"
+  ex_poster: "http://example.com/poster/"
+  ex_book: "http://example.com/book/"
+  schema: "https://schema.org/"
+
+authors: Katharina Brunner <kontakt@katharinabrunner.de>
+  
+sources:
+  books:
+    table: books_wide
+    queryFormulation: mysql
+  posters:
+    table: posters_wide
+    queryFormulation: mysql
+  entities:
+    table: entities_per_type
+    queryFormulation: mysql
+    
+
+mappings:
+  BookMapping:
+    sources: books
+    s: ex_book:$(book_id)
+    po:
+      - [a, schema:Book]
+      - [schema:name, $(title)]
+      - [schema:isbn, $(isbn)]
+      - p: schema:author
+        o: 
+        - mapping: AuthorMapping
+          condition:
+            function: equal
+            parameters:
+              - [str1, $(book_id)]
+              - [str2, $(book_id)]
+
+  AuthorMapping:
+    sources: entities
+    s: ex:$(id)
+    po:
+      - [a, schema:Author]
+      - [schema:author, $(name)]
+
+  PosterMapping:
+    sources: posters
+    s: ex_poster:$(poster_id)
+    po:
+      - [a, schema:Poster]
+      - [schema:description, $(title)]
+      - [schema:size, $(size)]
+      - [schema:dateCreated, $(year)]
+      - p: schema:author
+        o: 
+        - mapping: AuthorMapping
+          condition:
+            function: equal
+            parameters:
+              - [str1, $(poster_id)]
+              - [str2, $(poster_id)]
