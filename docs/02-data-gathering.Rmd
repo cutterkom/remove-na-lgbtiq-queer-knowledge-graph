@@ -171,7 +171,7 @@ LEFT JOIN books ON books.book_id = books_authors.book_id;
 View `psoters_wide`: 
 ```sql
 CREATE VIEW posters_wide AS
-SELECT 
+SELECT DISTINCT
 entities.id, 
 posters_authors.poster_id, 
 entities.name,
