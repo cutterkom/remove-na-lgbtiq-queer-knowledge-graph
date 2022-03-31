@@ -34,7 +34,6 @@ books_authors_raw <- tbl(con, "books_authors") %>%
   rename(
     name = author,
     item_id = author_id)
-  
 
 books_publishers_raw <- tbl(con, "books_publishers") %>%
   left_join(tbl(con, "book_publisher"), by = "publisher_id") %>% 

@@ -49,6 +49,7 @@ entities_raw <- bind_rows(books_publishers, posters_authors, books_authors) %>%
     name = case_when(
       str_detect(name, "Koordinierungsstelle für") ~ "Koordinierungsstelle für gleichgeschlechtliche Lebensweisen Stadt München",
       name == "AIDS-Hilfe Nürnberg-Erlangen-Fürth" ~ "AIDS-Hilfe Nürnberg-Erlangen-Fürth e.V.",
+      name == "Donatien Alphonse Francois Marquis de Sade" ~ "Donatien Alphonse François Marquis de Sade",
       name == "D. A. F. Sade" ~ "Donatien Alphonse François Marquis de Sade",
       id == "book_author_724" ~ "Donatien Alphonse François Marquis de Sade",
       name == "Marquis Sade" ~ "Donatien Alphonse François Marquis de Sade",
@@ -107,9 +108,11 @@ new_ids <- new_ids_raw %>%
     name = case_when(
       str_detect(name, "Koordinierungsstelle für") ~ "Koordinierungsstelle für gleichgeschlechtliche Lebensweisen Stadt München",
       name == "AIDS-Hilfe Nürnberg-Erlangen-Fürth" ~ "AIDS-Hilfe Nürnberg-Erlangen-Fürth e.V.",
+      name == "Donatien Alphonse Francois Marquis de Sade" ~ "Donatien Alphonse François Marquis de Sade",
       name == "D. A. F. Sade" ~ "Donatien Alphonse François Marquis de Sade",
       name == "Marquis Sade" ~ "Donatien Alphonse François Marquis de Sade",
       name == "Donatien Alphonse François de Sade" ~ "Donatien Alphonse François Marquis de Sade",
+      
       TRUE ~ name)
   )
 
@@ -185,17 +188,30 @@ entities <- entities_raw %>%
   
 # There are still some duplicates, removed here --------------------------
 
-duplicate_entities <- entities %>% 
-  inner_join(entities %>% 
-               count(name, sort = T) %>% 
-               filter(n>1) %>% 
-               filter(!name %in% c("Forum", "Bruno Gmünder")), by = "name") %>% 
-  select(-n) %>% 
-  group_by(name) %>% 
-  mutate(rowid = row_number()) %>% 
-  ungroup() %>% 
-  pivot_wider(id_col = name, names_from  = rowid, values_from = id) %>% 
-  rename(id_old = `1`, id_new = `2`)
+# beware: there are cases, when there are more than 2 duplicate values
+# pivot wider adds as many cols as there are duplicates. 
+
+duplicate_entities <- entities %>%
+  inner_join(entities %>%
+    count(name, sort = T) %>%
+    filter(n > 1) %>%
+    filter(!name %in% c("Forum", "Bruno Gmünder")), by = "name") %>%
+  select(-n) %>%
+  group_by(name) %>%
+  mutate(rowid = row_number()) %>%
+  ungroup() %>%
+  pivot_wider(id_col = name, names_from = rowid, values_from = id) %>%
+  rename(id_old = `1`, id_new = `2`) %>% 
+  mutate(
+    id_new =
+      case_when(
+        !is.na(`4`) ~ `4`,
+        !is.na(`3`) ~ `3`,
+        TRUE ~ id_new
+      )
+  ) %>%
+  select(name, id_old, id_new)
+
 
 
 # Same removed ones in mapping df -----------------------------------------
@@ -211,6 +227,9 @@ entities_final <- bind_rows(
                           filter(n>1), by = "name"),
   duplicate_entities %>% select(id = id_new, name)
 )
+
+
+
 
 # Get mappings: What's probably an Org or a Club (e.V.)? -----------------
 
@@ -255,6 +274,17 @@ test_that(
   expect_unique(c("id"), data = import)
 )
 
+test_that(
+  desc = "Marquis de Sade only once",
+  expect_equal(import %>% filter(str_detect(name, "de Sade")) %>% nrow(), 1)
+)
+
+test_that(
+  desc = "no name duplications",
+  expect_equal(import %>% count(name) %>% filter(n>1) %>% nrow(), 0)
+)
+
+# add test
 
 # This table will be saved in a new database ------------------------------
 
