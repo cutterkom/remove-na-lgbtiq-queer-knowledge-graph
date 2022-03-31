@@ -54,6 +54,10 @@ entities_raw <- bind_rows(books_publishers, posters_authors, books_authors) %>%
       id == "book_author_724" ~ "Donatien Alphonse François Marquis de Sade",
       name == "Marquis Sade" ~ "Donatien Alphonse François Marquis de Sade",
       name == "Donatien Alphonse François de Sade" ~ "Donatien Alphonse François Marquis de Sade",
+      id == "poster_author_281" ~ "Bruno Gmünder",
+      name == "Rosa Winkel Verlag" ~ "Verlag Rosa Winkel",
+      name == "Feministischer Buchverlag" ~ "Feministischer Buchverlag Anke Schäfer",
+      id == "book_publisher_22" ~ "Männerschwarm Verlag",
       TRUE ~ name)
   )
 
@@ -195,7 +199,7 @@ duplicate_entities <- entities %>%
   inner_join(entities %>%
     count(name, sort = T) %>%
     filter(n > 1) %>%
-    filter(!name %in% c("Forum", "Bruno Gmünder")), by = "name") %>%
+    filter(!name %in% c("Forum")), by = "name") %>%
   select(-n) %>%
   group_by(name) %>%
   mutate(rowid = row_number()) %>%
