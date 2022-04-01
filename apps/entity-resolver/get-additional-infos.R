@@ -11,7 +11,7 @@ con <- connect_db()
 candidates <- tbl(con, "er_candidates") %>% 
   collect()
 
-# Get id's in order to fetch addintional infos ----------------------------
+# Get id's in order to fetch additional infos ----------------------------
 
 poster_author_ids <- candidates %>% 
   filter(source_1 == "poster_author" | source_2 == "poster_author") %>% 
@@ -34,6 +34,13 @@ book_publisher_ids <- candidates %>%
   distinct(id) %>% 
   pull()
 
+book_editor_ids <- candidates %>% 
+  filter(source_1 == "book_editor" | source_2 == "book_editor") %>% 
+  select(id_1, id_2) %>% 
+  pivot_longer(cols = c(id_1, id_2), names_to = "id_seq", values_to = "id") %>% 
+  distinct(id) %>% 
+  pull()
+
 
 # Get additional infos ----------------------------------------------------
 
@@ -51,6 +58,11 @@ publisher_names <- tbl(con, "books_wide") %>%
   distinct(publisher_id, publisher) %>% 
   collect()
 
+editor_names <- tbl(con, "books_wide") %>% 
+  filter(editor_id %in% book_editor_ids) %>% 
+  distinct(editor_id, editor) %>% 
+  collect()
+
 DBI::dbDisconnect(con); rm(con)
 
 # Export data -------------------------------------------------------------
@@ -59,7 +71,9 @@ candidates <- list(
   "similarities" = candidates %>% mutate(across(everything(), as.character)),
   "books_additional_infos" = books_wide %>% mutate(across(everything(), as.character)),
   "poster_additional_infos" = posters_wide %>% mutate(across(everything(), as.character)),
-  "books_publisher_additional_infos" = publisher_names %>% mutate(across(everything(), as.character)))
+  "books_publisher_additional_infos" = publisher_names %>% mutate(across(everything(), as.character)),
+  "books_editor_additional_infos" = editor_names %>% mutate(across(everything(), as.character))
+  )
 
 saveRDS(candidates, file = "apps/entity-resolver/data/candidates.Rds")
 
