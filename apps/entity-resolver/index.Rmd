@@ -70,10 +70,23 @@ get_candidates_names <- function(data) {
                          dplyr::distinct(author_id, name_1 = author), by = c("id_1" = "author_id"))
     
   } else if (candidate_1$source_1 == "book_publisher"){ 
-    print("here")
+    print("book_publisher")
     candidate_1 <- candidate_1 %>% 
       dplyr::left_join(candidates$books_publisher_additional_infos %>% 
                          dplyr::distinct(publisher_id, name_1 = publisher), by = c("id_1" = "publisher_id"))
+    
+  } else if (candidate_1$source_1 == "book_editor"){ 
+    print("book_editor cand 1")
+    candidate_1 <- candidate_1 %>% 
+      dplyr::left_join(candidates$books_editor_additional_infos %>% 
+                         dplyr::distinct(editor_id, name_1 = editor), by = c("id_1" = "editor_id"))
+    
+  } else if (candidate_1$source_1 == "distinct_entities"){ 
+    print("distinct_entities cand 1")
+    candidate_1 <- candidate_1 %>% 
+      dplyr::left_join(candidates$er_entities_additional_infos %>% 
+                         dplyr::distinct(entity_id, name_1 = entity), by = c("id_1" = "entity_id"))
+    
   } else {
     print("not implemented")
   }
@@ -91,10 +104,23 @@ get_candidates_names <- function(data) {
                          dplyr::distinct(author_id, name_2 = author), by = c("id_2" = "author_id"))
     
   } else if (candidate_2$source_2 == "book_publisher"){ 
-    print("here")
+    print("book_publisher")
     candidate_2 <- candidate_2 %>% 
       dplyr::left_join(candidates$books_publisher_additional_infos %>% 
                          dplyr::distinct(publisher_id, name_2 = publisher), by = c("id_2" = "publisher_id"))
+      
+  } else if (candidate_2$source_2 == "book_editor"){ 
+    print("book_editor")
+    candidate_2 <- candidate_2 %>% 
+      dplyr::left_join(candidates$books_editor_additional_infos %>% 
+                         dplyr::distinct(editor_id, name_2 = editor), by = c("id_2" = "editor_id"))
+  
+    } else if (candidate_2$source_2 == "distinct_entities"){ 
+    print("distinct_entities cand 2")
+    candidate_2 <- candidate_2 %>% 
+      dplyr::left_join(candidates$er_entities_additional_infos %>% 
+                         dplyr::distinct(entity_id, name_2 = entity), by = c("id_2" = "entity_id"))
+    
   } else {
     print("not implemented")
   }
@@ -331,7 +357,7 @@ renderUI({
    tagList(
     h1(candidate_names() %>% pull(name_1)),
     p(paste("Source: ", candidate_sources() %>% pull(source_1))),
-      p(paste("Item ID: ", candidate_names() %>% pull(id_1))),
+    p(paste("Item ID: ", candidate_names() %>% pull(id_1))),
     p(paste("Candidate Pair ID: ", candidate_names() %>% pull(id)))
    )
 })

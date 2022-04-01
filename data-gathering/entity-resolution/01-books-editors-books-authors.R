@@ -84,6 +84,9 @@ candidates_with_names <- candidates %>%
 # Write in DB -------------------------------------------------------------
 
 import <- candidates %>% 
+  # mutate(
+  #   id_1 = str_extract(id_1, "[0-9]{1,10}"),
+  #   id_2 = str_extract(id_2, "[0-9]{1,10}")) %>% 
   mutate(entities = "entities_books_editors", .before = id_1)
 
 con <- connect_db()
