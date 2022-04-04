@@ -86,3 +86,12 @@ res <- queer_publishers_data %>%
     }
   }) %>% 
   distinct()
+
+
+
+# Examples ----------------------------------------------------------------
+
+# nicht gefunden wird in WIkidata
+# Verlag rosa Flieder e.V.
+
+# bei GND da https://lobid.org/resources/HT003855799
