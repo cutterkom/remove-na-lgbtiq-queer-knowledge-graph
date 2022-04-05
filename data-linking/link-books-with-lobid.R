@@ -31,7 +31,6 @@ books_authors_gnd_ids <- books %>%
   filter(!is.na(isbn)) %>%
   distinct(book_id, isbn, name, title) %>% 
   rowid_to_column() %>% 
-  #sample_n(10) %>% 
   pmap_dfr(function(...) {
     
     current <- tibble(...)
@@ -85,3 +84,27 @@ books_authors_gnd_ids <- books %>%
   }) %>%
   distinct() %>%
   inner_join(books %>% distinct(book_id, isbn) %>% filter(!is.na(isbn)), by = c("book_id", "isbn"))
+
+
+
+# Get json / lobid from isbn search -----------------------------------------------
+
+books_authors_gnd_ids_json <- books %>%
+  filter(!is.na(isbn)) %>%
+  distinct(book_id, isbn, name, title) %>% 
+  rowid_to_column() %>% 
+  sample_n(1) %>% 
+  pmap_dfr(function(...) {
+    current <- tibble(...)
+    
+    cli::cli_alert("id: {current$rowid}")
+    
+      get_lobid <- call_lobid_api(query = current$isbn, parameter = "isbn", verbose = T) %>%
+        get_field_values(".member[] | {lobid: .id}") %>%
+        purrr::map(jsonlite::fromJSON) %>%
+        enframe() %>%
+        unnest_wider(value) %>% 
+        select(-name)
+      
+      data <- bind_cols(current, get_lobid) 
+    })

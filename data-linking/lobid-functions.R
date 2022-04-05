@@ -42,14 +42,22 @@ call_lobid_api <- function(query, parameter = NULL, verbose = TRUE, as_list = FA
 #' This function fetches the value of fields in a nested json, no matter on which level.
 #' Based on the very popular js, JSON command line processor https://stedolan.github.io/jq/
 #' 
-#' @param url the json url
+#' @param input the json url
+#' @param input_type `url` when string, `curl_response` when curl response (e.g. when using the same response for multiple queries)
 #' @param field fieldname/key to be fetched
 #' @importFrom curl curl
 #' @importFrom jqr jq
 #' @example 
 #' "https://lobid.org/resources/search?q=isbn:3596237785&format=json" %>% get_field_value("gndIdentifier")
-get_field_values <- function(url, jq_syntax) {
-  curl::curl(url) %>% jqr::jq(jq_syntax)
+get_field_values <- function(input, input_type = "url", jq_syntax) {
+  if(input_type == "url") {
+    curl::curl(input) %>% jqr::jq(jq_syntax)  
+  } else if(input_type == "curl_response") {
+    input %>% jqr::jq(jq_syntax)  
+  } else {
+    stop("not implemented")
+  }
+  
 }
 
 
