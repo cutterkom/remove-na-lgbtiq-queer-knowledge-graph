@@ -14,7 +14,7 @@ library(fuzzyjoin)
 # config ------------------------------------------------------------------
 
 # help debugging: print data tables during API calls
-verbose <- F 
+verbose <- T
 # how should resulting data be described in db?
 source_desc <- "lobid via author book search"
 # abbreviation of external id
@@ -32,9 +32,18 @@ get_lobid_ressource_id <- ".member[] | {source_id: .id}"
 con <- connect_db(credential_name = "db_clean")
 
 books <- tbl(con, "books_wide") %>%
+  # remove those that were already fetched (persons)
   anti_join(
     tbl(con, "el_matches") %>%
-      filter(entity_id_type == "books") %>%
+      filter(entity_id_combination_type == "book") %>%
+      distinct(entity_id_combination),
+    by = c("book_id" = "entity_id_combination")
+  ) %>%
+  
+  # remove those that were already fetched (topics)
+   anti_join(
+    tbl(con, "el_matches") %>%
+      filter(entity_id_type == "book") %>%
       distinct(entity_id),
     by = c("book_id" = "entity_id")
   ) %>%
@@ -53,7 +62,8 @@ rm(con)
 
 books %>%
   rowid_to_column() %>%
-  #filter(rowid == 1457) %>%
+  #filter(book_id == 2603) %>% 
+  #filter(rowid == 80) %>%
   # sample_n(2) %>%
   pmap(function(...) {
     current <- tibble(...)
@@ -86,7 +96,8 @@ books %>%
         cli::cli_h1("contribution_agent")
         print(contribution_agent)
       }
-
+      
+      if(nrow(contribution_agent) > 0) {
       # contribution_agent_names <-
       contribution_agent_names <- contribution_agent %>%
         select(-name) %>%
@@ -111,6 +122,18 @@ books %>%
       ) %>%
         left_join(contribution_agent_names %>%
           select(-lastname, -rest_of_name, -name_compare), by = "entity_id")
+      
+    } else {
+      data_agent <- tibble(
+        entity_id = current_meta$id,
+        entity_id_combination = current$book_id,
+        entity_id_combination_type = "book",
+        entity_id_type = "entities",
+        gnd_id = NA_character_,
+        type = NA_character_,
+        label = NA_character_,
+        role = NA_character_)
+    }
 
       if (verbose == TRUE) {
         cli::cli_h1("data_agent/person")
@@ -156,6 +179,15 @@ books %>%
       if (verbose == TRUE) {
         cli::cli_h1("topic")
         print(data_component)
+      }
+      
+      # Sometimes there are multiple labels per person, e.g. Sade as 1) Sade and 2) Marquis de Sade
+      if (is.list(data_component$label) == TRUE) {
+        data_component <- data_component %>% unnest(label)
+      } else if (is.list(data_agent$label) == TRUE) {
+        data_agent <- data_agent %>% unnest(label)
+      } else {
+        data
       }
 
       # Combine all data --------------------------------------------------------
@@ -219,6 +251,7 @@ books %>%
         mutate(
           external_id_type = external_id_abbr,
           source = source_desc,
+          source_id = as.character(source_id)
         ) %>%
         distinct(
           entity_id, entity_id_type, entity_id_combination, entity_id_combination_type,
