@@ -10,7 +10,7 @@ library(httr)
 library(jsonlite)
 library(fuzzyjoin)
 
-source("data-linking/lobid-functions.R")
+#source("data-linking/lobid-functions.R") now in kabrutils
 
 
 # config ------------------------------------------------------------------
@@ -255,7 +255,7 @@ books %>%
       # Write data in DB --------------------------------------------------------
 
       if (nrow(data) > 0) {
-        con <- connect_db("db_clean")
+        con <- connect_db()
         DBI::dbAppendTable(con, "el_matches", import)
         DBI::dbDisconnect(con)
         rm(con)

@@ -50,9 +50,10 @@ books <- tbl(con, "books_wide") %>%
   collect() %>%
   mutate(
     isbn = str_remove_all(isbn, " "),
-    book_id = as.character(book_id)
-  ) %>%
-  kabrutils::clean_string("title")
+    book_id = as.character(book_id),
+    title = str_replace_all(title, "\\[|\\]|\\(|\\)|\\/|\\:|-|!|\\.|,|\\?", ""),
+    name = str_replace_all(name, "\\[|\\]|\\(|\\)|\\/|\\:|-|!|\\.|,|\\?", "")
+  )
 
 DBI::dbDisconnect(con)
 rm(con)
@@ -65,8 +66,8 @@ message(paste0("books to search for: "), nrow(books))
 books %>%
   rowid_to_column() %>%
   mutate(title = ifelse(book_id == 2639, "§ 175", title)) %>% 
-  #filter(book_id == 2603) %>% 
-  #filter(rowid == 80) %>%
+  #filter(book_id == 2988) %>% 
+  filter(rowid > 767) %>%
   # sample_n(2) %>%
   pmap(function(...) {
     current <- tibble(...)
@@ -75,7 +76,7 @@ books %>%
     
     cli::cli_alert("id: {current$rowid}")
 
-    query <- URLencode(paste0("contribution.agent.label:", current$name, "+AND+title:", current$title, "&format=json"))
+    query <- URLencode(paste0("contribution.agent.label:", current$name, "+AND+title:", current$title))
 
     res <- httr::GET(call_lobid_api(query = query, verbose = T)) %>%
       httr::content(., as = "text")
@@ -183,14 +184,15 @@ books %>%
         cli::cli_h1("topic")
         print(data_component)
       }
+    
       
       # Sometimes there are multiple labels per person, e.g. Sade as 1) Sade and 2) Marquis de Sade
       if (is.list(data_component$label) == TRUE) {
         data_component <- data_component %>% unnest(label)
-      } else if (is.list(data_agent$label) == TRUE) {
+      } 
+      
+      if (is.list(data_agent$label) == TRUE) {
         data_agent <- data_agent %>% unnest(label)
-      } else {
-        data
       }
 
       # Combine all data --------------------------------------------------------
@@ -212,14 +214,16 @@ books %>%
                 external_id_label = label
               ),
           ) %>% bind_cols(lobid_ressource_id)
-      } else if (nrow(data_component) > 0 & nrow(data_agent) == 0) {
-        data <- data_component %>%
-          rename(
-            external_id = gnd_id,
-            external_id_desc = type,
-            external_id_label = label
-          ) %>%
-          bind_cols(lobid_ressource_id)
+        # When no persons/contributers, then I also dont take the topic info
+        # probably wrong, e.g. book_id = 2988
+      # } else if (nrow(data_component) > 0 & nrow(data_agent) == 0) {
+      #   data <- data_component %>%
+      #     rename(
+      #       external_id = gnd_id,
+      #       external_id_desc = type,
+      #       external_id_label = label
+      #     ) %>%
+      #     bind_cols(lobid_ressource_id)
       } else if (nrow(data_component) == 0 & nrow(data_agent) > 0) {
         data <- data_agent %>%
           rename(
@@ -270,10 +274,13 @@ books %>%
       # Write data in DB --------------------------------------------------------
 
       if (nrow(data) > 0) {
-        con <- connect_db("db_clean")
+        con <- connect_db()
         DBI::dbAppendTable(con, "el_matches", import)
         DBI::dbDisconnect(con)
         rm(con)
       }
     }
   })
+
+
+cli::cli_h1("Well, I am done ...")
