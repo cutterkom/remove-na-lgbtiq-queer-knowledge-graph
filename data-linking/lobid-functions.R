@@ -43,7 +43,7 @@ call_lobid_api <- function(query, parameter = NULL, verbose = TRUE, as_list = FA
 #' Based on the very popular js, JSON command line processor https://stedolan.github.io/jq/
 #' 
 #' @param input the json url
-#' @param input_type `url` when string, `curl_response` when curl response (e.g. when using the same response for multiple queries)
+#' @param input_type `url` when string, `response` when fetched response (e.g. when using the same response for multiple queries)
 #' @param field fieldname/key to be fetched
 #' @importFrom curl curl
 #' @importFrom jqr jq
@@ -52,7 +52,7 @@ call_lobid_api <- function(query, parameter = NULL, verbose = TRUE, as_list = FA
 get_field_values <- function(input, input_type = "url", jq_syntax) {
   if(input_type == "url") {
     curl::curl(input) %>% jqr::jq(jq_syntax)  
-  } else if(input_type == "curl_response") {
+  } else if(input_type == "response") {
     input %>% jqr::jq(jq_syntax)  
   } else {
     stop("not implemented")
