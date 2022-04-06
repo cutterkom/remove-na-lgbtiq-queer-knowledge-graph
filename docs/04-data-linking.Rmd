@@ -13,6 +13,36 @@ Database naming:
 
 `el_SOURCE_ENTITY`
 
+
+## GND/lobid
+
+I want to link the entities, like a book author or publisher, to the external identifier of the German National Library (`GND`).
+The easiest way seems to be calling the [lobid API](https://lobid.org/resources/api). 
+It returns a json with meta data, e.g. contributors or topics that often, but not always, have a `GND` id.
+
+I filter the `json` file by using [jq, a json processor,](https://stedolan.github.io/jq/) that has a wrapper in R: [jqr](https://github.com/ropensci/jqr).
+
+### Output
+
+DB `lgbtiq_kg_clean.el_matches`
+
+### `jq` commands:
+
+* getting contributors: `.member[].contribution[]?  | {type: .agent?.type[], label: .agent?.label, role:.role?.id, gnd_id: .agent?.gndIdentifier}`
+* getting topics: `.member[].subject[].componentList[]? | {gnd_id: select(.type?).gndIdentifier, type: select(.gndIdentifier?).type[], label: select(.type?).label}`
+* getting lobid ressource id: `.member[] | {source_id: .id}`
+
+
+### Basic workflow
+
+* search for `isbn`
+  * the most precise way, because it's already a persistent id 
+  * `data-linking/lobid/search-via-isbn.R`
+  * script first version
+* search for author name and title in the relevant objects 
+  * query like `contribution.agent.label:AUTHOR+AND+title: TITLE&format=json")`
+  * `data-linking/lobid/search-via-author-title.R`
+
 ## VIAF
 
 To [VIAF](http://viaf.org/) by using the `viafr` R-package. 
