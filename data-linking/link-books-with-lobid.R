@@ -11,6 +11,12 @@ library(jsonlite)
 
 source("data-linking/lobid-functions.R")
 
+
+# config ------------------------------------------------------------------
+
+# show print statements for debugging?
+verbose <- TRUE
+
 # Get books data ----------------------------------------------------------
 
 con <- connect_db(credential_name = "db_clean")
@@ -72,6 +78,11 @@ books %>%
         bind_cols(contribution_agent) %>%
         dplyr::select(-name) %>%
         distinct()
+      
+      if (verbose == TRUE) {
+        cli::cli_h1("person")
+        print(data_agent)
+      }
 
       # Get book topics ---------------------------------------------------------
 
@@ -91,9 +102,11 @@ books %>%
         bind_cols(component_list) %>%
         dplyr::select(-name) %>%
         distinct()
-
+      
+      if (verbose == TRUE ) {
       cli::cli_h1("topic")
       print(data_component)
+      }
 
 
       # Get ressource lobid  ----------------------------------------------------
@@ -108,8 +121,10 @@ books %>%
         mutate(source_id = glue::glue_collapse(source_id, sep = ", ")) %>%
         distinct()
         
+        if (verbose == TRUE) {
         cli::cli_h1("lobid_ressource_id")
         print(lobid_ressource_id)
+        }
       }
 
 
@@ -192,9 +207,10 @@ books %>%
         distinct(entity_id, entity_id_type, entity_id_combination, entity_id_combination_type, 
                  external_id, external_id_type, external_id_desc, external_id_label, 
                  property_type, source, source_id)
-
+      if (verbose == TRUE) {
       cli::cli_h1("import")
       print(import)
+      }
 
 
       # Write data in DB --------------------------------------------------------
