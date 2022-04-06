@@ -1,4 +1,4 @@
-# title: Link books to LOBID
+# title: Link entities and books to LOBID
 # desc: Für welche ISBN-Nummern gibt es eine jsonld-Datei bei lobid?
 # input:
 # output:
@@ -14,97 +14,120 @@ source("data-linking/lobid-functions.R")
 # Get books data ----------------------------------------------------------
 
 con <- connect_db(credential_name = "db_clean")
+
 books <- tbl(con, "books_wide") %>%
+  distinct(book_id, id, isbn, name, title) %>%
   collect() %>%
-  mutate(isbn = str_remove_all(isbn, " "))
+  mutate(
+    isbn = str_remove_all(isbn, " "),
+    book_id = as.character(book_id))
+
+el_matches <- tbl(con, "el_matches") %>% collect()
 DBI::dbDisconnect(con)
 rm(con)
 
-no_isbn <- books %>% filter(is.na(isbn))
-with_isbn <- books %>% filter(!is.na(isbn))
-
-get_components <- ".member[].subject[].componentList[]? | {gnd_id: select(.type?).gndIdentifier, type: select(.gndIdentifier?).type[], label: select(.type?).label}"
-
 get_agents <- ".member[].contribution[]?  | {type: .agent?.type[], label: .agent?.label, role:.role?.id, gnd_id: .agent?.gndIdentifier}"
 
-books_authors_gnd_ids <- books %>%
+
+# Pipeline to fetch data from lobid ---------------------------------------
+
+
+books %>%
   filter(!is.na(isbn)) %>%
-  distinct(book_id, isbn, name, title) %>% 
-  rowid_to_column() %>% 
+  # remove those that were already matched
+  anti_join(el_matches, by = c("book_id" = "entity_id_combination", "id" = "entity_id")) %>% 
+  rowid_to_column() %>%
   pmap_dfr(function(...) {
-    
     current <- tibble(...)
     
     cli::cli_alert("id: {current$rowid}")
     
-    if(!is.na(current$isbn)) {
-      component_list <- call_lobid_api(query = current$isbn, parameter = "isbn", verbose = T) %>%
-        get_field_values(get_components) %>%
+    res <- call_lobid_api(query = current$isbn, parameter = "isbn", verbose = T) %>% curl::curl()
+    
+    
+    # Get lobid author/contributor info ---------------------------------------
+    
+    if (!is.na(current$isbn)) {
+      
+      contribution_agent <- res %>%
+        get_field_values(input_type = "curl_response", get_agents) %>%
         purrr::map(jsonlite::fromJSON) %>%
         enframe() %>%
         unnest_wider(value)
       
-      contribution_agent <- call_lobid_api(query = current$isbn, parameter = "isbn", verbose = F) %>%
-        get_field_values(get_agents) %>%
-        purrr::map(jsonlite::fromJSON) %>%
-        enframe() %>%
-        unnest_wider(value)
-    } else if (is.na(current$isbn)) {
-
-      # component_list <- call_lobid_api(query = paste0(current$name, current$title), verbose = T) %>%
-      #   get_field_values(get_components) %>%
-      #   purrr::map(jsonlite::fromJSON) %>%
-      #   enframe() %>%
-      #   unnest_wider(value)
-      # 
-      # contribution_agent <- call_lobid_api(query = paste0(current$name, current$title), verbose = F) %>%
-      #   get_field_values(get_agents) %>%
-      #   purrr::map(jsonlite::fromJSON) %>%
-      #   enframe() %>%
-      #   unnest_wider(value)
+      # cli::cli_h1("author raw")
+      # print(contribution_agent)
+      
+      # Get contributor data ----------------------------------------------------
+      
+      
+      data_agent <- tibble(
+        entity_id = current$id,
+        entity_id_combination = current$book_id,
+        entity_id_combination_type = "book"
+      ) %>%
+        bind_cols(contribution_agent) %>%
+        dplyr::select(-name) %>% 
+        distinct()
+      
+      # cli::cli_h1("author")
+      # print(data_agent)
     }
-
-    data_component <- tibble(
-      book_id = current$book_id,
-      isbn = current$isbn,
-      relation_type = "componentList"
-    ) %>%
-      bind_cols(component_list) %>%
-      dplyr::select(-name)
-
-    data_agent <- tibble(
-      book_id = current$book_id,
-      isbn = current$isbn,
-      relation_type = "contribution_agent"
-    ) %>%
-      bind_cols(contribution_agent) %>%
-      dplyr::select(-name)
-
-    data <- bind_rows(data_component, data_agent)
-  }) %>%
-  distinct() %>%
-  inner_join(books %>% distinct(book_id, isbn) %>% filter(!is.na(isbn)), by = c("book_id", "isbn"))
-
-
-
-# Get json / lobid from isbn search -----------------------------------------------
-
-books_authors_gnd_ids_json <- books %>%
-  filter(!is.na(isbn)) %>%
-  distinct(book_id, isbn, name, title) %>% 
-  rowid_to_column() %>% 
-  sample_n(1) %>% 
-  pmap_dfr(function(...) {
-    current <- tibble(...)
     
-    cli::cli_alert("id: {current$rowid}")
+    if (nrow(data_agent) > 0) {
+      data <- data_agent %>% 
+        rename(external_id = gnd_id, 
+               external_id_desc = type, 
+               external_id_label = label,
+               property_type = role)
+    } else {
+      data <- tibble(
+        entity_id = current$id,
+        entity_id_type = "entities",
+        external_id = NA_character_,
+        external_id_type = "gnd",
+        entity_id_combination = NA_character_,
+        entity_id_combination_type = "book",
+        external_id_desc = NA_character_,
+        external_id_label = NA_character_,
+        property_type = NA_character_,
+        source = NA_character_
+      )
+    }
     
-      get_lobid <- call_lobid_api(query = current$isbn, parameter = "isbn", verbose = T) %>%
-        get_field_values(".member[] | {lobid: .id}") %>%
-        purrr::map(jsonlite::fromJSON) %>%
-        enframe() %>%
-        unnest_wider(value) %>% 
-        select(-name)
-      
-      data <- bind_cols(current, get_lobid) 
-    })
+    # cli::cli_h1("data after parsing")
+    # print(data)
+    
+    # Sometimes there are multiple labels per person, e.g. Sade as 1) Sade and 2) Marquis de Sade
+    if (is.list(data$label) == TRUE) {
+      data <- data %>% unnest(label)
+    } else {
+      data
+    }
+    
+    
+    # Prepare data for import -------------------------------------------------
+    
+    
+    import <- data %>%
+      mutate(
+        entity_id = current$id,
+        entity_id_type = "entities",
+        external_id_type = "gnd",
+        source = "lobid via book isbn"
+      ) %>%
+      distinct(entity_id, entity_id_type, entity_id_combination, entity_id_combination_type, external_id, external_id_type, external_id_desc, external_id_label, property_type, source)
+    
+    # cli::cli_h1("data after cleaning")
+    # print(import)
+    
+    
+    # Write data in DB --------------------------------------------------------
+    
+    if (nrow(data) > 0) {
+      con <- connect_db("db_clean")
+      DBI::dbAppendTable(con, "el_matches", import)
+      DBI::dbDisconnect(con)
+      rm(con)
+    }
+  })
