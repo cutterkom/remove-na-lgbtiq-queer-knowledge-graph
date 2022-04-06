@@ -62,6 +62,7 @@ rm(con)
 
 books %>%
   rowid_to_column() %>%
+  mutate(title = ifelse(book_id == 2639, "§ 175", title)) %>% 
   #filter(book_id == 2603) %>% 
   #filter(rowid == 80) %>%
   # sample_n(2) %>%
