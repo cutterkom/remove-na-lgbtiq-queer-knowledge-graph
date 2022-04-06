@@ -22,7 +22,6 @@ verbose <- T
 con <- connect_db(credential_name = "db_clean")
 
 books <- tbl(con, "books_wide") %>%
-  distinct(book_id, id, isbn, name, title) %>%
   collect() %>%
   mutate(
     isbn = str_remove_all(isbn, " "),
@@ -44,12 +43,15 @@ get_lobid_ressource_id <- ".member[] | {source_id: .id}"
 books %>%
   rowid_to_column() %>%
   filter(!is.na(isbn)) %>%
+  distinct(rowid, book_id, isbn) %>% 
   # remove those that were already matched
-  anti_join(el_matches, by = c("book_id" = "entity_id_combination", "id" = "entity_id")) %>%
-  # filter(rowid==2050) %>%
-  # sample_n(1) %>%
+  #anti_join(el_matches, by = c("book_id" = "entity_id_combination", "id" = "entity_id")) %>%
+  #filter(rowid==2050) %>%
+  sample_n(1) %>% 
   pmap_dfr(function(...) {
     current <- tibble(...)
+    
+    current_meta <- current %>% inner_join(books)
 
     cli::cli_alert("id: {current$rowid}")
 
@@ -72,14 +74,35 @@ books %>%
         unnest_wider(value)
 
       data_agent <- tibble(
-        entity_id = current$id,
+        entity_id = current_meta$id,
         entity_id_combination = current$book_id,
         entity_id_combination_type = "book",
         entity_id_type = "entities"
-      ) %>%
-        bind_cols(contribution_agent) %>%
-        dplyr::select(-name) %>%
-        distinct()
+      ) 
+      
+      
+      # compare person names with entities and keep them ------------------------
+      if (check_items > 0) {
+      contribution_agent_names <- contribution_agent %>% 
+        select(-name) %>% 
+        distinct() %>% 
+        mutate(label2 = label) %>% 
+        separate(label2, ",", into = c("lastname", "rest_of_name")) %>%
+        mutate(
+          rest_of_name = trimws(rest_of_name),
+          name_compare = paste(rest_of_name, lastname)) %>% 
+        # compare names with fuzzy join
+        stringdist_inner_join(current_meta %>% select(entity_id = id, name), by = c( "name_compare" = "name"), max_dist = 2) #%>% 
+      
+      data_agent <- data_agent %>% 
+        left_join(contribution_agent_names %>% 
+                    select(-lastname, -rest_of_name, -name_compare))
+      } else {
+        data_agent <-  data_agent %>%
+          bind_cols(contribution_agent) %>%
+          dplyr::select(-name) %>%
+          distinct()
+      }
 
       if (verbose == TRUE) {
         cli::cli_h1("person")
