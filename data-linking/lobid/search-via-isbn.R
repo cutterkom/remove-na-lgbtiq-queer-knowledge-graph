@@ -38,6 +38,9 @@ el_matches <- tbl(con, "el_matches") %>%
 DBI::dbDisconnect(con)
 rm(con)
 
+
+# lobid json filters ---------------------------------------------------
+
 get_agents <- ".member[].contribution[]?  | {type: .agent?.type[], label: .agent?.label, role:.role?.id, gnd_id: .agent?.gndIdentifier}"
 get_components <- ".member[].subject[].componentList[]? | {gnd_id: select(.type?).gndIdentifier, type: select(.gndIdentifier?).type[], label: select(.type?).label}"
 get_lobid_ressource_id <- ".member[] | {source_id: .id}"
@@ -51,7 +54,7 @@ books %>%
   distinct(rowid, book_id, isbn) %>%
   # remove those that were already matched
   anti_join(el_matches, by = c("book_id" = "entity_id")) %>%
-  # filter(rowid==2050) %>%
+  #filter(rowid > 2759) %>%
   # sample_n(1) %>%
   pmap_dfr(function(...) {
     current <- tibble(...)
@@ -220,11 +223,6 @@ books %>%
         )
         # stop("not implemented")
       }
-
-
-
-      # Combine all data --------------------------------------------------------
-
 
       # Sometimes there are multiple labels per person, e.g. Sade as 1) Sade and 2) Marquis de Sade
       if (is.list(data$label) == TRUE) {
