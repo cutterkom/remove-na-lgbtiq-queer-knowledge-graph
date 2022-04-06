@@ -99,7 +99,7 @@ books %>%
         data_agent <- tibble(
           entity_id = current_meta$id,
           entity_id_combination = current$book_id,
-          entity_id_combination_type = "book",
+          entity_id_combination_type = "books",
           entity_id_type = "entities"
         ) %>%
           left_join(contribution_agent_names %>%
@@ -109,7 +109,7 @@ books %>%
           entity_id = current$id,
           entity_id = current_meta$id,
           entity_id_combination = current$book_id,
-          entity_id_combination_type = "book",
+          entity_id_combination_type = "books",
           entity_id_type = "entities",
           gnd_id = NA_character_,
           type = NA_character_,
@@ -214,7 +214,7 @@ books %>%
           external_id = NA_character_,
           external_id_type = "gnd",
           entity_id_combination = NA_character_,
-          entity_id_combination_type = "book",
+          entity_id_combination_type = "books",
           external_id_desc = NA_character_,
           external_id_label = NA_character_,
           property_type = NA_character_,

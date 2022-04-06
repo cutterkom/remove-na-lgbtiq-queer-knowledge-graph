@@ -14,7 +14,7 @@ library(fuzzyjoin)
 # config ------------------------------------------------------------------
 
 # help debugging: print data tables during API calls
-verbose <- T
+verbose <- F
 # how should resulting data be described in db?
 source_desc <- "lobid via author book search"
 # abbreviation of external id
@@ -35,16 +35,16 @@ books <- tbl(con, "books_wide") %>%
   # remove those that were already fetched (persons)
   anti_join(
     tbl(con, "el_matches") %>%
-      filter(entity_id_combination_type == "book") %>%
+      filter(entity_id_combination_type == "books") %>%
       distinct(entity_id_combination),
     by = c("book_id" = "entity_id_combination")
   ) %>%
   
   # remove those that were already fetched (topics)
    anti_join(
-    tbl(con, "el_matches") %>%
-      filter(entity_id_type == "book") %>%
-      distinct(entity_id),
+     tbl(con, "el_matches") %>%
+       filter(entity_id_type == "books") %>%
+       distinct(entity_id),
     by = c("book_id" = "entity_id")
   ) %>%
   collect() %>%
@@ -59,6 +59,8 @@ rm(con)
 
 
 # call lobid API ----------------------------------------------------------
+
+message(paste0("books to search for: "), nrow(books))
 
 books %>%
   rowid_to_column() %>%
