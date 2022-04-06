@@ -15,7 +15,7 @@ source("data-linking/lobid-functions.R")
 # config ------------------------------------------------------------------
 
 # show print statements for debugging?
-verbose <- TRUE
+verbose <- T
 
 # Get books data ----------------------------------------------------------
 
@@ -42,12 +42,12 @@ get_lobid_ressource_id <- ".member[] | {source_id: .id}"
 
 
 books %>%
-  rowid_to_column() %>% 
+  rowid_to_column() %>%
   filter(!is.na(isbn)) %>%
   # remove those that were already matched
   anti_join(el_matches, by = c("book_id" = "entity_id_combination", "id" = "entity_id")) %>%
-  #filter(rowid==2050) %>% 
-  #sample_n(1) %>%
+  # filter(rowid==2050) %>%
+  # sample_n(1) %>%
   pmap_dfr(function(...) {
     current <- tibble(...)
 
@@ -58,7 +58,9 @@ books %>%
 
 
     check_items <- get_field_values(input = res, input_type = "response", jq_syntax = ".totalItems")
-    print(paste0("number of items: ", check_items))
+    if (verbose == TRUE) {
+      cli::cli_alert("number of items: {check_items}")
+    }
 
     # Get lobid author/contributor info ---------------------------------------
 
@@ -78,7 +80,7 @@ books %>%
         bind_cols(contribution_agent) %>%
         dplyr::select(-name) %>%
         distinct()
-      
+
       if (verbose == TRUE) {
         cli::cli_h1("person")
         print(data_agent)
@@ -102,28 +104,28 @@ books %>%
         bind_cols(component_list) %>%
         dplyr::select(-name) %>%
         distinct()
-      
-      if (verbose == TRUE ) {
-      cli::cli_h1("topic")
-      print(data_component)
+
+      if (verbose == TRUE) {
+        cli::cli_h1("topic")
+        print(data_component)
       }
 
 
       # Get ressource lobid  ----------------------------------------------------
 
-      if(check_items > 0) {
+      if (check_items > 0) {
         lobid_ressource_id <- res %>%
-        get_field_values(input_type = "response", get_lobid_ressource_id) %>%
-        purrr::map(jsonlite::fromJSON) %>%
-        enframe() %>%
-        unnest_wider(value) %>%
-        select(-name) %>%
-        mutate(source_id = glue::glue_collapse(source_id, sep = ", ")) %>%
-        distinct()
-        
+          get_field_values(input_type = "response", get_lobid_ressource_id) %>%
+          purrr::map(jsonlite::fromJSON) %>%
+          enframe() %>%
+          unnest_wider(value) %>%
+          select(-name) %>%
+          mutate(source_id = glue::glue_collapse(source_id, sep = ", ")) %>%
+          distinct()
+
         if (verbose == TRUE) {
-        cli::cli_h1("lobid_ressource_id")
-        print(lobid_ressource_id)
+          cli::cli_h1("lobid_ressource_id")
+          print(lobid_ressource_id)
         }
       }
 
@@ -199,17 +201,19 @@ books %>%
       # Prepare data for import -------------------------------------------------
 
       import <- data %>%
-        filter(!is.na(external_id) | !is.na(external_id_desc)) %>% 
+        filter(!is.na(external_id) | !is.na(external_id_desc)) %>%
         mutate(
           external_id_type = "gnd",
           source = "lobid via book isbn"
         ) %>%
-        distinct(entity_id, entity_id_type, entity_id_combination, entity_id_combination_type, 
-                 external_id, external_id_type, external_id_desc, external_id_label, 
-                 property_type, source, source_id)
+        distinct(
+          entity_id, entity_id_type, entity_id_combination, entity_id_combination_type,
+          external_id, external_id_type, external_id_desc, external_id_label,
+          property_type, source, source_id
+        )
       if (verbose == TRUE) {
-      cli::cli_h1("import")
-      print(import)
+        cli::cli_h1("import")
+        print(import)
       }
 
 
