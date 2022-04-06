@@ -36,10 +36,11 @@ get_lobid_ressource_id <- ".member[] | {source_id: .id}"
 
 
 books %>%
+  rowid_to_column() %>% 
   filter(!is.na(isbn)) %>%
   # remove those that were already matched
   anti_join(el_matches, by = c("book_id" = "entity_id_combination", "id" = "entity_id")) %>%
-  rowid_to_column() %>%
+  #filter(rowid==2050) %>% 
   #sample_n(1) %>%
   pmap_dfr(function(...) {
     current <- tibble(...)
@@ -65,7 +66,8 @@ books %>%
       data_agent <- tibble(
         entity_id = current$id,
         entity_id_combination = current$book_id,
-        entity_id_combination_type = "book"
+        entity_id_combination_type = "book",
+        entity_id_type = "entities"
       ) %>%
         bind_cols(contribution_agent) %>%
         dplyr::select(-name) %>%
@@ -80,10 +82,11 @@ books %>%
         unnest_wider(value)
 
       data_component <- tibble(
-        entity_id = current$id,
-        entity_id_combination = current$book_id,
-        entity_id_combination_type = "book",
-        property_type = "topic"
+        entity_id = current$book_id,
+        entity_id_combination = NA_character_,
+        entity_id_combination_type = NA_character_,
+        property_type = "topic",
+        entity_id_type = "books"
       ) %>%
         bind_cols(component_list) %>%
         dplyr::select(-name) %>%
@@ -162,6 +165,7 @@ books %>%
           source = NA_character_,
           source_id = NA_character_
         )
+        # stop("not implemented")
       }
 
 
@@ -179,12 +183,9 @@ books %>%
 
       # Prepare data for import -------------------------------------------------
 
-
       import <- data %>%
         filter(!is.na(external_id) | !is.na(external_id_desc)) %>% 
         mutate(
-          entity_id = current$id,
-          entity_id_type = "entities",
           external_id_type = "gnd",
           source = "lobid via book isbn"
         ) %>%
@@ -192,7 +193,7 @@ books %>%
                  external_id, external_id_type, external_id_desc, external_id_label, 
                  property_type, source, source_id)
 
-      cli::cli_h1("data after cleaning")
+      cli::cli_h1("import")
       print(import)
 
 
