@@ -9,9 +9,25 @@ output: html_document
 
 The internal data are linked to various external data sources.
 
-Database naming:
+Main database table `el_matches`. Idea is to just dump everything there in a first step.
 
-`el_SOURCE_ENTITY`
+```sql
+CREATE TABLE `el_matches` (
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
+  `entity_id` varchar(55) NOT NULL,
+  `entity_id_type` varchar(255) DEFAULT NULL,
+  `entity_id_combination` varchar(255) DEFAULT NULL,
+  `entity_id_combination_type` varchar(255) DEFAULT NULL,
+  `external_id` varchar(255) DEFAULT NULL,
+  `external_id_label` varchar(255) DEFAULT NULL,
+  `external_id_type` varchar(55) NOT NULL,
+  `external_id_desc` varchar(255) DEFAULT NULL,
+  `source` varchar(255) DEFAULT NULL,
+  `source_id` longtext DEFAULT NULL,
+  `property_type` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
 
 
 ## GND/lobid
@@ -24,7 +40,8 @@ I filter the `json` file by using [jq, a json processor,](https://stedolan.githu
 
 ### Output
 
-DB `lgbtiq_kg_clean.el_matches`
+* DB tbl: `lgbtiq_kg.el_matches`
+* beware: it's not cleaned data, so not in "clean" database `lgbtiq_kg_clean`
 
 ### `jq` commands:
 
@@ -37,11 +54,21 @@ DB `lgbtiq_kg_clean.el_matches`
 
 * search for `isbn`
   * the most precise way, because it's already a persistent id 
-  * `data-linking/lobid/search-via-isbn.R`
+  * `data-linking/lobid/01-search-via-isbn.R`
   * script first version
 * search for author name and title in the relevant objects 
   * query like `contribution.agent.label:AUTHOR+AND+title: TITLE&format=json")`
-  * `data-linking/lobid/search-via-author-title.R`
+  * `data-linking/lobid/02-search-via-author-title.R`
+* search just by name
+  * `data-linking/lobid/03-search-via-author.R`
+  
+  
+### Caveats
+
+- Example book_id == `2988` 
+- `https://lobid.org/resources/search?q=contribution.agent.label:Valerie%20Miner+AND+title:mord%20auf%20dem%20campus&format=json&format=json` 
+  - title wrong -> totally wrong books -> topics are not allowed to be considered
+- `https://lobid.org/resources/search?q=contribution.agent.label:Valerie%20Miner&format=json&format=json` finds the right person, 
 
 ## VIAF
 
