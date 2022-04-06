@@ -165,6 +165,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="4.1.1" data-path="data-linking.html"><a href="data-linking.html#output"><i class="fa fa-check"></i><b>4.1.1</b> Output<span></span></a></li>
 <li class="chapter" data-level="4.1.2" data-path="data-linking.html"><a href="data-linking.html#jq-commands"><i class="fa fa-check"></i><b>4.1.2</b> <code>jq</code> commands:<span></span></a></li>
 <li class="chapter" data-level="4.1.3" data-path="data-linking.html"><a href="data-linking.html#basic-workflow"><i class="fa fa-check"></i><b>4.1.3</b> Basic workflow<span></span></a></li>
+<li class="chapter" data-level="4.1.4" data-path="data-linking.html"><a href="data-linking.html#caveats"><i class="fa fa-check"></i><b>4.1.4</b> Caveats<span></span></a></li>
 </ul></li>
 <li class="chapter" data-level="4.2" data-path="data-linking.html"><a href="data-linking.html#viaf"><i class="fa fa-check"></i><b>4.2</b> VIAF<span></span></a></li>
 </ul></li>
@@ -189,8 +190,22 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <div id="data-linking" class="section level1 hasAnchor" number="4">
 <h1><span class="header-section-number">4</span> Data Linking<a href="data-linking.html#data-linking" class="anchor-section" aria-label="Anchor link to header"></a></h1>
 <p>The internal data are linked to various external data sources.</p>
-<p>Database naming:</p>
-<p><code>el_SOURCE_ENTITY</code></p>
+<p>Main database table <code>el_matches</code>. Idea is to just dump everything there in a first step.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb7-1"><a href="data-linking.html#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> `el_matches` (</span>
+<span id="cb7-2"><a href="data-linking.html#cb7-2" aria-hidden="true" tabindex="-1"></a>  `created_at` <span class="dt">timestamp</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> <span class="fu">current_timestamp</span>(),</span>
+<span id="cb7-3"><a href="data-linking.html#cb7-3" aria-hidden="true" tabindex="-1"></a>  `updated_at` <span class="dt">timestamp</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> <span class="kw">NULL</span> <span class="kw">ON</span> <span class="kw">UPDATE</span> <span class="fu">current_timestamp</span>(),</span>
+<span id="cb7-4"><a href="data-linking.html#cb7-4" aria-hidden="true" tabindex="-1"></a>  `entity_id` <span class="dt">varchar</span>(<span class="dv">55</span>) <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb7-5"><a href="data-linking.html#cb7-5" aria-hidden="true" tabindex="-1"></a>  `entity_id_type` <span class="dt">varchar</span>(<span class="dv">255</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,</span>
+<span id="cb7-6"><a href="data-linking.html#cb7-6" aria-hidden="true" tabindex="-1"></a>  `entity_id_combination` <span class="dt">varchar</span>(<span class="dv">255</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,</span>
+<span id="cb7-7"><a href="data-linking.html#cb7-7" aria-hidden="true" tabindex="-1"></a>  `entity_id_combination_type` <span class="dt">varchar</span>(<span class="dv">255</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,</span>
+<span id="cb7-8"><a href="data-linking.html#cb7-8" aria-hidden="true" tabindex="-1"></a>  `external_id` <span class="dt">varchar</span>(<span class="dv">255</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,</span>
+<span id="cb7-9"><a href="data-linking.html#cb7-9" aria-hidden="true" tabindex="-1"></a>  `external_id_label` <span class="dt">varchar</span>(<span class="dv">255</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,</span>
+<span id="cb7-10"><a href="data-linking.html#cb7-10" aria-hidden="true" tabindex="-1"></a>  `external_id_type` <span class="dt">varchar</span>(<span class="dv">55</span>) <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb7-11"><a href="data-linking.html#cb7-11" aria-hidden="true" tabindex="-1"></a>  `external_id_desc` <span class="dt">varchar</span>(<span class="dv">255</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,</span>
+<span id="cb7-12"><a href="data-linking.html#cb7-12" aria-hidden="true" tabindex="-1"></a>  `source` <span class="dt">varchar</span>(<span class="dv">255</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,</span>
+<span id="cb7-13"><a href="data-linking.html#cb7-13" aria-hidden="true" tabindex="-1"></a>  `source_id` longtext <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,</span>
+<span id="cb7-14"><a href="data-linking.html#cb7-14" aria-hidden="true" tabindex="-1"></a>  `property_type` <span class="dt">varchar</span>(<span class="dv">255</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span></span>
+<span id="cb7-15"><a href="data-linking.html#cb7-15" aria-hidden="true" tabindex="-1"></a>) ENGINE<span class="op">=</span>InnoDB <span class="kw">DEFAULT</span> CHARSET<span class="op">=</span>utf8mb4;</span></code></pre></div>
 <div id="gndlobid" class="section level2 hasAnchor" number="4.1">
 <h2><span class="header-section-number">4.1</span> GND/lobid<a href="data-linking.html#gndlobid" class="anchor-section" aria-label="Anchor link to header"></a></h2>
 <p>I want to link the entities, like a book author or publisher, to the external identifier of the German National Library (<code>GND</code>).
@@ -199,7 +214,10 @@ It returns a json with meta data, e.g. contributors or topics that often, but n
 <p>I filter the <code>json</code> file by using <a href="https://stedolan.github.io/jq/">jq, a json processor,</a> that has a wrapper in R: <a href="https://github.com/ropensci/jqr">jqr</a>.</p>
 <div id="output" class="section level3 hasAnchor" number="4.1.1">
 <h3><span class="header-section-number">4.1.1</span> Output<a href="data-linking.html#output" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<p>DB <code>lgbtiq_kg_clean.el_matches</code></p>
+<ul>
+<li>DB tbl: <code>lgbtiq_kg.el_matches</code></li>
+<li>beware: it’s not cleaned data, so not in “clean” database <code>lgbtiq_kg_clean</code></li>
+</ul>
 </div>
 <div id="jq-commands" class="section level3 hasAnchor" number="4.1.2">
 <h3><span class="header-section-number">4.1.2</span> <code>jq</code> commands:<a href="data-linking.html#jq-commands" class="anchor-section" aria-label="Anchor link to header"></a></h3>
@@ -215,14 +233,29 @@ It returns a json with meta data, e.g. contributors or topics that often, but n
 <li>search for <code>isbn</code>
 <ul>
 <li>the most precise way, because it’s already a persistent id</li>
-<li><code>data-linking/lobid/search-via-isbn.R</code></li>
+<li><code>data-linking/lobid/01-search-via-isbn.R</code></li>
 <li>script first version</li>
 </ul></li>
 <li>search for author name and title in the relevant objects
 <ul>
 <li>query like <code>contribution.agent.label:AUTHOR+AND+title: TITLE&amp;format=json")</code></li>
-<li><code>data-linking/lobid/search-via-author-title.R</code></li>
+<li><code>data-linking/lobid/02-search-via-author-title.R</code></li>
 </ul></li>
+<li>search just by name
+<ul>
+<li><code>data-linking/lobid/03-search-via-author.R</code></li>
+</ul></li>
+</ul>
+</div>
+<div id="caveats" class="section level3 hasAnchor" number="4.1.4">
+<h3><span class="header-section-number">4.1.4</span> Caveats<a href="data-linking.html#caveats" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<ul>
+<li>Example book_id == <code>2988</code></li>
+<li><code>https://lobid.org/resources/search?q=contribution.agent.label:Valerie%20Miner+AND+title:mord%20auf%20dem%20campus&amp;format=json&amp;format=json</code>
+<ul>
+<li>title wrong -&gt; totally wrong books -&gt; topics are not allowed to be considered</li>
+</ul></li>
+<li><code>https://lobid.org/resources/search?q=contribution.agent.label:Valerie%20Miner&amp;format=json&amp;format=json</code> finds the right person,</li>
 </ul>
 </div>
 </div>
