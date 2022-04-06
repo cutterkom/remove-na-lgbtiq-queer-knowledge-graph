@@ -44,11 +44,14 @@ books %>%
     
     res <- call_lobid_api(query = current$isbn, parameter = "isbn", verbose = T) %>% curl::curl()
     
+    check_items <- get_field_values(input = res, input_type = "curl_response", jq_syntax = ".totalItems")
+    cli::cli_h1("check_items raw")
+    print(check_items)
     
     # Get lobid author/contributor info ---------------------------------------
     
-    if (!is.na(current$isbn)) {
-      
+    if (check_items > 0) {
+      print("dsf")
       contribution_agent <- res %>%
         get_field_values(input_type = "curl_response", get_agents) %>%
         purrr::map(jsonlite::fromJSON) %>%
@@ -57,9 +60,6 @@ books %>%
       
       # cli::cli_h1("author raw")
       # print(contribution_agent)
-      
-      # Get contributor data ----------------------------------------------------
-      
       
       data_agent <- tibble(
         entity_id = current$id,
@@ -72,32 +72,35 @@ books %>%
       
       # cli::cli_h1("author")
       # print(data_agent)
-    }
-    
-    if (nrow(data_agent) > 0) {
-      data <- data_agent %>% 
-        rename(external_id = gnd_id, 
-               external_id_desc = type, 
-               external_id_label = label,
-               property_type = role)
-    } else {
-      data <- tibble(
-        entity_id = current$id,
-        entity_id_type = "entities",
-        external_id = NA_character_,
-        external_id_type = "gnd",
-        entity_id_combination = NA_character_,
-        entity_id_combination_type = "book",
-        external_id_desc = NA_character_,
-        external_id_label = NA_character_,
-        property_type = NA_character_,
-        source = NA_character_
-      )
-    }
-    
-    # cli::cli_h1("data after parsing")
-    # print(data)
-    
+      
+      if (nrow(data_agent) > 0) {
+        data <- data_agent %>% 
+          rename(external_id = gnd_id, 
+                 external_id_desc = type, 
+                 external_id_label = label,
+                 property_type = role)
+      } else {
+        data <- tibble(
+          entity_id = current$id,
+          entity_id_type = "entities",
+          external_id = NA_character_,
+          external_id_type = "gnd",
+          entity_id_combination = NA_character_,
+          entity_id_combination_type = "book",
+          external_id_desc = NA_character_,
+          external_id_label = NA_character_,
+          property_type = NA_character_,
+          source = NA_character_,
+          source_id = NA_character_
+        )
+      }
+      
+      # cli::cli_h1("data after parsing")
+      # print(data)  
+
+# Combine all data --------------------------------------------------------
+
+
     # Sometimes there are multiple labels per person, e.g. Sade as 1) Sade and 2) Marquis de Sade
     if (is.list(data$label) == TRUE) {
       data <- data %>% unnest(label)
@@ -116,10 +119,10 @@ books %>%
         external_id_type = "gnd",
         source = "lobid via book isbn"
       ) %>%
-      distinct(entity_id, entity_id_type, entity_id_combination, entity_id_combination_type, external_id, external_id_type, external_id_desc, external_id_label, property_type, source)
+      distinct(entity_id, entity_id_type, entity_id_combination, entity_id_combination_type, external_id, external_id_type, external_id_desc, external_id_label, property_type, source, source_id)
     
-    # cli::cli_h1("data after cleaning")
-    # print(import)
+    cli::cli_h1("data after cleaning")
+    print(import)
     
     
     # Write data in DB --------------------------------------------------------
@@ -130,4 +133,6 @@ books %>%
       DBI::dbDisconnect(con)
       rm(con)
     }
+    } 
+    
   })
