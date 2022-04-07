@@ -30,7 +30,6 @@ corporate_body_only <- TRUE
 # keep only explicit publishing houses? GND Subject Category of "Buchwissenschaft, Buchhandel"
 only_publisher_category <- FALSE
 
-
 # Load input data ---------------------------------------------------------
 
 con <- connect_db("db_clean")
@@ -95,7 +94,7 @@ publishers %>%
 
     check_items_iterator <- as.numeric(check_items) - 1
 
-    if (check_items_iterator > 5) {
+    if (check_items_iterator > 10) {
       check_items_iterator <- 10
     } else {
       check_items_iterator
@@ -219,9 +218,10 @@ publishers %>%
 
 
         # All data ----------------------------------------------------------------
-        # but only keep those that have explicitly stated "Buchwissenschaft, Buchhandel" GND Subject Category
+        
         import <- bind_cols(df_skeleton, gnd_id_label, entity_type, tibble(additional_data = additional_data))
-
+        
+        # but only keep those that have explicitly stated "Buchwissenschaft, Buchhandel" GND Subject Category
         if (only_publisher_category == TRUE) {
           import <- import %>% filter(str_detect(additional_data, "Buchwissenschaft, Buchhandel"))
         }
