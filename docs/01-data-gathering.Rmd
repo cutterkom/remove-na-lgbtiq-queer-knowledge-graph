@@ -35,7 +35,7 @@ Naming convention:
 ### Books data model
 ![books data model](img/dm-books.png)
 
-### Poster data model
+#### Poster data model
 ![poster data model](img/dm-posters.png)
 
 ### Views
@@ -139,7 +139,7 @@ A first setup to tackle the task is two-fold:
 ![](img/who-is-who-ex.png)
 
 
-#### Adding new candidates
+### Adding new candidates
 
 To update the Shiny app in order to resolve new candidates these two steps are needed: 
 

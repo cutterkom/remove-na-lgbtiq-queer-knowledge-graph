@@ -4,18 +4,18 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>2 Data Gathering | Misc</title>
-  <meta name="description" content="2 Data Gathering | Misc" />
+  <title>2 Data Gathering | Remove NA</title>
+  <meta name="description" content="2 Data Gathering | Remove NA" />
   <meta name="generator" content="bookdown 0.25 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="2 Data Gathering | Misc" />
+  <meta property="og:title" content="2 Data Gathering | Remove NA" />
   <meta property="og:type" content="book" />
   
   
   
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="2 Data Gathering | Misc" />
+  <meta name="twitter:title" content="2 Data Gathering | Remove NA" />
   
   
   
@@ -144,13 +144,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="2.2" data-path="data-gathering.html"><a href="data-gathering.html#citavi-data-dumps"><i class="fa fa-check"></i><b>2.2</b> Citavi data dumps<span></span></a>
 <ul>
 <li class="chapter" data-level="2.2.1" data-path="data-gathering.html"><a href="data-gathering.html#books-data-model"><i class="fa fa-check"></i><b>2.2.1</b> Books data model<span></span></a></li>
-<li class="chapter" data-level="2.2.2" data-path="data-gathering.html"><a href="data-gathering.html#poster-data-model"><i class="fa fa-check"></i><b>2.2.2</b> Poster data model<span></span></a></li>
-<li class="chapter" data-level="2.2.3" data-path="data-gathering.html"><a href="data-gathering.html#views"><i class="fa fa-check"></i><b>2.2.3</b> Views<span></span></a></li>
+<li class="chapter" data-level="2.2.2" data-path="data-gathering.html"><a href="data-gathering.html#views"><i class="fa fa-check"></i><b>2.2.2</b> Views<span></span></a></li>
 </ul></li>
 <li class="chapter" data-level="2.3" data-path="data-gathering.html"><a href="data-gathering.html#entity-resolution"><i class="fa fa-check"></i><b>2.3</b> Entity Resolution<span></span></a>
 <ul>
 <li class="chapter" data-level="2.3.1" data-path="data-gathering.html"><a href="data-gathering.html#calculate-text-similarities-between-entitity-stings-based-on-cosine-similarity"><i class="fa fa-check"></i><b>2.3.1</b> Calculate text similarities between entitity stings based on cosine similarity<span></span></a></li>
 <li class="chapter" data-level="2.3.2" data-path="data-gathering.html"><a href="data-gathering.html#human-decision-making"><i class="fa fa-check"></i><b>2.3.2</b> Human decision making<span></span></a></li>
+<li class="chapter" data-level="2.3.3" data-path="data-gathering.html"><a href="data-gathering.html#adding-new-candidates"><i class="fa fa-check"></i><b>2.3.3</b> Adding new candidates<span></span></a></li>
 </ul></li>
 <li class="chapter" data-level="2.4" data-path="data-gathering.html"><a href="data-gathering.html#new-database-with-cleaned-entries"><i class="fa fa-check"></i><b>2.4</b> New database with cleaned entries<span></span></a></li>
 </ul></li>
@@ -182,7 +182,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
       <div class="body-inner">
         <div class="book-header" role="navigation">
           <h1>
-            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Misc</a>
+            <i class="fa fa-circle-o-notch fa-spin"></i><a href="./">Remove NA</a>
           </h1>
         </div>
 
@@ -224,18 +224,18 @@ All three are stored in a MariaDB.</p>
 <img src="img/dm-books.png" alt="" />
 <p class="caption">books data model</p>
 </div>
-</div>
-<div id="poster-data-model" class="section level3 hasAnchor" number="2.2.2">
-<h3><span class="header-section-number">2.2.2</span> Poster data model<a href="data-gathering.html#poster-data-model" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div id="poster-data-model" class="section level4 hasAnchor" number="2.2.1.1">
+<h4><span class="header-section-number">2.2.1.1</span> Poster data model<a href="data-gathering.html#poster-data-model" class="anchor-section" aria-label="Anchor link to header"></a></h4>
 <div class="figure">
 <img src="img/dm-posters.png" alt="" />
 <p class="caption">poster data model</p>
 </div>
 </div>
-<div id="views" class="section level3 hasAnchor" number="2.2.3">
-<h3><span class="header-section-number">2.2.3</span> Views<a href="data-gathering.html#views" class="anchor-section" aria-label="Anchor link to header"></a></h3>
-<div id="books" class="section level4 hasAnchor" number="2.2.3.1">
-<h4><span class="header-section-number">2.2.3.1</span> Books<a href="data-gathering.html#books" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+</div>
+<div id="views" class="section level3 hasAnchor" number="2.2.2">
+<h3><span class="header-section-number">2.2.2</span> Views<a href="data-gathering.html#views" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<div id="books" class="section level4 hasAnchor" number="2.2.2.1">
+<h4><span class="header-section-number">2.2.2.1</span> Books<a href="data-gathering.html#books" class="anchor-section" aria-label="Anchor link to header"></a></h4>
 <p>A wide view on all books</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb2-1"><a href="data-gathering.html#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">VIEW</span> books_wide <span class="kw">AS</span></span>
 <span id="cb2-2"><a href="data-gathering.html#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> </span>
@@ -276,8 +276,8 @@ All three are stored in a MariaDB.</p>
 <span id="cb2-37"><a href="data-gathering.html#cb2-37" aria-hidden="true" tabindex="-1"></a><span class="kw">LEFT</span> <span class="kw">JOIN</span> book_year <span class="kw">ON</span> books.book_id<span class="op">=</span> book_year.book_id</span>
 <span id="cb2-38"><a href="data-gathering.html#cb2-38" aria-hidden="true" tabindex="-1"></a><span class="kw">LEFT</span> <span class="kw">JOIN</span> books_years <span class="kw">ON</span> book_year.year_id <span class="op">=</span> books_years.year_id;</span></code></pre></div>
 </div>
-<div id="posters" class="section level4 hasAnchor" number="2.2.3.2">
-<h4><span class="header-section-number">2.2.3.2</span> Posters<a href="data-gathering.html#posters" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<div id="posters" class="section level4 hasAnchor" number="2.2.2.2">
+<h4><span class="header-section-number">2.2.2.2</span> Posters<a href="data-gathering.html#posters" class="anchor-section" aria-label="Anchor link to header"></a></h4>
 <p>Wide View on posters data.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb3-1"><a href="data-gathering.html#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">VIEW</span> posters_wide <span class="kw">AS</span></span>
 <span id="cb3-2"><a href="data-gathering.html#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">SELECT</span> </span>
@@ -330,14 +330,14 @@ All three are stored in a MariaDB.</p>
 <li>results saved in <code>er_candidates</code></li>
 </ul>
 <p><img src="img/who-is-who-ex.png" /></p>
-<div id="adding-new-candidates" class="section level4 hasAnchor" number="2.3.2.1">
-<h4><span class="header-section-number">2.3.2.1</span> Adding new candidates<a href="data-gathering.html#adding-new-candidates" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+</div>
+<div id="adding-new-candidates" class="section level3 hasAnchor" number="2.3.3">
+<h3><span class="header-section-number">2.3.3</span> Adding new candidates<a href="data-gathering.html#adding-new-candidates" class="anchor-section" aria-label="Anchor link to header"></a></h3>
 <p>To update the Shiny app in order to resolve new candidates these two steps are needed:</p>
 <ul>
 <li>get new additional_infos in get-additional-infos.R</li>
 <li>add new source to get_candidates_names()</li>
 </ul>
-</div>
 </div>
 </div>
 <div id="new-database-with-cleaned-entries" class="section level2 hasAnchor" number="2.4">

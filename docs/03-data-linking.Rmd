@@ -1,10 +1,3 @@
----
-title: "Data Linking"
-author: "Katharina Brunner"
-date: "3/11/2022"
-output: html_document
----
-
 # Data Linking
 
 The internal data are linked to various external data sources.

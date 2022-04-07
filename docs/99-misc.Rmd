@@ -1,15 +1,8 @@
----
-title: "Misc"
-author: "Katharina Brunner"
-date: "3/21/2022"
-output: html_document
----
-
 # Misc
-
+  
 ## Virtual Environments and dependency management
-
-* Python `venv`
+  
+  * Python `venv`
 * R: `renv.lock` (one has to activate it with `renv::activate()`), [see more in docs](https://rstudio.github.io/renv/articles/renv.html)
 
 ## Render docs
