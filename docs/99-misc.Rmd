@@ -7,4 +7,11 @@ output: html_document
 
 # Misc
 
+## Virtual Environments and dependency management
+
+* Python `venv`
+* R: `renv.lock` (one has to activate it with `renv::activate()`), [see more in docs](https://rstudio.github.io/renv/articles/renv.html)
+
+## Render docs
+
 Render docs: `bookdown::render_book("docs/", output_dir = ".")`

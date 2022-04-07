@@ -13,8 +13,12 @@ output:
 I will be allowed to spend a larger part of 2022 building a Knowledge Graph on queer history.
 This page will serve as the technical documentation.
 
+I also publish blog posts on topic related to this projects
 
-## Virtual Environments and dependency management
+## Blog posts in English and German
 
-* Python `venv`
-* R: `renv.lock` (one has to activate it with `renv::activate()`), [see more in docs](https://rstudio.github.io/renv/articles/renv.html)
+* [Remove NA: Warum ich einen LGBTIQ*-Knowledge Graph bauen werde](https://katharinabrunner.de/2022/03/remove-na-ein-lgbtiq-knowledge-graph/)
+* [RDF, RML, YARRRML: A basic tutorial to create Linked Data from a relational database table](https://katharinabrunner.de/2022/03/rdf-rml-yarrrml-kglab-morph-kgc/)
+* [Stock Taking: How big is the queer Wikidata](https://katharinabrunner.de/wp-content/uploads/2022/03/wikidata-lgbt/index.html)
+* [Stock Taking: How big is the queer Wikidata](https://katharinabrunner.de/2022/04/vier-wochen-prototype-fund-was-bisher-geschah/)
+
