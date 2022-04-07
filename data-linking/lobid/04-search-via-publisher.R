@@ -19,7 +19,7 @@ library(jsonlite)
 verbose <- F
 
 # how should resulting data be described in db?
-source_desc <- "lobid via publisher in entity search (softer: also non publisher category)"
+source_desc <- "lobid via entity search (softer: also non publisher category)"
 
 # abbreviation of external id
 external_id_abbr <- "gnd"
@@ -33,7 +33,8 @@ only_publisher_category <- FALSE
 # Load input data ---------------------------------------------------------
 
 con <- connect_db("db_clean")
-entities <- tbl(con, "entities") %>% collect()
+entities <- tbl(con, "entities") %>% 
+  collect()
 DBI::dbDisconnect(con)
 rm(con)
 
@@ -49,13 +50,15 @@ rm(con)
 
 publishers <- entities %>%
   left_join(el_matches %>% filter(!is.na(external_id)), by = c("id" = "entity_id")) %>%
-  filter(is.na(external_id), str_detect(id, "publisher")) %>%
+  # search for certain entities
+  #filter(is.na(external_id), str_detect(id, "publisher")) %>%
+  filter(org == 1) %>% 
   mutate(
     name = str_replace_all(name, "\\[|\\]|\\(|\\)|\\/|\\:|-|!|\\.|,|\\?", " "),
     name = str_replace_all(name, "&", "and"),
     name = str_remove_all(name, "e V| und|^amp ")
   ) %>%
-  select(id, name) %>%
+  distinct(id, name) %>%
   arrange(name) %>%
   rowid_to_column() %>%
   # remove when name just numbers (has to be error in input data)
