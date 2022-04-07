@@ -13,7 +13,9 @@ We collect cultural heritage on queer history, especially in Munich and Bavaria/
 ## Repository Layout
 
 * `data-gathering`: contains the scripts in the data collection process from various, heterogeneous data sources
-* `data-linking`: 
+* `data-linking`: link entities to external IDs, e.g. Wikidata or GND
+* `data-modeling`: create RDF data (linked data)
 * `docs`: technical documentation based on `bookdown`
+* `apps`: smaller helper apps e.g. the [entity resolver app based on R-Shiny](https://github.com/cutterkom/remove-na-lgbtiq-queer-knowledge-graph/blob/main/apps/entity-resolver/index.Rmd) that helps during de-deduplication
 
 

@@ -4,18 +4,18 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>6 Misc | Misc</title>
-  <meta name="description" content="6 Misc | Misc" />
+  <title>5 &lt;&lt;&lt;&lt;&lt;&lt;&lt; Updated upstream | Misc</title>
+  <meta name="description" content="5 &lt;&lt;&lt;&lt;&lt;&lt;&lt; Updated upstream | Misc" />
   <meta name="generator" content="bookdown 0.25 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="6 Misc | Misc" />
+  <meta property="og:title" content="5 &lt;&lt;&lt;&lt;&lt;&lt;&lt; Updated upstream | Misc" />
   <meta property="og:type" content="book" />
   
   
   
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="6 Misc | Misc" />
+  <meta name="twitter:title" content="5 &lt;&lt;&lt;&lt;&lt;&lt;&lt; Updated upstream | Misc" />
   
   
   
@@ -29,8 +29,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-<link rel="prev" href="updated-upstream.html"/>
-
+<link rel="prev" href="data-linking.html"/>
+<link rel="next" href="misc.html"/>
 <script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
@@ -186,18 +186,102 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="misc" class="section level1 hasAnchor" number="6">
-<h1><span class="header-section-number">6</span> Misc<a href="misc.html#misc" class="anchor-section" aria-label="Anchor link to header"></a></h1>
-<p>Render docs: <code>bookdown::render_book("docs/", output_dir = ".")</code></p>
+<div id="updated-upstream" class="section level1 hasAnchor" number="5">
+<h1><span class="header-section-number">5</span> &lt;&lt;&lt;&lt;&lt;&lt;&lt; Updated upstream<a href="updated-upstream.html#updated-upstream" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<div class="sourceCode" id="cb7"><pre class="sourceCode sql"><code class="sourceCode sql"><span id="cb7-1"><a href="updated-upstream.html#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">CREATE</span> <span class="kw">TABLE</span> `el_matches` (</span>
+<span id="cb7-2"><a href="updated-upstream.html#cb7-2" aria-hidden="true" tabindex="-1"></a>  `created_at` <span class="dt">timestamp</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> <span class="fu">current_timestamp</span>(),</span>
+<span id="cb7-3"><a href="updated-upstream.html#cb7-3" aria-hidden="true" tabindex="-1"></a>  `updated_at` <span class="dt">timestamp</span> <span class="kw">NULL</span> <span class="kw">DEFAULT</span> <span class="kw">NULL</span> <span class="kw">ON</span> <span class="kw">UPDATE</span> <span class="fu">current_timestamp</span>(),</span>
+<span id="cb7-4"><a href="updated-upstream.html#cb7-4" aria-hidden="true" tabindex="-1"></a>  `entity_id` <span class="dt">varchar</span>(<span class="dv">55</span>) <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb7-5"><a href="updated-upstream.html#cb7-5" aria-hidden="true" tabindex="-1"></a>  `entity_id_type` <span class="dt">varchar</span>(<span class="dv">255</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,</span>
+<span id="cb7-6"><a href="updated-upstream.html#cb7-6" aria-hidden="true" tabindex="-1"></a>  `entity_id_combination` <span class="dt">varchar</span>(<span class="dv">255</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,</span>
+<span id="cb7-7"><a href="updated-upstream.html#cb7-7" aria-hidden="true" tabindex="-1"></a>  `entity_id_combination_type` <span class="dt">varchar</span>(<span class="dv">255</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,</span>
+<span id="cb7-8"><a href="updated-upstream.html#cb7-8" aria-hidden="true" tabindex="-1"></a>  `external_id` <span class="dt">varchar</span>(<span class="dv">255</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,</span>
+<span id="cb7-9"><a href="updated-upstream.html#cb7-9" aria-hidden="true" tabindex="-1"></a>  `external_id_label` <span class="dt">varchar</span>(<span class="dv">255</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,</span>
+<span id="cb7-10"><a href="updated-upstream.html#cb7-10" aria-hidden="true" tabindex="-1"></a>  `external_id_type` <span class="dt">varchar</span>(<span class="dv">55</span>) <span class="kw">NOT</span> <span class="kw">NULL</span>,</span>
+<span id="cb7-11"><a href="updated-upstream.html#cb7-11" aria-hidden="true" tabindex="-1"></a>  `external_id_desc` <span class="dt">varchar</span>(<span class="dv">255</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,</span>
+<span id="cb7-12"><a href="updated-upstream.html#cb7-12" aria-hidden="true" tabindex="-1"></a>  `source` <span class="dt">varchar</span>(<span class="dv">255</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,</span>
+<span id="cb7-13"><a href="updated-upstream.html#cb7-13" aria-hidden="true" tabindex="-1"></a>  `source_id` longtext <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,</span>
+<span id="cb7-14"><a href="updated-upstream.html#cb7-14" aria-hidden="true" tabindex="-1"></a>  `property_type` <span class="dt">varchar</span>(<span class="dv">255</span>) <span class="kw">DEFAULT</span> <span class="kw">NULL</span>,</span>
+<span id="cb7-15"><a href="updated-upstream.html#cb7-15" aria-hidden="true" tabindex="-1"></a>  `additional_data` longtext <span class="dt">CHARACTER</span> <span class="kw">SET</span> utf8mb4 COLLATE utf8mb4_bin <span class="kw">DEFAULT</span> <span class="kw">NULL</span> <span class="kw">CHECK</span> (json_valid(`additional_data`))</span>
+<span id="cb7-16"><a href="updated-upstream.html#cb7-16" aria-hidden="true" tabindex="-1"></a>) ENGINE<span class="op">=</span>InnoDB <span class="kw">DEFAULT</span> CHARSET<span class="op">=</span>utf8mb4;</span></code></pre></div>
+<div id="gndlobid" class="section level2 hasAnchor" number="5.1">
+<h2><span class="header-section-number">5.1</span> GND/lobid<a href="updated-upstream.html#gndlobid" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>I want to link the entities, like a book author or publisher, to the external identifier of the German National Library (<code>GND</code>).
+The easiest way seems to be calling the <a href="https://lobid.org/resources/api">lobid API</a>.
+It returns a json with meta data, e.g. contributors or topics that often, but not always, have a <code>GND</code> id.</p>
+<p>I filter the <code>json</code> file by using <a href="https://stedolan.github.io/jq/">jq, a json processor,</a> that has a wrapper in R: <a href="https://github.com/ropensci/jqr">jqr</a>.</p>
+<div id="output" class="section level3 hasAnchor" number="5.1.1">
+<h3><span class="header-section-number">5.1.1</span> Output<a href="updated-upstream.html#output" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<ul>
+<li>DB tbl: <code>lgbtiq_kg.el_matches</code></li>
+<li>beware: it’s not cleaned data, so not in “clean” database <code>lgbtiq_kg_clean</code></li>
+</ul>
+</div>
+<div id="examples-for-jq-commands" class="section level3 hasAnchor" number="5.1.2">
+<h3><span class="header-section-number">5.1.2</span> Examples for <code>jq</code> commands<a href="updated-upstream.html#examples-for-jq-commands" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<ul>
+<li>getting contributors: <code>.member[].contribution[]?  | {type: .agent?.type[], label: .agent?.label, role:.role?.id, gnd_id: .agent?.gndIdentifier}</code></li>
+<li>getting topics: <code>.member[].subject[].componentList[]? | {gnd_id: select(.type?).gndIdentifier, type: select(.gndIdentifier?).type[], label: select(.type?).label}</code></li>
+<li>getting lobid ressource id: <code>.member[] | {source_id: .id}</code></li>
+<li>more complex with optional fields: <code>.member[] |  {id: ((select(.sameAs) | {sameAs}) // null), gnd_subject_category: .gndSubjectCategory, placeOfBusiness: .placeOfBusiness}</code></li>
+</ul>
+</div>
+<div id="basic-workflow" class="section level3 hasAnchor" number="5.1.3">
+<h3><span class="header-section-number">5.1.3</span> Basic workflow<a href="updated-upstream.html#basic-workflow" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<ul>
+<li>Most sophisticated script: <a href="https://github.com/cutterkom/remove-na-lgbtiq-queer-knowledge-graph/blob/main/data-linking/lobid/04-search-via-publisher.R"><code>data-linking/lobid/04-search-via-publisher.R</code></a>
+<ul>
+<li>serves for templates from now on</li>
+</ul></li>
+<li>search for <code>isbn</code>
+<ul>
+<li>the most precise way, because it’s already a persistent id</li>
+<li><code>data-linking/lobid/01-search-via-isbn.R</code></li>
+<li>script first version</li>
+</ul></li>
+<li>search for author name and title in the relevant objects
+<ul>
+<li>query like <code>contribution.agent.label:AUTHOR+AND+title: TITLE&amp;format=json")</code></li>
+<li><code>data-linking/lobid/02-search-via-author-title.R</code></li>
+</ul></li>
+<li>search just by name
+<ul>
+<li><code>data-linking/lobid/03-search-via-author.R</code></li>
+</ul></li>
+<li>search for publishers as corporate bodies: <code>data-linking/lobid/04-search-via-publisher.R</code></li>
+</ul>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<blockquote>
+<p>Stashed changes
+## VIAF</p>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+</blockquote>
+<p>To <a href="http://viaf.org/">VIAF</a> by using the <code>viafr</code> R-package.
+It suggest a VIAF entity when providing a string.</p>
+<ul>
+<li>db table: <code>el_viaf_books_authors</code></li>
+</ul>
 
+</div>
+</div>
 </div>
             </section>
 
           </div>
         </div>
       </div>
-<a href="updated-upstream.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-
+<a href="data-linking.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="misc.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>
