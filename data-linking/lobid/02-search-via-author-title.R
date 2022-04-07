@@ -1,7 +1,7 @@
 # title: Get lobid/GND id's via a title-author search
 # desc: Example call: https://lobid.org/resources/search?q=contribution.agent.label%3AMelville+AND+title:Moby&format=json
-# input:
-# output:
+# input: lgbtiq_kg_clean.books_wide, lgbtiq_kg.el_matches
+# output: lgbtiq_kg.el_matches
 
 library(tidyverse)
 library(kabrutils)

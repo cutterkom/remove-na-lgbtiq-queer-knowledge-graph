@@ -1,7 +1,7 @@
 # title: Link entities and books to LOBID
 # desc: This scripts gets data from lobid API. It links entities and books to contributors (authors, editors...) and topics and preserves lobid resource ids.
 # input: lgbtiq_kg_clean.books,  lgbtiq_kg_clean.entities
-# output: er_matches
+# output: lgbtiq_kg.el_matches
 
 library(tidyverse)
 library(kabrutils)
