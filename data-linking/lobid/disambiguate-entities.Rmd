@@ -1,0 +1,241 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r setup}
+# title: Disambiguate found lobid entities
+# desc: 
+# input: 
+# output: 
+
+library(tidyverse)
+library(kabrutils)
+
+con <- connect_db("db_clean")
+
+entities <- tbl(con, "entities") %>% 
+  select(-contains("_at")) %>% 
+  collect()
+
+entities_per_type <- tbl(con, "entities_per_type") %>% collect()
+
+DBI::dbDisconnect(con); rm(con)
+
+con <- connect_db()
+
+el_matches <- tbl(con, "el_matches") %>% 
+  # maybe keep created_at b/c assumption that first matches per entity are the most specific
+  select(-contains("combination"), -updated_at, -created_at) %>% 
+  # remove topics of books
+  filter(external_id_desc != "SubjectHeading") %>% 
+  distinct() %>% 
+  collect()
+
+books_locations <-tbl(con, "books_wide") %>% 
+  select(book_id, location) %>% 
+  collect() %>% 
+  inner_join(entities_per_type, by = "book_id") %>% 
+  distinct(location, id)
+
+DBI::dbDisconnect(con); rm(con)
+
+matches <- entities %>% 
+  left_join(el_matches, by = c("id" = "entity_id"), suffix = c("_db", "_lobid")) %>% 
+  filter(!is.na(external_id))
+
+```
+
+## Wie viele haben mehr als eine Zuweisung? 
+
+
+
+```{r}
+matches_count <- matches %>% count(id, name, sort = T)
+
+matches_count %>% summary()
+```
+
+
+```{r}
+matches_count %>% 
+  ggplot(aes(n)) + geom_histogram() + theme_minimal()
+```
+
+Gibt also ein paar richtig krasse Ausreißer.
+Aber das sind auch offensichtliche Allerwertsnamen bei Verlagen, das sollte sich über `.placeOfBusiness` bzw. Ort der Veröffentlichung zumindest z.T. auflösen lassen.
+
+```{r}
+matches_count %>% filter(n>1)
+```
+
+## Wie viele haben nur exakt eine zugewiesene GND ID?
+
+```{r}
+matches_count
+```
+## Wie veile haben nur eine einzige gnd_id?
+
+Annahme: Wenn nur eine einzige `gnd_id` und die Zuweisung durch `lobid via book isbn` kommt, dann ist das korrekt.
+
+```{r}
+one_match <- matches_count %>% 
+  filter(n == 1) %>% 
+  left_join(matches, c("id", "name")) %>% 
+  select(id, name, external_id, external_id_label, external_id_desc, source)
+```
+
+Verteilung auf `source`:
+
+```{r}
+one_match %>% count(source, sort = T)
+```
+Matches mit ?lobid via author book search` schauen auch ganz gut aus, aber es gibt auch false positives.
+
+Beispiel: `Pierre Seel` <-> `Gisel, Pierre`
+
+### Ähnlichkeiten berechnen 
+
+```{r func_flip_lastname}
+
+bring_lastname_to_last_position <- function(data, col, new_col) {
+
+  data %>% 
+    separate(.data[[col]], ",", into = c("before_comma", "after_comma")) %>%
+    mutate(
+      after_comma = trimws(after_comma),
+      {{new_col}} := paste(after_comma, before_comma)
+    ) %>%
+    select(-after_comma, -before_comma)
+}
+
+```
+
+
+```{r}
+library(quanteda)
+library(quanteda.textstats)
+
+one_match_similarities <- one_match %>% 
+  filter(source != "lobid via book isbn") %>% 
+  pmap_dfr(function(...) {
+    
+    current <- tibble(...)
+    current$name_compare <- current$external_id_label
+    
+    if(current$external_id_desc == "Person" & str_detect(current$name_compare, ",") == TRUE) {
+    
+      current <- current %>% bring_lastname_to_last_position(col = "name_compare", new_col = "name_compare")
+    }
+      
+    
+    dfm1 <- corpus(current$name) %>%
+      tokens(what = "character") %>% 
+      tokens_keep("[A-Za-z]", valuetype = "regex") %>% 
+      tokens_ngrams(n = 2, concatenator = "") %>% 
+      dfm()
+    
+    dfm2 <- corpus(current$name_compare) %>%
+      tokens(what = "character") %>% 
+      tokens_keep("[A-Za-z]", valuetype = "regex") %>% 
+      tokens_ngrams(n = 2, concatenator = "") %>% 
+      dfm()
+
+    current <- current %>% mutate(similarity = as.numeric(quanteda.textstats::textstat_simil(dfm1, dfm2, method = "cosine")))
+
+  })
+```
+
+
+```{r}
+one_match_similarities %>% count(similarity, sort = T)
+```
+
+```{r}
+one_match_high_sim <- one_match_similarities %>% filter(similarity >= 0.85)
+```
+
+Entscheidung: Alles über `0.85` passed den Test (ein paar false positives sind natürlich dabei).
+
+## Mehrere Matches
+
+```{r}
+more_matches <- matches_count %>% 
+  filter(n > 1) %>% 
+  left_join(matches, c("id", "name")) %>% 
+  distinct(id, name, external_id_label, external_id, external_id_desc, source)
+```
+
+
+
+```{r}
+more_matches %>% count(source, sort = T)
+```
+
+Manche werden in mehreren Suchen gefunden oder über mehrere Bücher, deshalb nochmal distincten:
+
+```{r}
+more_matches <- more_matches %>% 
+  distinct(id, name, external_id_label, external_id, external_id_desc)
+
+more_matches_count <- more_matches %>% 
+  count(id, sort = T) %>% 
+  left_join(more_matches, by = "id")
+```
+
+## Verlage: Check `location`
+
+Ich habe die Info zu `.placeOfBusiness` gespeichert, um einen Abgleich mit dem Publikationsort der 
+
+```{r}
+more_matches_add_info <- more_matches_count %>% 
+  left_join(el_matches %>% select(id = entity_id, external_id, additional_data), by = c("id", "external_id"))
+```
+
+```{r}
+check_locations <- more_matches_add_info %>% 
+  filter(!is.na(additional_data)) %>% 
+  #sample_n(50) %>% 
+  pmap_dfr(function(...) {
+    current <- tibble(...)
+    
+    current %>% inner_join(books_locations, by = "id") %>% 
+      mutate(has_location = str_detect(additional_data, location))
+  }
+  )
+
+check_locations_true <- check_locations %>% filter(has_location == TRUE)
+```
+
+Location-Check eher enttäuschend von der Menge her, sind nur `nrow(check_locations_true)` Zeilen, dafür mindestens ein offensichtliches false positive (Berlin Museum).
+
+
+```{r}
+exakt_names_more_matches <- more_matches %>% 
+  mutate(same_name = name == external_id_label)
+  
+```
+
+
+
+# Persist in DB
+
+Die Ergebnisse speichere ich in der DB zbl `lgbtiq_kg_clean.el_matches`.
+
+```{r eval=FALSE}
+# con <- connect_db("db_clean")
+# 
+# # exakt match, hierarchy 1
+# one_match %>% filter(source == "lobid via book isbn") 
+
+# ein match, hohe similarity
+# one_match_high_sim
+
+
+# exakt_names_more_matches
+
+# DBI::dbDisconnect(con); rm(con)
+
+
+```
+
