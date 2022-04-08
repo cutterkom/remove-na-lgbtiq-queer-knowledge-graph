@@ -20,5 +20,5 @@ I also publish blog posts on topic related to this projects
 * [Remove NA: Warum ich einen LGBTIQ*-Knowledge Graph bauen werde](https://katharinabrunner.de/2022/03/remove-na-ein-lgbtiq-knowledge-graph/)
 * [RDF, RML, YARRRML: A basic tutorial to create Linked Data from a relational database table](https://katharinabrunner.de/2022/03/rdf-rml-yarrrml-kglab-morph-kgc/)
 * [Stock Taking: How big is the queer Wikidata](https://katharinabrunner.de/wp-content/uploads/2022/03/wikidata-lgbt/index.html)
-* [Stock Taking: How big is the queer Wikidata](https://katharinabrunner.de/2022/04/vier-wochen-prototype-fund-was-bisher-geschah/)
+* [Vier Wochen Prototype Fund: Was bisher geschah](https://katharinabrunner.de/2022/04/vier-wochen-prototype-fund-was-bisher-geschah/)
 
