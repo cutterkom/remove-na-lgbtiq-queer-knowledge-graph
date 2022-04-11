@@ -70,3 +70,5 @@ doc/*.html
 *.jsonld
 *.code-workspace
 *.Rds
+
+*.nb.html
