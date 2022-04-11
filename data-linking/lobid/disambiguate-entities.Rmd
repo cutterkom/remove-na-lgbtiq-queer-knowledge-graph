@@ -296,3 +296,14 @@ DBI::dbDisconnect(con); rm(con)
 
 ```
 
+
+Update type info in `entites` depending on lobid data:
+
+```{r}
+# update entitites set person = 1, org = 0 where id in (....);
+entity_types_from_lobid %>% filter(str_detect(external_id_desc, "Per")) %>% pull(id) %>% paste0(id, collapse = ",") %>% clipr::write_clip()
+
+# update entitites set person = 0, org = 1 where id in (....);
+entity_types_from_lobid %>% filter(str_detect(external_id_desc, "Body")) %>% pull(id) %>%  paste0("'", ., "'", collapse=", ")  %>% clipr::write_clip()
+```
+
