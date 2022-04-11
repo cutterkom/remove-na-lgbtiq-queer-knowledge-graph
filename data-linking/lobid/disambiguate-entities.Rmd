@@ -40,15 +40,88 @@ books_locations <-tbl(con, "books_wide") %>%
 
 DBI::dbDisconnect(con); rm(con)
 
+# used to remove authors who seem to be organisations
+string_mappings <- config::get(file = "../../static/string-mapping.yml")
+```
+
+
+## Create hierarchies of sources
+
+Some of the sources are stricter than others
+
+```{r}
 matches <- entities %>% 
   left_join(el_matches, by = c("id" = "entity_id"), suffix = c("_db", "_lobid")) %>% 
-  filter(!is.na(external_id))
+  filter(!is.na(external_id)) %>% 
+    mutate(
+    hierarchy =
+      case_when(
+        source == "lobid via book isbn" ~ 1,
+        source == "lobid via author name search" ~ 2,
+        source == "lobid via author book search" ~ 3,
+        source == "lobid via publisher in entity search" ~ 4,
+        source == "lobid via entity search (softer: also non publisher category)" ~ 5,
+        str_detect(source, "softer") ~ 5
+      )
+  ) %>% 
+  filter(!name %in% c("München", "Landeshauptstadt München")) %>% 
+  filter(!external_id_label %in% c("Österreich. Bundesministerium für Gesundheit"))
+```
 
+## Simiarlities zwischen Enititynamen und lobid Labels
+
+```{r calc_string_similarites}
+string_similarities <- matches %>% 
+  distinct(id, external_id, name, external_id_label, hierarchy, external_id_desc) %>% 
+  mutate(
+    external_id_label_norm = str_remove_all(tolower(external_id_label), paste0(string_mappings$organisations_marker, collapse = "|")),
+    name_norm = str_remove_all(tolower(name), paste0(string_mappings$organisations_marker, collapse = "|"))) %>% 
+  rowwise() %>% 
+  mutate(
+    tokens_candidate_1 = create_fingerprint(name_norm),
+    tokens_candidate_2 = create_fingerprint(external_id_label_norm),
+    similarity = 1 - stringdist::stringdist(tokens_candidate_1, tokens_candidate_2, "jaccard"))
+```
+
+Keep with min hierarchy (= most precise search) and highest string similarity. 
+
+Plus check for `lastname` when `person`. Removes false positives like `Pierre Seel` <-> `Gisel, Pierre`
+
+```{r}
+highest_similarity_by_id <- string_similarities %>% 
+  group_by(id) %>% 
+  filter(hierarchy == min(hierarchy)) %>% 
+  filter(similarity == max(similarity)) %>% 
+  ungroup() %>% 
+  mutate(
+    is_person = str_detect(external_id_desc, "Person"),
+    lastname = ifelse(is_person == TRUE, str_extract(external_id_label, ".*(?=,)"), NA),
+    has_lastname = ifelse(!is.na(lastname), str_detect(name, lastname), FALSE),
+    lastname_check = 
+      case_when(
+        is_person == TRUE & has_lastname == TRUE ~ "passed",
+        is_person == TRUE & has_lastname == FALSE ~ "not_passed",
+        is_person == FALSE ~ "not_relevant"
+      )
+  ) %>% 
+  filter(lastname_check != "not_passed")
+```
+
+
+```{r}
+highest_similarity_by_id %>% filter(similarity >= 0.85)
+```
+
+```{r}
+highest_similarity_by_id %>% filter(similarity == 1)
+```
+Entscheidung: Alles über `0.85` passed den Test (ein paar false positives sind natürlich dabei).
+
+```{r}
+keep_via_similarities <- highest_similarity_by_id %>% filter(similarity >= 0.85)
 ```
 
 ## Wie viele haben mehr als eine Zuweisung? 
-
-
 
 ```{r}
 matches_count <- matches %>% count(id, name, sort = T)
@@ -92,71 +165,6 @@ one_match %>% count(source, sort = T)
 ```
 Matches mit ?lobid via author book search` schauen auch ganz gut aus, aber es gibt auch false positives.
 
-Beispiel: `Pierre Seel` <-> `Gisel, Pierre`
-
-### Ähnlichkeiten berechnen 
-
-```{r func_flip_lastname}
-
-bring_lastname_to_last_position <- function(data, col, new_col) {
-
-  data %>% 
-    separate(.data[[col]], ",", into = c("before_comma", "after_comma")) %>%
-    mutate(
-      after_comma = trimws(after_comma),
-      {{new_col}} := paste(after_comma, before_comma)
-    ) %>%
-    select(-after_comma, -before_comma)
-}
-
-```
-
-
-```{r}
-library(quanteda)
-library(quanteda.textstats)
-
-one_match_similarities <- one_match %>% 
-  filter(source != "lobid via book isbn") %>% 
-  pmap_dfr(function(...) {
-    
-    current <- tibble(...)
-    current$name_compare <- current$external_id_label
-    
-    if(current$external_id_desc == "Person" & str_detect(current$name_compare, ",") == TRUE) {
-    
-      current <- current %>% bring_lastname_to_last_position(col = "name_compare", new_col = "name_compare")
-    }
-      
-    
-    dfm1 <- corpus(current$name) %>%
-      tokens(what = "character") %>% 
-      tokens_keep("[A-Za-z]", valuetype = "regex") %>% 
-      tokens_ngrams(n = 2, concatenator = "") %>% 
-      dfm()
-    
-    dfm2 <- corpus(current$name_compare) %>%
-      tokens(what = "character") %>% 
-      tokens_keep("[A-Za-z]", valuetype = "regex") %>% 
-      tokens_ngrams(n = 2, concatenator = "") %>% 
-      dfm()
-
-    current <- current %>% mutate(similarity = as.numeric(quanteda.textstats::textstat_simil(dfm1, dfm2, method = "cosine")))
-
-  })
-```
-
-
-```{r}
-one_match_similarities %>% count(similarity, sort = T)
-```
-
-```{r}
-one_match_high_sim <- one_match_similarities %>% filter(similarity >= 0.85)
-```
-
-Entscheidung: Alles über `0.85` passed den Test (ein paar false positives sind natürlich dabei).
-
 ## Mehrere Matches
 
 ```{r}
@@ -180,7 +188,8 @@ more_matches <- more_matches %>%
 
 more_matches_count <- more_matches %>% 
   count(id, sort = T) %>% 
-  left_join(more_matches, by = "id")
+  left_join(more_matches, by = "id") %>% 
+  left_join(string_similarities, by = c("id", "name", "external_id", "external_id_label", "external_id_desc"))
 ```
 
 ## Verlage: Check `location`
@@ -211,28 +220,76 @@ Location-Check eher enttäuschend von der Menge her, sind nur `nrow(check_locati
 
 
 ```{r}
-exakt_names_more_matches <- more_matches %>% 
-  mutate(same_name = name == external_id_label)
+exakt_names_more_matches <- more_matches_count %>% 
+  filter(similarity >= 0.85)
   
 ```
 
+# Accepted Entities
 
+```{r}
+accepted <- bind_rows(
+  # remove: too many false positives, e.g. Berlin Museum 
+  #check_locations_true %>% distinct(id, external_id) %>% mutate(hierarchy = 1),
+  one_match %>% filter(source == "lobid via book isbn") %>% distinct(id, external_id) %>% mutate(hierarchy = 1),
+  keep_via_similarities %>% distinct(id, external_id) %>% mutate(hierarchy = 2)
+) %>% left_join(matches %>% distinct(id, external_id, name, external_id_label, external_id_desc), by = c("id", "external_id"))
+
+```
+
+Auch GND_IDs sind mehrfach vergeben - how come? 
+
+Gibt einfach gelegentlich mehr als eine GND_ID, manchmal zurecht, weil einfach mehrere IDs zu einer Entität existieren; oder halt Fehlmatch.
+
+```{r}
+accepted %>% count(id, sort = T) %>% filter(n>1) %>% left_join(matches) %>% View
+```
+
+
+Anteil der entities mit external_id
+
+```{r}
+nrow(accepted %>% distinct(id)) / nrow(entities)
+```
 
 # Persist in DB
 
 Die Ergebnisse speichere ich in der DB zbl `lgbtiq_kg_clean.el_matches`.
 
 ```{r eval=FALSE}
-# con <- connect_db("db_clean")
-# 
-# # exakt match, hierarchy 1
-# one_match %>% filter(source == "lobid via book isbn") 
 
-# ein match, hohe similarity
-# one_match_high_sim
+import <- accepted %>% 
+  distinct(id, external_id, hierarchy) %>% 
+  inner_join(el_matches, by = c("id" = "entity_id", "external_id")) %>% 
+  distinct()
+
+create_table <- "
+CREATE TABLE IF NOT EXISTS `el_matches` (
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
+  `id` varchar(55) NOT NULL,
+  `entity_id_type` varchar(255) DEFAULT NULL,
+  `entity_id_combination` varchar(255) DEFAULT NULL,
+  `entity_id_combination_type` varchar(255) DEFAULT NULL,
+  `external_id` varchar(255) DEFAULT NULL,
+  `external_id_label` varchar(255) DEFAULT NULL,
+  `external_id_type` varchar(55) NOT NULL,
+  `external_id_desc` varchar(255) DEFAULT NULL,
+  `source` varchar(255) DEFAULT NULL,
+  `hierarchy` int(11) DEFAULT NULL, # new in clean
+  `source_id` longtext DEFAULT NULL,
+  `property_type` varchar(255) DEFAULT NULL,
+  `additional_data` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL CHECK (json_valid(`additional_data`))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+"
+
+con <- connect_db("db_clean")
+DBI::dbExecute(con, create_table)
+DBI::dbAppendTable(con, "el_matches", import)
+DBI::dbDisconnect(con); rm(con)
 
 
-# exakt_names_more_matches
+
 
 # DBI::dbDisconnect(con); rm(con)
 
