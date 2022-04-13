@@ -1,8 +1,4 @@
-# Try out Spacy NER
-
-# with 2 models: 
-# - big german model de_core_news_lg
-# - small german model
+# Named Entity Recognition with Spacy and Rubrix
 
 # Save results as Rubrix record
 
@@ -25,13 +21,15 @@ dataset = pd.read_sql_table(
     con=engine)
 
 dataset["text"] = dataset["title"] + " - " + dataset["text"]
-#dataset = dataset[["id", "text"]]
 dataset = pd.DataFrame(dataset)
 dataset.head()
 
 #%% Add addresses as entity, big model
 nlp = spacy.load("de_core_news_lg")
 
+
+#%%
+# NER Rules
 # addresses in texts: regex helper
 street_labels = "Sendlinger Tor|Viktualienmarkt|.*(platz|[Ss]tra[ssß]e|str|anger)$"
 org_labels = "e\.V\.|eG|Verlag"
@@ -117,14 +115,31 @@ patterns = [
     
     ]
 
+# %%
 # check if entity_ruler exists
 try:
     ruler
 except NameError:
-    ruler = nlp.add_pipe("entity_ruler", before="ner")
+    ruler = nlp.add_pipe("entity_ruler", before = "ner")
 
 ruler.add_patterns(patterns)
 
+#%%
+# add 
+# check if entity_ruler exists
+# try:
+#     ruler
+# except NameError:
+#     ruler = nlp.add_pipe(entity, last=True)
+
+# doc = nlp(u"Ich bin bei LeTra.")
+# assert doc._.has_entities == True
+# assert doc[0]._.is_entity == False
+# assert doc[3]._.entity_desc == 'product manager'
+# assert doc[3]._.is_entity == True
+
+#%%
+# NER and send to rubrix
 records = []
 
 for record in dataset.index:
