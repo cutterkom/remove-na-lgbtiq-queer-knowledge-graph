@@ -32,10 +32,11 @@ dataset.head()
 #%% Add addresses as entity, big model
 nlp = spacy.load("de_core_news_lg")
 
-
+# addresses in texts: regex helper
 street_labels = "Sendlinger Tor|Viktualienmarkt|.*(platz|[Ss]tra[ssß]e|str|anger)$"
 org_labels = "e\.V\.|eG|Verlag"
 
+# dates in texts: regex helper
 date_marker_start =  "[Aa]b$|[Zw]ischen$|[Bb]is$|[Ss]eit$|[Vv]on$"
 date_marker_between =  "\\-|und|bis"
 date_marker_decade = "er|er Jahre"
