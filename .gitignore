@@ -72,3 +72,13 @@ doc/*.html
 *.Rds
 
 *.nb.html
+
+
+# spacy stuff
+*.spacy
+
+/data-gathering/named-entity-recognition/models/output/model-best
+/data-gathering/named-entity-recognition/models/output/model-last
+
+# pycharm stuff
+*.idea
