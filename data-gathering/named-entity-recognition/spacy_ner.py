@@ -24,7 +24,8 @@ dataset = pd.DataFrame(dataset)
 dataset.head()
 
 # %% Add addresses as entity, big model
-nlp = spacy.load("de_core_news_lg")
+#nlp = spacy.load("de_core_news_lg")
+nlp = spacy.blank("de")
 
 # %%
 # NER Rules
@@ -53,11 +54,6 @@ patterns = [
     {"label": "ADR", "pattern": [{"SHAPE": "Xxxxx", "OP": "?"}, {"TEXT": "Straße"}, {"IS_PUNCT": True, "OP": "?"},
                                  {"SHAPE": {"IN": ["d", "dd", "ddd", "dddx", "ddx", "dx", "d.", "dd.", "ddd."]},
                                   "OP": "?"}]},
-    {"label": "ORG", "pattern": [
-        {"SHAPE": {"IN": ["Xx", "Xxxxx"]}, "OP": "?"},
-        {"SHAPE": {"IN": ["Xx", "Xxxxx"]}, "OP": "?"},
-        {"SHAPE": {"IN": ["Xx", "Xxxxx"]}},
-        {"TEXT": {"REGEX": org_labels}}]},
 
     {"label": "DATE_BETWEEN", "pattern": [
         # zwischen 21. Juni 2000 und 25. Juli 2000
@@ -122,7 +118,8 @@ patterns = [
 try:
     ruler
 except NameError:
-    ruler = nlp.add_pipe("entity_ruler", before="ner")
+    #ruler = nlp.add_pipe("entity_ruler", before="ner")
+    ruler = nlp.add_pipe("entity_ruler")
 
 ruler.add_patterns(patterns)
 
@@ -159,9 +156,9 @@ patterns_person = create_patterns(persons_list, 'PERSON_SELF')
 patterns_org = create_patterns(org_list, 'ORG_SELF')
 patterns_club = create_patterns(club_list, 'CLUB_SELF')
 
-ruler.add_patterns(patterns_person)
-ruler.add_patterns(patterns_org)
-ruler.add_patterns(patterns_club)
+# ruler.add_patterns(patterns_person)
+# ruler.add_patterns(patterns_org)
+# ruler.add_patterns(patterns_club)
 
 # NER and send to rubrix
 records = []
