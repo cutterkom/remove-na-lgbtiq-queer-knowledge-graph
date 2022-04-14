@@ -201,3 +201,116 @@ FROM entities
 LEFT JOIN books_authors ON entities.id = books_authors.id
 LEFT JOIN posters_authors ON entities.id = posters_authors.id;
 ```
+
+## Named Entity Extraction
+
+One of the more challenging parts of the project is NER (Named Entity Extraction) based on NLP.
+
+### Source data
+
+My text data that I label comes from the Munich LGBTIQ* Chronicle: 233 entries of very dense infomation about the chronological order of events. [See it yourself on forummuenchen.org](https://forummuenchen.org/lgbtiq-chronik/).
+
+### Of-the-self NER models
+
+The first step was to use different off-the-shelf models and inspect the results in a [rubrix webapp](https://rubrix.readthedocs.io/).
+
+* [Spacy](https://github.com/cutterkom/remove-na-lgbtiq-queer-knowledge-graph/blob/main/data-gathering/named-entity-recognition/spacy_ner.py)
+* [Flair](https://github.com/cutterkom/remove-na-lgbtiq-queer-knowledge-graph/blob/main/data-gathering/named-entity-recognition/flair_ner.py)
+* [Bert-based model using huggingface transformers](https://github.com/cutterkom/remove-na-lgbtiq-queer-knowledge-graph/blob/main/data-gathering/named-entity-recognition/huggingface_ner.py)
+
+All three performed medicore, in three different ways. 
+
+I decided to continue with spacy, because it has such an extensive documentation of training a NER model as well as using [rule-based patterns](https://spacy.io/usage/rule-based-matching).
+
+
+### Rule-based entity extraction
+
+Beside a model-based approach, I also use patterns to extract entities.
+In contrast to the former, this works quite well for date expressions and addresses. 
+
+[Script](https://github.com/cutterkom/remove-na-lgbtiq-queer-knowledge-graph/blob/main/data-gathering/named-entity-recognition/spacy_ner.py)
+
+#### Rules for extracting addresses
+
+<script src="https://gist.github.com/cutterkom/9806eabf6c66e07997c0ac096bf82799.js"></script>
+
+#### Rules for extracting date related infos
+
+<script src="https://gist.github.com/cutterkom/dee09712bdda23c91cf28e4e536d166e.js"></script>
+
+
+#### Extract entities from lists
+
+Also, I look up entities, I have in the database already.
+This seems not to work off-the-self very well. For example, when `Landeshauptstadt München` is registered as a publisher or author, it overwrites the `location` entity for "München". Really not what I want.  
+
+
+### Model-based approach: Labeling and training
+
+[Code in Notebook](https://github.com/cutterkom/remove-na-lgbtiq-queer-knowledge-graph/blob/main/data-gathering/named-entity-recognition/train_spacy.ipynb)
+
+I labeled the data using rubrix and used quite a lot of labels: 15. 
+
+There is a conflict of goals: for the structured, linked data, I want the annotations to be as detailed as possible. However, for training a NER model I need larger amounts of data and it is smarter to use labels that unify several domains under themselves. For example: Clubs and organisations both run under `ORG`.
+
+The distribution is quite skewed. There are labels like `AWARD` or `Slogan` that are definitly to specific to use in a training. 
+
+![](img/2022-04-14-10-53-50.png)
+
+Therefore, also the trained model does not perform very well, diplomatically speaking. See: 
+
+![](img/2022-04-14-10-56-51.png)
+
+That's why I decided to combine labels, e.g. all `CLUB`s will be a `ORG` and use only a subpart of labels: 
+
+```python
+keep_label = ["PER", "LOC", "EVENT", "LAW", "ORG", "CLUB", "CITY", "COUNTRY", "MOVEMENT", "PARTY", "AWARD"]
+
+label_dict = {"CLUB":"ORG", "PARTY":"EVENT", "MOVEMENT":"EVENT", "AWARD": "EVENT"}
+```
+
+This improved the best models metrics a bit, but still too bad for usage: 
+
+```json
+"performance":{
+  "ents_f":0.5130111524,
+  "ents_p":0.6699029126,
+  "ents_r":0.4156626506,
+  "ents_per_type":{
+    "LAW":{
+      "p":0.7,
+      "r":0.7,
+      "f":0.7
+    },
+    "ORG":{
+      "p":0.5714285714,
+      "r":0.4666666667,
+      "f":0.5137614679
+    },
+    "PER":{
+      "p":0.9,
+      "r":0.5142857143,
+      "f":0.6545454545
+    },
+    "EVENT":{
+      "p":0.5,
+      "r":0.2222222222,
+      "f":0.3076923077
+    },
+    "LOC":{
+      "p":0.7272727273,
+      "r":0.2424242424,
+      "f":0.3636363636
+    },
+    "CITY":{
+      "p":0.75,
+      "r":0.4285714286,
+      "f":0.5454545455
+    },
+    "COUNTRY":{
+      "p":1.0,
+      "r":0.3333333333,
+      "f":0.5
+    }
+  }
+```

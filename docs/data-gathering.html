@@ -153,6 +153,13 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <li class="chapter" data-level="2.3.3" data-path="data-gathering.html"><a href="data-gathering.html#adding-new-candidates"><i class="fa fa-check"></i><b>2.3.3</b> Adding new candidates<span></span></a></li>
 </ul></li>
 <li class="chapter" data-level="2.4" data-path="data-gathering.html"><a href="data-gathering.html#new-database-with-cleaned-entries"><i class="fa fa-check"></i><b>2.4</b> New database with cleaned entries<span></span></a></li>
+<li class="chapter" data-level="2.5" data-path="data-gathering.html"><a href="data-gathering.html#named-entity-extraction"><i class="fa fa-check"></i><b>2.5</b> Named Entity Extraction<span></span></a>
+<ul>
+<li class="chapter" data-level="2.5.1" data-path="data-gathering.html"><a href="data-gathering.html#source-data"><i class="fa fa-check"></i><b>2.5.1</b> Source data<span></span></a></li>
+<li class="chapter" data-level="2.5.2" data-path="data-gathering.html"><a href="data-gathering.html#of-the-self-ner-models"><i class="fa fa-check"></i><b>2.5.2</b> Of-the-self NER models<span></span></a></li>
+<li class="chapter" data-level="2.5.3" data-path="data-gathering.html"><a href="data-gathering.html#rule-based-entity-extraction"><i class="fa fa-check"></i><b>2.5.3</b> Rule-based entity extraction<span></span></a></li>
+<li class="chapter" data-level="2.5.4" data-path="data-gathering.html"><a href="data-gathering.html#model-based-approach-labeling-and-training"><i class="fa fa-check"></i><b>2.5.4</b> Model-based approach: Labeling and training<span></span></a></li>
+</ul></li>
 </ul></li>
 <li class="chapter" data-level="3" data-path="data-modelling.html"><a href="data-modelling.html"><i class="fa fa-check"></i><b>3</b> Data Modelling<span></span></a>
 <ul>
@@ -382,7 +389,101 @@ So to say the end result of all scripts in <code>data-gathering/entitiy-resoluti
 <span id="cb6-7"><a href="data-gathering.html#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="kw">FROM</span> entities</span>
 <span id="cb6-8"><a href="data-gathering.html#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="kw">LEFT</span> <span class="kw">JOIN</span> books_authors <span class="kw">ON</span> entities.<span class="kw">id</span> <span class="op">=</span> books_authors.<span class="kw">id</span></span>
 <span id="cb6-9"><a href="data-gathering.html#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="kw">LEFT</span> <span class="kw">JOIN</span> posters_authors <span class="kw">ON</span> entities.<span class="kw">id</span> <span class="op">=</span> posters_authors.<span class="kw">id</span>;</span></code></pre></div>
+</div>
+<div id="named-entity-extraction" class="section level2 hasAnchor" number="2.5">
+<h2><span class="header-section-number">2.5</span> Named Entity Extraction<a href="data-gathering.html#named-entity-extraction" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>One of the more challenging parts of the project is NER (Named Entity Extraction) based on NLP.</p>
+<div id="source-data" class="section level3 hasAnchor" number="2.5.1">
+<h3><span class="header-section-number">2.5.1</span> Source data<a href="data-gathering.html#source-data" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>My text data that I label comes from the Munich LGBTIQ* Chronicle: 233 entries of very dense infomation about the chronological order of events. <a href="https://forummuenchen.org/lgbtiq-chronik/">See it yourself on forummuenchen.org</a>.</p>
+</div>
+<div id="of-the-self-ner-models" class="section level3 hasAnchor" number="2.5.2">
+<h3><span class="header-section-number">2.5.2</span> Of-the-self NER models<a href="data-gathering.html#of-the-self-ner-models" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>The first step was to use different off-the-shelf models and inspect the results in a <a href="https://rubrix.readthedocs.io/">rubrix webapp</a>.</p>
+<ul>
+<li><a href="https://github.com/cutterkom/remove-na-lgbtiq-queer-knowledge-graph/blob/main/data-gathering/named-entity-recognition/spacy_ner.py">Spacy</a></li>
+<li><a href="https://github.com/cutterkom/remove-na-lgbtiq-queer-knowledge-graph/blob/main/data-gathering/named-entity-recognition/flair_ner.py">Flair</a></li>
+<li><a href="https://github.com/cutterkom/remove-na-lgbtiq-queer-knowledge-graph/blob/main/data-gathering/named-entity-recognition/huggingface_ner.py">Bert-based model using huggingface transformers</a></li>
+</ul>
+<p>All three performed medicore, in three different ways.</p>
+<p>I decided to continue with spacy, because it has such an extensive documentation of training a NER model as well as using <a href="https://spacy.io/usage/rule-based-matching">rule-based patterns</a>.</p>
+</div>
+<div id="rule-based-entity-extraction" class="section level3 hasAnchor" number="2.5.3">
+<h3><span class="header-section-number">2.5.3</span> Rule-based entity extraction<a href="data-gathering.html#rule-based-entity-extraction" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>Beside a model-based approach, I also use patterns to extract entities.
+In contrast to the former, this works quite well for date expressions and addresses.</p>
+<p><a href="https://github.com/cutterkom/remove-na-lgbtiq-queer-knowledge-graph/blob/main/data-gathering/named-entity-recognition/spacy_ner.py">Script</a></p>
+<div id="rules-for-extracting-addresses" class="section level4 hasAnchor" number="2.5.3.1">
+<h4><span class="header-section-number">2.5.3.1</span> Rules for extracting addresses<a href="data-gathering.html#rules-for-extracting-addresses" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<script src="https://gist.github.com/cutterkom/9806eabf6c66e07997c0ac096bf82799.js"></script>
+</div>
+<div id="rules-for-extracting-date-related-infos" class="section level4 hasAnchor" number="2.5.3.2">
+<h4><span class="header-section-number">2.5.3.2</span> Rules for extracting date related infos<a href="data-gathering.html#rules-for-extracting-date-related-infos" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<script src="https://gist.github.com/cutterkom/dee09712bdda23c91cf28e4e536d166e.js"></script>
+</div>
+<div id="extract-entities-from-lists" class="section level4 hasAnchor" number="2.5.3.3">
+<h4><span class="header-section-number">2.5.3.3</span> Extract entities from lists<a href="data-gathering.html#extract-entities-from-lists" class="anchor-section" aria-label="Anchor link to header"></a></h4>
+<p>Also, I look up entities, I have in the database already.
+This seems not to work off-the-self very well. For example, when <code>Landeshauptstadt München</code> is registered as a publisher or author, it overwrites the <code>location</code> entity for “München”. Really not what I want.</p>
+</div>
+</div>
+<div id="model-based-approach-labeling-and-training" class="section level3 hasAnchor" number="2.5.4">
+<h3><span class="header-section-number">2.5.4</span> Model-based approach: Labeling and training<a href="data-gathering.html#model-based-approach-labeling-and-training" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p><a href="https://github.com/cutterkom/remove-na-lgbtiq-queer-knowledge-graph/blob/main/data-gathering/named-entity-recognition/train_spacy.ipynb">Code in Notebook</a></p>
+<p>I labeled the data using rubrix and used quite a lot of labels: 15.</p>
+<p>There is a conflict of goals: for the structured, linked data, I want the annotations to be as detailed as possible. However, for training a NER model I need larger amounts of data and it is smarter to use labels that unify several domains under themselves. For example: Clubs and organisations both run under <code>ORG</code>.</p>
+<p>The distribution is quite skewed. There are labels like <code>AWARD</code> or <code>Slogan</code> that are definitly to specific to use in a training.</p>
+<p><img src="img/2022-04-14-10-53-50.png" /></p>
+<p>Therefore, also the trained model does not perform very well, diplomatically speaking. See:</p>
+<p><img src="img/2022-04-14-10-56-51.png" /></p>
+<p>That’s why I decided to combine labels, e.g. all <code>CLUB</code>s will be a <code>ORG</code> and use only a subpart of labels:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode python"><code class="sourceCode python"><span id="cb7-1"><a href="data-gathering.html#cb7-1" aria-hidden="true" tabindex="-1"></a>keep_label <span class="op">=</span> [<span class="st">&quot;PER&quot;</span>, <span class="st">&quot;LOC&quot;</span>, <span class="st">&quot;EVENT&quot;</span>, <span class="st">&quot;LAW&quot;</span>, <span class="st">&quot;ORG&quot;</span>, <span class="st">&quot;CLUB&quot;</span>, <span class="st">&quot;CITY&quot;</span>, <span class="st">&quot;COUNTRY&quot;</span>, <span class="st">&quot;MOVEMENT&quot;</span>, <span class="st">&quot;PARTY&quot;</span>, <span class="st">&quot;AWARD&quot;</span>]</span>
+<span id="cb7-2"><a href="data-gathering.html#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="data-gathering.html#cb7-3" aria-hidden="true" tabindex="-1"></a>label_dict <span class="op">=</span> {<span class="st">&quot;CLUB&quot;</span>:<span class="st">&quot;ORG&quot;</span>, <span class="st">&quot;PARTY&quot;</span>:<span class="st">&quot;EVENT&quot;</span>, <span class="st">&quot;MOVEMENT&quot;</span>:<span class="st">&quot;EVENT&quot;</span>, <span class="st">&quot;AWARD&quot;</span>: <span class="st">&quot;EVENT&quot;</span>}</span></code></pre></div>
+<p>This improved the best models metrics a bit, but still too bad for usage:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode json"><code class="sourceCode json"><span id="cb8-1"><a href="data-gathering.html#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="er">&quot;performance&quot;:</span><span class="fu">{</span></span>
+<span id="cb8-2"><a href="data-gathering.html#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;ents_f&quot;</span><span class="fu">:</span><span class="fl">0.5130111524</span><span class="fu">,</span></span>
+<span id="cb8-3"><a href="data-gathering.html#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;ents_p&quot;</span><span class="fu">:</span><span class="fl">0.6699029126</span><span class="fu">,</span></span>
+<span id="cb8-4"><a href="data-gathering.html#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;ents_r&quot;</span><span class="fu">:</span><span class="fl">0.4156626506</span><span class="fu">,</span></span>
+<span id="cb8-5"><a href="data-gathering.html#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="dt">&quot;ents_per_type&quot;</span><span class="fu">:{</span></span>
+<span id="cb8-6"><a href="data-gathering.html#cb8-6" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;LAW&quot;</span><span class="fu">:{</span></span>
+<span id="cb8-7"><a href="data-gathering.html#cb8-7" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;p&quot;</span><span class="fu">:</span><span class="fl">0.7</span><span class="fu">,</span></span>
+<span id="cb8-8"><a href="data-gathering.html#cb8-8" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;r&quot;</span><span class="fu">:</span><span class="fl">0.7</span><span class="fu">,</span></span>
+<span id="cb8-9"><a href="data-gathering.html#cb8-9" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;f&quot;</span><span class="fu">:</span><span class="fl">0.7</span></span>
+<span id="cb8-10"><a href="data-gathering.html#cb8-10" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb8-11"><a href="data-gathering.html#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;ORG&quot;</span><span class="fu">:{</span></span>
+<span id="cb8-12"><a href="data-gathering.html#cb8-12" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;p&quot;</span><span class="fu">:</span><span class="fl">0.5714285714</span><span class="fu">,</span></span>
+<span id="cb8-13"><a href="data-gathering.html#cb8-13" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;r&quot;</span><span class="fu">:</span><span class="fl">0.4666666667</span><span class="fu">,</span></span>
+<span id="cb8-14"><a href="data-gathering.html#cb8-14" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;f&quot;</span><span class="fu">:</span><span class="fl">0.5137614679</span></span>
+<span id="cb8-15"><a href="data-gathering.html#cb8-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb8-16"><a href="data-gathering.html#cb8-16" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;PER&quot;</span><span class="fu">:{</span></span>
+<span id="cb8-17"><a href="data-gathering.html#cb8-17" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;p&quot;</span><span class="fu">:</span><span class="fl">0.9</span><span class="fu">,</span></span>
+<span id="cb8-18"><a href="data-gathering.html#cb8-18" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;r&quot;</span><span class="fu">:</span><span class="fl">0.5142857143</span><span class="fu">,</span></span>
+<span id="cb8-19"><a href="data-gathering.html#cb8-19" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;f&quot;</span><span class="fu">:</span><span class="fl">0.6545454545</span></span>
+<span id="cb8-20"><a href="data-gathering.html#cb8-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb8-21"><a href="data-gathering.html#cb8-21" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;EVENT&quot;</span><span class="fu">:{</span></span>
+<span id="cb8-22"><a href="data-gathering.html#cb8-22" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;p&quot;</span><span class="fu">:</span><span class="fl">0.5</span><span class="fu">,</span></span>
+<span id="cb8-23"><a href="data-gathering.html#cb8-23" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;r&quot;</span><span class="fu">:</span><span class="fl">0.2222222222</span><span class="fu">,</span></span>
+<span id="cb8-24"><a href="data-gathering.html#cb8-24" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;f&quot;</span><span class="fu">:</span><span class="fl">0.3076923077</span></span>
+<span id="cb8-25"><a href="data-gathering.html#cb8-25" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb8-26"><a href="data-gathering.html#cb8-26" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;LOC&quot;</span><span class="fu">:{</span></span>
+<span id="cb8-27"><a href="data-gathering.html#cb8-27" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;p&quot;</span><span class="fu">:</span><span class="fl">0.7272727273</span><span class="fu">,</span></span>
+<span id="cb8-28"><a href="data-gathering.html#cb8-28" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;r&quot;</span><span class="fu">:</span><span class="fl">0.2424242424</span><span class="fu">,</span></span>
+<span id="cb8-29"><a href="data-gathering.html#cb8-29" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;f&quot;</span><span class="fu">:</span><span class="fl">0.3636363636</span></span>
+<span id="cb8-30"><a href="data-gathering.html#cb8-30" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb8-31"><a href="data-gathering.html#cb8-31" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;CITY&quot;</span><span class="fu">:{</span></span>
+<span id="cb8-32"><a href="data-gathering.html#cb8-32" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;p&quot;</span><span class="fu">:</span><span class="fl">0.75</span><span class="fu">,</span></span>
+<span id="cb8-33"><a href="data-gathering.html#cb8-33" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;r&quot;</span><span class="fu">:</span><span class="fl">0.4285714286</span><span class="fu">,</span></span>
+<span id="cb8-34"><a href="data-gathering.html#cb8-34" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;f&quot;</span><span class="fu">:</span><span class="fl">0.5454545455</span></span>
+<span id="cb8-35"><a href="data-gathering.html#cb8-35" aria-hidden="true" tabindex="-1"></a>    <span class="fu">},</span></span>
+<span id="cb8-36"><a href="data-gathering.html#cb8-36" aria-hidden="true" tabindex="-1"></a>    <span class="dt">&quot;COUNTRY&quot;</span><span class="fu">:{</span></span>
+<span id="cb8-37"><a href="data-gathering.html#cb8-37" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;p&quot;</span><span class="fu">:</span><span class="fl">1.0</span><span class="fu">,</span></span>
+<span id="cb8-38"><a href="data-gathering.html#cb8-38" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;r&quot;</span><span class="fu">:</span><span class="fl">0.3333333333</span><span class="fu">,</span></span>
+<span id="cb8-39"><a href="data-gathering.html#cb8-39" aria-hidden="true" tabindex="-1"></a>      <span class="dt">&quot;f&quot;</span><span class="fu">:</span><span class="fl">0.5</span></span>
+<span id="cb8-40"><a href="data-gathering.html#cb8-40" aria-hidden="true" tabindex="-1"></a>    <span class="fu">}</span></span>
+<span id="cb8-41"><a href="data-gathering.html#cb8-41" aria-hidden="true" tabindex="-1"></a>  <span class="fu">}</span></span></code></pre></div>
 
+</div>
 </div>
 </div>
             </section>
