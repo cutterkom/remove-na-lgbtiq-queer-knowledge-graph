@@ -1,48 +1,42 @@
+# title: Save NER results to db
+# desc: 
+# input: 2 csv files, exported from rubrix
+# output: lgbtiq_kg_clean.chronik_entities
+
+
 library(tidyverse)
 library(kabrutils)
-library(jsonlite)
-
-
-con <- connect_db("db_clean")
-entities <- tbl(con, "entities") %>% 
-  select(entity_id = id, name) %>% 
-  collect()
-
-el_matches <- tbl(con, "el_matches") %>% 
-  select(id, external_id, external_id_label, external_id_type) %>% 
-  collect()
-
-DBI::dbDisconnect(con); rm(con)
-
-con <- connect_db()
-chronik_db <- tbl(con, "text_chronik") %>% 
-  select(-contains("_at")) %>% 
-  collect()
-DBI::dbDisconnect(con); rm(con)
-
-
 
 # import manually labeled data --------------------------------------------
 
-labeled_data <- read_csv("data-gathering/named-entity-recognition/data/rubrix-export.csv") %>% 
+# output from data-gathering/named-entity-recognition/train-spacy-ipynb
+labeled_data <- read_csv("data-gathering/named-entity-recognition/data/rubrix-export-ner-model.csv") %>% #View
   select(text, tokens, annotation, metadata)
 
+# output from data-gathering/named-entity-recognition/spacy-ner.py
+addresses_dates <- read_csv("data-gathering/named-entity-recognition/data/rubrix-export-addresses-dates.csv") %>% 
+  # rename prediction col, because not validated yet -> therefore called prediction instead of annotation 
+  select(text, tokens, annotation = prediction, metadata) %>% 
+  # remove pred w'keit and empty rows
+  mutate(annotation = str_remove_all(annotation, ", 1\\.0")) %>% 
+  filter(annotation != "[]")
 
 # Extract annotations and ids ---------------------------------------------
 
-annotations <- labeled_data %>% 
+annotations <- bind_rows(labeled_data, addresses_dates) %>% 
   select(annotation, metadata) %>% 
   separate_rows(annotation, sep = "\\)\\, \\(") %>% 
+  # remove unnnessessary 
   mutate(annotation = str_remove_all(annotation, "\\[\\(|\\)\\]"),
          id = str_extract(metadata, "(?<=id':).*"),
-         id = as.numeric(str_remove(id, "\\}"))) %>% 
+         id = as.numeric(str_remove(id, "\\}"))) %>%  
   distinct(id, annotation, metadata) %>% 
   separate(col = "annotation", into = c("label", "start", "end"), sep = ", ") %>% 
   mutate(label = str_remove_all(label, "'"))
 
 # Clean data: id, label, word ---------------------------------------------
 
-chronik_entities <- labeled_data %>% 
+chronik_entities <- bind_rows(labeled_data, addresses_dates) %>% #labeled_data %>% 
   select(text, metadata) %>% 
   left_join(annotations, by = "metadata") %>% 
   select(-metadata) %>% 
@@ -56,7 +50,9 @@ chronik_entities <- labeled_data %>%
 
 # Add to chronik_db data --------------------------------------------------
 
-chronik <- chronik_db %>% 
-  left_join(chronik_entities, by = "id") %>% 
-  left_join(entities, by = c("name")) %>% 
-  left_join(el_matches, by = c("entity_id" = "id"))
+import <- chronik_entities %>% distinct()
+
+con <- connect_db("db_clean")
+DBI::dbWriteTable(con, "chronik_entities", import)
+DBI::dbDisconnect(con)
+rm(con)
