@@ -30,7 +30,7 @@ nlp = spacy.blank("de")
 # %%
 # NER Rules
 # addresses in texts: regex helper
-street_labels = "Sendlinger Tor|Viktualienmarkt|.*(platz|[Ss]tra[ssß]e|str|anger)$"
+street_labels = "Sendlinger-Tor-Platz|.*(platz|[Ss]tra[ssß]e|str|anger)$"
 org_labels = "e\.V\.|eG|Verlag"
 
 # dates in texts: regex helper
@@ -47,6 +47,8 @@ day_month_year = "^(((0?[1-9]|[12]\d|3[01])\.(0[13578]|[13578]|1[02])\.((1[6-9]|
                "2-9]\d)\d{2}))|(29\.0?2\.((1[6-9]|[2-9]\d)(0[48]|[2468][048]|[13579][26])|((16|[2468][048]|[3579][" \
                "26])00))))$ "
 
+districts_of_munich = "Allach-Untermenzing$|Altstadt-Lehel$|Au-Haidhausen$|Aubing-Lochhausen-Langwied$|Berg am Laim$|Bogenhausen$|Feldmoching-Hasenbergl$|Hadern$|Laim$|Ludwigsvorstadt-Isarvorstadt$|Maxvorstadt$|Milbertshofen-Am Hart$|Moosach$|Neuhausen-Nymphenburg$|Obergiesing-Fasangarten$|Pasing-Obermenzing$|Ramersdorf-Perlach$|Schwabing-Freimann$|Schwabing-West$|Schwanthalerhöhe$|Sendling$|Sendling-Westpark$|Thalkirchen-Obersendling-Forstenried-Fürstenried-Solln$|Trudering-Riem$|Untergiesing-Harlaching|Allach$|Untermenzing$|Altstadt$|Lehel$|Au$|Haidhausen$|Aubing$|Lochhausen$|Langwied$|Berg am Laim$|Bogenhausen$|Feldmoching$|Hasenbergl$|Hadern$|Laim$|Ludwigsvorstadt$|Isarvorstadt$|Maxvorstadt$|Milbertshofen$|Am Hart$|Moosach$|Neuhausen$|Nymphenburg$|Obergiesing$|Fasangarten$|Pasing$|Obermenzing$|Ramersdorf$|Perlach$|Schwabing$|Freimann$|Schwabing$|West$|Schwanthalerhöhe$|Sendling$|Sendling$|Westpark$|Thalkirchen$|Obersendling$|Forstenried$|Fürstenried$|Solln$|Trudering$|Riem$|Untergiesing$|Harlaching$"
+
 patterns = [
     {"label": "ADR", "pattern": [{"TEXT": {"REGEX": street_labels}}, {"IS_PUNCT": True, "OP": "?"},
                                  {"SHAPE": {"IN": ["d", "dd", "ddd", "dddx", "ddx", "dx", "d.", "dd.", "ddd."]},
@@ -54,6 +56,15 @@ patterns = [
     {"label": "ADR", "pattern": [{"SHAPE": "Xxxxx", "OP": "?"}, {"TEXT": "Straße"}, {"IS_PUNCT": True, "OP": "?"},
                                  {"SHAPE": {"IN": ["d", "dd", "ddd", "dddx", "ddx", "dx", "d.", "dd.", "ddd."]},
                                   "OP": "?"}]},
+    {"label": "ADR", "pattern": [
+        {"TEXT": "Sendlinger"},
+        {"TEXT": "Tor"}
+    ]},
+
+       {"label": "ADR", "pattern": [
+        {"TEXT": "Münchner"},
+        {"TEXT": "Freiheit"}
+    ]},
 
     {"label": "DATE_BETWEEN", "pattern": [
         # zwischen 21. Juni 2000 und 25. Juli 2000
@@ -110,7 +121,9 @@ patterns = [
     {"label": "DATE_YEAR", "pattern": [
         # 1999
         {"TEXT": {"REGEX": year}}
-    ]}
+    ]},
+
+    {"label": "DISTRICT", "pattern": [{"TEXT": {"REGEX": districts_of_munich}}]}
 
 ]
 
