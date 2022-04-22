@@ -49,6 +49,8 @@ day_month_year = "^(((0?[1-9]|[12]\d|3[01])\.(0[13578]|[13578]|1[02])\.((1[6-9]|
 
 districts_of_munich = "Allach-Untermenzing$|Altstadt-Lehel$|Au-Haidhausen$|Aubing-Lochhausen-Langwied$|Berg am Laim$|Bogenhausen$|Feldmoching-Hasenbergl$|Hadern$|Laim$|Ludwigsvorstadt-Isarvorstadt$|Maxvorstadt$|Milbertshofen-Am Hart$|Moosach$|Neuhausen-Nymphenburg$|Obergiesing-Fasangarten$|Pasing-Obermenzing$|Ramersdorf-Perlach$|Schwabing-Freimann$|Schwabing-West$|Schwanthalerhöhe$|Sendling$|Sendling-Westpark$|Thalkirchen-Obersendling-Forstenried-Fürstenried-Solln$|Trudering-Riem$|Untergiesing-Harlaching|Allach$|Untermenzing$|Altstadt$|Lehel$|Au$|Haidhausen$|Aubing$|Lochhausen$|Langwied$|Berg am Laim$|Bogenhausen$|Feldmoching$|Hasenbergl$|Hadern$|Laim$|Ludwigsvorstadt$|Isarvorstadt$|Maxvorstadt$|Milbertshofen$|Am Hart$|Moosach$|Neuhausen$|Nymphenburg$|Obergiesing$|Fasangarten$|Pasing$|Obermenzing$|Ramersdorf$|Perlach$|Schwabing$|Freimann$|Schwabing$|West$|Schwanthalerhöhe$|Sendling$|Sendling$|Westpark$|Thalkirchen$|Obersendling$|Forstenried$|Fürstenried$|Solln$|Trudering$|Riem$|Untergiesing$|Harlaching$"
 
+arbeitskreis = "AK|Arbeitskreis"
+
 patterns = [
     {"label": "ADR", "pattern": [{"TEXT": {"REGEX": street_labels}}, {"IS_PUNCT": True, "OP": "?"},
                                  {"SHAPE": {"IN": ["d", "dd", "ddd", "dddx", "ddx", "dx", "d.", "dd.", "ddd."]},
@@ -123,8 +125,12 @@ patterns = [
         {"TEXT": {"REGEX": year}}
     ]},
 
-    {"label": "DISTRICT", "pattern": [{"TEXT": {"REGEX": districts_of_munich}}]}
+    {"label": "DISTRICT", "pattern": [{"TEXT": {"REGEX": districts_of_munich}}]},
 
+    {"label": "ORG_AK", "pattern": [
+        # AK Uferlos, Arbeitskreis lesbischer Lehrerinnen
+        {"TEXT": {"REGEX": arbeitskreis}}, {"SHAPE": "xxxx", "OP": "?"}, {"SHAPE": "Xxxxx"}
+    ]},
 ]
 
 # check if entity_ruler exists
