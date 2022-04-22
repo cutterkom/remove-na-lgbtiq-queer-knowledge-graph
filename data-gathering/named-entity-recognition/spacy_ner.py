@@ -2,7 +2,7 @@
 
 # Find NER with defined rules (addresses and dates) and models.
 # Save results as Rubrix records.
-
+#%%
 import pandas as pd
 import rubrix as rb
 import spacy
@@ -127,7 +127,7 @@ patterns = [
 
     {"label": "DISTRICT", "pattern": [{"TEXT": {"REGEX": districts_of_munich}}]},
 
-    {"label": "ORG_AK", "pattern": [
+    {"label": "ORG", "pattern": [
         # AK Uferlos, Arbeitskreis lesbischer Lehrerinnen
         {"TEXT": {"REGEX": arbeitskreis}}, {"SHAPE": "xxxx", "OP": "?"}, {"SHAPE": "Xxxxx"}
     ]},
@@ -206,7 +206,7 @@ for record in dataset.index:
         rb.TokenClassificationRecord(
             text=text,
             tokens=tokens,
-            metadata={'id': text_id, 'date': date, 'year': year},  # log the intents for exploration of specific intents
+            metadata={'date': date, 'year': year, 'id': text_id},  # log the intents for exploration of specific intents
             prediction=entities,
             prediction_agent="spacy_de_core_news_lg_date",
         )
@@ -214,3 +214,9 @@ for record in dataset.index:
 
 # %%
 rb.log(records=records, name="chronik_ner")
+
+#%% 
+# Export data 
+dataset_rb = rb.load('chronik_ner')
+dataset_rb.to_csv("data-gathering/named-entity-recognition/data/rubrix-export-addresses-dates.csv")
+# %%
