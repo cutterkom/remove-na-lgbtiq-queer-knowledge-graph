@@ -68,7 +68,7 @@ matches <- entities %>%
   filter(!external_id_label %in% c("Österreich. Bundesministerium für Gesundheit"))
 ```
 
-## Simiarlities zwischen Enititynamen und lobid Labels
+## Simiarilities zwischen Enititynamen und lobid Labels
 
 ```{r calc_string_similarites}
 string_similarities <- matches %>% 
