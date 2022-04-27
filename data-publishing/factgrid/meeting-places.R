@@ -1,3 +1,8 @@
+# title: Data Import and Data Modeling of Bars in Munich to Factgrid
+# desc: In order to import data to factgrid I use the Wikibase Quickstatement CSV format. 
+# input: google sheet with locations in Munich relevant especially for gay history
+# output: Factgrid Items
+
 
 library(tidyverse)
 library(kabrutils)
@@ -6,17 +11,18 @@ library(tidygeocoder)
 library(testdat)
 
 
-
 # config ------------------------------------------------------------------
 
 output_dir <- "data-publishing/factgrid/data/"
+
+
+# Import raw data ---------------------------------------------------------
 
 orte_raw <- read_sheet("https://docs.google.com/spreadsheets/d/14wtFqTTJ9n2hpuZIj6I3lVXH5xG4jlr3tr1vkQsJuSU/edit#gid=0", 
                        sheet = "Lokale - explizit homosexuell") %>% 
   janitor::clean_names() %>% 
   filter(!is.na(name)) %>% 
-  select(-original) %>% 
-  mutate(name = trimws(name))
+  select(-original)
 
 orte_raw$notiz <- purrr::modify_if(
   orte_raw$notiz, 
@@ -35,7 +41,6 @@ orte <- orte_raw %>%
     latitude = ifelse(is.na(adresse), NA_character_, latitude),
     longitude = ifelse(is.na(adresse), NA_character_, longitude),
     quelle = ifelse(quelle == "#N/A", NA_character_, quelle))
-
 
 
 # Create Quickstatements --------------------------------------------------
@@ -57,13 +62,13 @@ orte_as_statements <- orte %>%
   mutate(
     # Labels in multiple languages
     # Lde: German
-    Lde = paste(name, munich_de, sep = ", "),
+    Lde = paste('"', name, munich_de, '"', sep = '', ''),
     # Len: English
-    Len = paste(name, munich_en, sep = ", "),
+    Len =  paste('"', name, munich_en, '"', sep = '', ''),
     # Lfr: French
-    Lfr = paste(name, munich_fr, sep = ", "),
+    Lfr =  paste('"', name, munich_fr, '"', sep = '', ''),
     # Les: Spanish
-    Les = paste(name, munich_es, sep = ", "),
+    Les =  paste('"', name, munich_es, '"', sep = '', ''),
     
     Dde = Dde,
     Den = Den,
@@ -106,9 +111,9 @@ orte_as_statements <- orte %>%
     P111 = adresse) %>% 
   select(-latitude, -longitude)
 
-
-
 # Write entities in DB ----------------------------------------------------
+
+# Every locations should also be an entity in the database and get assigned an internal entity_id
 
 entities_db <- orte %>% 
   distinct(name) %>% 
@@ -134,57 +139,57 @@ test_that(
 # DBI::dbAppendTable(con, "entities", entities_db_import)
 # DBI::dbDisconnect(con); rm(con)
 
-
-entities_db %>% count(id, name, sort = T)
-
-# Create CSV for Quickstatements Import -----------------------------------
-
-import <- orte_as_statements %>% 
-  select(starts_with("L"), starts_with("D"), starts_with("P"), starts_with("S"))
-
-import
-
-
-
 # Import der Adressen -----------------------------------------------------
 
-# Vorlage https://database.factgrid.de/wiki/Item:Q14578
+# Quickstatement CSV formatting
+# https://www.wikidata.org/wiki/Help:QuickStatements#CSV_file_syntax
+
+# I replicated this item: https://database.factgrid.de/wiki/Item:Q14578
 
 address_statements <- orte %>% 
   distinct(adresse) %>% 
   filter(!is.na(adresse)) %>% 
-  # keine valide Adresse
+  # no valide address
   filter(adresse != "Ecke Herrn-/Hildegardstraße") %>% 
   left_join(orte_as_statements %>% distinct(name, P48, P111), by = c("adresse" = "P111")) %>% 
   mutate(
     # Labels in multiple languages
     # Lde: German
-    Lde = paste(munich_de, adresse, sep = ", "),
+    Lde = paste0('"', munich_de, ', ', adresse, '"'),
     # Len: English
-    Len = paste(munich_en, adresse, sep = ", "),
+    Len = paste0('"', munich_en, ', ', adresse, '"'),
     # Lfr: adresse
-    Lfr = paste(munich_fr, adresse, sep = ", "),
+    Lfr = paste0('"', munich_fr, ', ', adresse, '"'),
     # Les: Spanish
-    Les = paste(munich_es, adresse, sep = ", "),
+    Les = paste0('"', munich_es, ', ', adresse, '"'),
     
-    Dde = paste("Straße in", munich_de),
-    Den = paste("Street in", munich_en),
-    Dfr = paste("Rue en", munich_fr),
-    Des = paste("Calle en", munich_es),
+    Dde = paste0('"Straße in ' , munich_de, '"'),
+    Den = paste0('"Street in ', munich_en, '"'),
+    Dfr = paste0('"Rue en ', munich_fr, '"'),
+    Des = paste0('"Calle en ', munich_es, ''),
+    
+    # Class/ Is an 
+    P2 = "Q16200",
+    
     # Ort: in München
     P47 = "Q10427",
     
-    # Straße oder Platz
-    P522 = str_remove_all(adresse, "[:digit:]")
-    ) %>% 
-    rename(    
-      # Adressierung
-      P153 = adresse)
+    # Adressierung
+    P153 = paste0('"', adresse, '"')
+    )
 
 address_statements_import <- address_statements %>% 
   select(starts_with("L"), starts_with("D"), starts_with("P")) %>% 
   distinct() %>% 
   mutate(qid = "", .before = "Lde")
 
+address_statements_import %>% write_csv(paste0(output_dir, "location_addresses.csv"), quote = "needed")
 
-address_statements_import %>% write_csv(paste0(output_dir, "location-addresses.csv"))
+#write_sheet(address_statements_import, ss = "Factgrid-Import", sheet = "location_addresses)
+
+# Import der Lokale -------------------------------------------------------
+
+import <- orte_as_statements %>% 
+  select(starts_with("L"), starts_with("D"), starts_with("P"), starts_with("S"))
+
+import
