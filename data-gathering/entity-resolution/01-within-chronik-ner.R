@@ -60,7 +60,9 @@ candidates <- calc_similarity(bigrams, method = "cosine", min_sim = min_sim) %>%
 import <- candidates %>% 
   mutate(entities = "chronik_within", .before = id_1,
          source_1 = "chronik",
-         source_2 = "chronik") %>% 
+         source_2 = "chronik",
+         decision = ifelse(value == 1, "positive", "no_judgement")
+         ) %>% 
   select(-contains("name"), -contains("label"))
 
 test_that(
