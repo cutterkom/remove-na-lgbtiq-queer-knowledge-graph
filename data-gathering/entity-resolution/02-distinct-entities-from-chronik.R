@@ -9,7 +9,15 @@ verbose <- F
 con <- connect_db()
 
 entities_raw <- tbl(con, "chronik_entities") %>% 
-  collect()
+  collect() %>% 
+  mutate(
+    name = 
+      case_when(
+        name == "Münchens" ~ "München",
+        name == "Augspurg" ~ "Anita Augspurg",
+        TRUE ~ name
+      )
+  )
 
 er_candiates_raw <- tbl(con, "er_candidates") %>% 
   rename(cand_id = id) %>% 
@@ -99,6 +107,7 @@ new_ids <- new_ids_raw %>%
   mutate(
     name = case_when(
       str_detect(name, "forum") ~ "Forum Queeres Archiv München e.V.",
+      name == "Münchens" ~ "München",
       TRUE ~ name)
   )
 
@@ -186,7 +195,7 @@ duplicate_entities <- entities %>%
   arrange(desc(id)) %>%  
   mutate(rowid = row_number()) %>% 
   ungroup() %>%
-  pivot_wider(id_col = name, names_from = rowid, values_from = id) %>% View
+  pivot_wider(id_col = name, names_from = rowid, values_from = id) %>% 
   rename(id_old = `1`, id_new = `2`) %>% 
   mutate(
     id_new =
@@ -196,7 +205,7 @@ duplicate_entities <- entities %>%
         TRUE ~ id_new
       )
   ) %>%
-  select(name, id_old, id_new)
+  select(name, id_new = id_old, id_old = id_new)
 
 
 # Same removed ones in mapping df -----------------------------------------
@@ -336,7 +345,7 @@ testthat::test_that(
   expect_unique(c("id", "name"), data = import)
 )
 
-import
+import %>% View()
 
 con <- connect_db(credential_name = "db_clean")
 DBI::dbAppendTable(con, "entities", import)
@@ -345,29 +354,9 @@ DBI::dbDisconnect(con); rm(con)
 
 # Save mappings table -----------------------------------------------------
 
-
-duplicate_new_ids_for_mapping
-# hejzt dainr auf:
-id_mappings_step_3
-
-import_mapping1 <- id_mappings %>% 
-  mutate(id = paste0("er_", id)) %>% 
-  select(contains("id")) %>% 
-  filter(!is.na(id_1), !is.na(id_2)) %>% 
-  select(id, id_1, id_2)
-
-import_mapping2 <- id_mappings %>% 
-  mutate(id = paste0("er_", id)) %>% 
-  select(contains("id")) %>% 
-  anti_join(import_mapping1, by = c("id", "id_1", "id_2")) %>% 
-  mutate(id = ifelse(!is.na(id_new), id_new, id)) %>% 
-  filter(!is.na(id_1)) %>% 
-  select(id, id_1, id_2)
-
-
-import <- bind_rows(import_mapping1, import_mapping2) %>% rename(id_new = id)
+import <- id_mappings_step_3
 
 con <- connect_db(credential_name = "db_clean")
-dbAppendTable(con, "id_mapping", import)
-dbDisconnect(con); rm(con)
+DBI::dbAppendTable(con, "id_mapping", import)
+DBI::dbDisconnect(con); rm(con)
 
