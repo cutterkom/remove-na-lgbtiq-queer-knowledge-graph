@@ -82,3 +82,12 @@ doc/*.html
 
 # pycharm stuff
 *.idea
+data-gathering/named-entity-recognition/data/rubrix-export-addresses-dates.csv
+data-gathering/named-entity-recognition/data/rubrix-export-ner-model.csv
+data-gathering/named-entity-recognition/spacy_ner_dev.py
+data-linking/lobid/working-qu-sim.R
+data-linking/lobid/fun-shingles.R
+data-publishing/factgrid/data/locations.csv
+data-publishing/factgrid/data/location_addresses.csv
+data-publishing/factgrid/data/location_addresses.csv
+data-publishing/factgrid/data/location_addresses.csv
