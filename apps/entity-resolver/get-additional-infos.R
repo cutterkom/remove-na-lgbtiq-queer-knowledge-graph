@@ -51,6 +51,14 @@ er_entities_ids <- candidates %>%
   distinct(id) %>% 
   pull()
 
+chronik_ids <- candidates %>% 
+  filter(source_1 == "chronik" | source_2 == "chronik") %>% 
+  filter(decision != "positive") %>% 
+  select(id_1, id_2) %>% 
+  pivot_longer(cols = c(id_1, id_2), names_to = "id_seq", values_to = "id") %>% 
+  distinct(id) %>% 
+  pull()
+
 
 # Get additional infos ----------------------------------------------------
 
@@ -72,6 +80,13 @@ editor_names <- tbl(con, "books_editors") %>%
   filter(editor_id %in% book_editor_ids) %>% 
   distinct(editor_id, editor) %>% 
   mutate(editor_id = paste0("book_editor_", editor_id)) %>% 
+  collect()
+
+chronik_names <- tbl(con, "chronik_entities") %>% 
+  filter(id %in% chronik_ids) %>% 
+  left_join(tbl(con, "text_chronik"), by = c("chronik_entry_id" = "id")) %>% 
+  mutate(text = paste0(title, " - ", text)) %>% 
+  select(entity_id = id, entity = name, label, text, location, date) %>% 
   collect()
 
 DBI::dbDisconnect(con); rm(con)
@@ -97,9 +112,8 @@ candidates <- list(
   "poster_additional_infos" = posters_wide %>% mutate(across(everything(), as.character)),
   "books_publisher_additional_infos" = publisher_names %>% mutate(across(everything(), as.character)),
   "books_editor_additional_infos" = editor_names %>% mutate(across(everything(), as.character)),
-  "er_entities_additional_infos" = er_entities_names %>% mutate(across(everything(), as.character))
+  "er_entities_additional_infos" = er_entities_names %>% mutate(across(everything(), as.character)),
+  "chronik_additional_infos" = chronik_names %>% mutate(across(everything(), as.character))
   )
 
-#saveRDS(candidates, file = "apps/entity-resolver/data/candidates.Rds")
-
-save(candidates, file = "apps/entity-resolver/data/candidates-authors.Rdata")
+save(candidates, file = "apps/entity-resolver/data/candidates-additional-infos.Rdata")

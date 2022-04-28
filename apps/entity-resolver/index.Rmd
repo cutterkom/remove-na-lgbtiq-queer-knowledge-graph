@@ -14,9 +14,11 @@ library(DBI)
 library(testdat)
 library(shinyvalidate)
 
-load("data/candidates-authors.Rdata")
+load("data/candidates-additional-infos.Rdata")
 
 db_tbl_er_candidates <- "er_candidates"
+
+verbose <- TRUE
 ```
 
 
@@ -87,6 +89,12 @@ get_candidates_names <- function(data) {
       dplyr::left_join(candidates$er_entities_additional_infos %>% 
                          dplyr::distinct(entity_id, name_1 = entity), by = c("id_1" = "entity_id"))
     
+  } else if (candidate_1$source_1 == "chronik"){ 
+    print("chronik cand 1")
+    candidate_1 <- candidate_1 %>% 
+      dplyr::left_join(candidates$chronik_additional_infos %>% 
+                         dplyr::distinct(entity_id, name_1 = entity), by = c("id_1" = "entity_id"))
+    
   } else {
     print("not implemented")
   }
@@ -119,6 +127,12 @@ get_candidates_names <- function(data) {
     print("distinct_entities cand 2")
     candidate_2 <- candidate_2 %>% 
       dplyr::left_join(candidates$er_entities_additional_infos %>% 
+                         dplyr::distinct(entity_id, name_2 = entity), by = c("id_2" = "entity_id"))
+    
+    } else if (candidate_2$source_2 == "chronik"){ 
+    print("chronik cand 1")
+    candidate_2 <- candidate_2 %>% 
+      dplyr::left_join(candidates$chronik_additional_infos %>% 
                          dplyr::distinct(entity_id, name_2 = entity), by = c("id_2" = "entity_id"))
     
   } else {
