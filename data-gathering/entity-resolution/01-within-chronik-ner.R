@@ -1,3 +1,5 @@
+# find possible duplicates within chronik entities
+
 library(tidyverse)
 library(kabrutils)
 library(quanteda)
@@ -14,9 +16,13 @@ DBI::dbDisconnect(con); rm(con)
 chronik_entities <- chronik_entities_raw %>% 
   filter(!str_detect(label, "DATE"), !label %in% c("ADR", "CITY", "COUNTRY", "Slogan", "DISTRICT", "LAW", "MOVEMENT"))
 
+chronik_entities <- chronik_entities_raw %>% 
+  filter(label %in% c("ADR", "CITY", "COUNTRY", "Slogan", "DISTRICT", "LAW", "MOVEMENT")) %>% 
+  filter(!str_detect(label, "DATE"))
+
 # Distinct Entities -------------------------------------------------------
 
-input <- chronik_entities_raw
+input <- chronik_entities
 
 # Get string mappings -----------------------------------------------------
 
