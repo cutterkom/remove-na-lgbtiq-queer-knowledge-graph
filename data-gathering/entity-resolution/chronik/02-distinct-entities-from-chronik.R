@@ -1,3 +1,9 @@
+# title: Create distinct entities from manual entity resolution
+# desc: Takes entities and checks, if they were in the manual entity resolution process. If so, then entitiy gets a new ID. Also saves entity type like organisation, club, award etc to DB
+# input: lgbtiq_kg.er_candidates, lgbtiq_kg.chronik_entities
+# output: lgbtiq_kg_clean.entities, lgbtiq_kg_clean.id_mapping
+
+
 library(tidyverse)
 library(kabrutils)
 library(config)
