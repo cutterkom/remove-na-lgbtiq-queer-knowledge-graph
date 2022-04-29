@@ -15,6 +15,29 @@ con <- connect_db(credential_name = "db_clean")
 entities <- tbl(con, "entities") %>% 
   select(-contains("_at")) %>% 
   collect()
+
+# clean forum
+
+
+forum_ids <- entities %>% 
+  filter(str_detect(tolower(name), "forum homo|forum queer"), id != "chronik_986") %>% 
+  pull(id) %>% 
+  unique()
+
+entities <- entities %>% 
+  mutate(
+    id = case_when(
+      id %in% forum_ids ~ "er_390",
+      TRUE ~ id
+    ),
+    name = case_when(
+      id %in% forum_ids ~ "Forum Queeres Archiv München e.V.",
+      TRUE ~ name
+    )
+  ) %>% 
+  distinct()
+
+
 id_mapping <- tbl(con, "id_mapping") %>% 
   select(-contains("_at")) %>% 
   collect()
@@ -25,7 +48,19 @@ DBI::dbDisconnect(con); rm(con)
 con <- connect_db()
 
 chronik_entities_raw <- tbl(con, "chronik_entities") %>% 
-  collect()
+  collect() %>% 
+  mutate(
+    name = 
+      case_when(
+        name == "Münchens" ~ "München",
+        name == "Augspurg" ~ "Anita Augspurg",
+        name == "Hitlers" ~ "Adolf Hitler",
+        name == "Röhm" ~ "Ernst Röhm",
+        name == "Magnus Hirschfelds" ~ "Magnus Hirschfeld",
+        TRUE ~ name
+      ),
+    
+  )
 
 dbDisconnect(con); rm(con)
 
@@ -34,7 +69,7 @@ dbDisconnect(con); rm(con)
 # Update IDs --------------------------------------------------------------
 
 id_mapping_long <- id_mapping %>% 
-  pivot_longer(cols = c(id_1, id_2), names_to = "id_type", values_to = "id_old")
+  pivot_longer(cols = c(id_1, id_2, er_old), names_to = "id_type", values_to = "id_old")
 
 #' update IDs depending on id_mapping
 #' 
@@ -53,116 +88,98 @@ update_ids <- function(data, mapping) {
 }
 
 
-books_authors <- update_ids(books_authors_raw, id_mapping_long) %>% 
-  select(id, name, book_id) %>% 
-  distinct()
-
-books_publishers <- update_ids(books_publishers_raw, id_mapping_long) %>% 
-  select(id, name, book_id) %>% 
-  distinct()
-
-posters_authors <- update_ids(posters_authors_raw, id_mapping_long) %>% 
-  select(id, name, poster_id) %>% 
-  distinct()
-
-# Update IDs 2nd round ----------------------------------------------------
-
-# This process needs to be done again, because some er_ids needed to be de-duplicated in a two-step-process
-
-
-id_mapping_long_2nd_round <- id_mapping_long %>% 
-  filter(!is.na(er_old)) %>% 
-  select(id_new, id_old = er_old)
-
-books_authors_import <- update_ids(books_authors, id_mapping_long_2nd_round) %>% 
-  select(-name, -id_new) %>% 
+chronik_entities <- update_ids(chronik_entities_raw, id_mapping_long) %>% 
+  select(-id_new) %>% 
   distinct() %>% 
-  left_join(entities %>% select(id, name), by = "id") %>% 
+  mutate(
+    id = ifelse(id == "chronik_550", "er_1816", id),
+    id = ifelse(id == "chronik_546", "er_1840", id),
+    id = ifelse(id == "chronik_695", "chronik_99", id),
+    id = ifelse(id == "chronik_456", "chronik_452", id),
+    id = ifelse(id == "chronik_695", "chronik_99", id),
+    id = ifelse(id == "chronik_695", "chronik_99", id),
+    id = ifelse(id == "chronik_695", "chronik_99", id),
+    id = ifelse(id == "chronik_414", "er_390", id),
+    id = ifelse(id == "chronik_959", "er_390", id),
+    id = ifelse(id == "chronik_984", "er_390", id),
+    id = ifelse(id == "chronik_718", "er_390", id),
+    id = ifelse(id == "chronik_739", "book_author_726", id),
+    id = ifelse(id == "er_1881", "er_390", id),
+    
+    )
+  
+
+
+# # Update IDs 2nd round ----------------------------------------------------
+# 
+# # This process needs to be done again, because some er_ids needed to be de-duplicated in a two-step-process
+# 
+# 
+id_mapping_long_2nd_round <- id_mapping_long %>%
+  filter(id_type == "er_old") %>%
+  filter(!is.na(id_old)) %>%
+  distinct(id_new, id_old)
+
+chronik_entities_import <- update_ids(chronik_entities, id_mapping_long_2nd_round) %>% 
+  select(-name, -id_new) %>%
+  distinct() %>%
+  left_join(entities %>% select(id, name), by = "id") %>%
   select(-name)
 
+# Get Chronik Text --------------------------------------------------------
+
+con <- connect_db()
+chronik_text <- tbl(con, "text_chronik") %>% 
+  select(-contains("_at")) %>% 
+  collect()
+DBI::dbDisconnect(con); rm(con)
+
+import <- chronik_text %>% 
+  rename(chronik_entry_id = id) %>% 
+  left_join(chronik_entities_import, by = c("chronik_entry_id")) %>% 
+  left_join(entities %>% distinct(name, id), by = "id") %>% 
+  left_join(chronik_entities_raw %>% distinct(name, id), by = "id") %>% 
+  mutate(name = 
+           case_when(
+             !is.na(name.x) ~ name.x,
+             !is.na(name.y) ~ name.y,
+             TRUE ~ NA_character_
+           )) %>% 
+  select(-name.x, -name.y)
+
+fill_na_gaps <- import %>% 
+  filter(is.na(name)) %>% 
+  select(chronik_entry_id, id, label) %>% 
+  left_join(chronik_entities_raw, by = c("chronik_entry_id", "label")) %>% 
+  mutate(id = id.y) %>% 
+  select(-id.x, -id.y) %>% 
+  distinct()
+
+
+import <- import %>% 
+  left_join(fill_na_gaps, by = c("chronik_entry_id", "label"), suffix = c("", "_na")) %>% 
+  mutate(
+    name = 
+      case_when(
+        is.na(name) ~ name_na,
+        TRUE ~ name
+      ),
+    id = 
+      case_when(
+        is.na(name) ~ id_na,
+        TRUE ~ id
+      )
+  ) %>% 
+  select(-name_na, -id_na) %>% 
+  distinct()
+
 test_that(
-  desc = "uniqueness",
-  expect_unique(c("id", "book_id"), data = books_authors_import)
-)
-
-books_publishers_import <- update_ids(books_publishers, id_mapping_long_2nd_round) %>% 
-  select(-name, -id_new) %>% 
-  distinct() %>% 
-  left_join(entities %>% select(id, name), by = "id") %>% 
-  distinct(id, book_id)
-
-test_that(
-  desc = "uniqueness",
-  expect_unique(c("id", "book_id"), data = books_publishers_import)
-)
-
-posters_authors_import <- update_ids(posters_authors, id_mapping_long_2nd_round) %>% 
-  select(-name, -id_new) %>% 
-  distinct() %>% 
-  left_join(entities %>% select(id, name), by = "id") %>% 
-  select(-name)
-
-test_that(
-  desc = "uniqueness",
-  expect_unique(c("id", "poster_id"), data = posters_authors_import)
+  desc = "uniqueness of id-name-combination",
+  expect_unique(c("id", "name"), data = import %>% distinct(id, name))
 )
 
 # Write in DB -------------------------------------------------------------
-
-
-import <- posters_authors_import
-
-create_table <- "
-CREATE TABLE IF NOT EXISTS `posters_authors` (
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
-  `id` varchar(50) COLLATE utf8mb3_german2_ci NOT NULL,
-  `poster_id` int(11) NOT NULL,
-  PRIMARY KEY `id` (`id`, `poster_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_german2_ci;
-"
-
 con <- connect_db(credential_name = "db_clean")
-dbExecute(con, create_table)
-dbAppendTable(con, "posters_authors", import)
-dbDisconnect(con); rm(con)
+DBI::dbWriteTable(con, "chronik", import)
+DBI::dbDisconnect(con); rm(con)
 
-
-
-# Books authors -----------------------------------------------------------
-
-import <- books_authors_import
-
-create_table <- "
-CREATE TABLE IF NOT EXISTS `books_authors` (
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
-  `id` varchar(50) COLLATE utf8mb3_german2_ci NOT NULL,
-  `book_id` int(11) NOT NULL,
-  PRIMARY KEY `id` (`id`, `book_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_german2_ci;
-"
-
-con <- connect_db(credential_name = "db_clean")
-dbExecute(con, create_table)
-dbAppendTable(con, "books_authors", import)
-dbDisconnect(con); rm(con)
-
-# Books publishers ------------------------------------------------------
-
-import <- books_publishers_import
-
-create_table <- "
-CREATE TABLE IF NOT EXISTS `books_publishers` (
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
-  `id` varchar(50) COLLATE utf8mb3_german2_ci NOT NULL,
-  `book_id` int(11) NOT NULL,
-  PRIMARY KEY `id` (`id`, `book_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_german2_ci;
-"
-
-con <- connect_db(credential_name = "db_clean")
-dbExecute(con, create_table)
-dbAppendTable(con, "books_publishers", import)
-dbDisconnect(con); rm(con)
