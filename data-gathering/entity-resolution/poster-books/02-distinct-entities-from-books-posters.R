@@ -330,6 +330,6 @@ CREATE TABLE `id_mapping` (
 "
 
 con <- connect_db(credential_name = "db_clean")
-dbExecute(con, create_table)
-dbAppendTable(con, "id_mapping", import)
-dbDisconnect(con); rm(con)
+DBI::dbExecute(con, create_table)
+DBI::dbAppendTable(con, "id_mapping", import)
+DBI::dbDisconnect(con); rm(con)
