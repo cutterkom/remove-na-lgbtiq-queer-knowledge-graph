@@ -140,6 +140,7 @@ duplicate_new_ids_for_mapping <- duplicate_new_ids %>%
   
 
 duplicate_new_ids_for_mapping
+
 # Add to ID mapping -------------------------------------------------------
 
 id_mappings_step_2 <- bind_rows(
@@ -150,9 +151,59 @@ id_mappings_step_2 <- bind_rows(
     left_join(duplicate_new_ids_for_mapping, by = c("id" = "id_new")) %>%
     select(id_new = id, er_old) %>% 
     distinct() %>% 
-    filter(!is.na(id_new))
+    filter(!is.na(id_new), !is.na(er_old)) 
 ) %>% 
   filter(!is.na(id_1) | !is.na(id_2) | !is.na(er_old))
+
+
+# Fix error in id_mapping_step_2 ------------------------------------------
+
+# Somewhere I do save some error, I can't find the error, so I fix that here:
+
+er_old_ids <- id_mappings_step_2 %>% filter(!is.na(er_old)) %>% pull() %>% unique()
+er_old_ids
+
+er_old_df_mapping <- id_mappings_step_2 %>% 
+  filter(!is.na(er_old)) %>% 
+  left_join(id_mappings_step_2, by = c("er_old" = "id_new")) %>% 
+  mutate(id_1.x = 
+           case_when(
+             is.na(id_1.x) & !is.na(id_1.y) ~ id_1.y,
+             TRUE ~ NA_character_
+           ),
+         id_2.x = 
+           case_when(
+             is.na(id_2.x) & !is.na(id_2.y) ~ id_2.y,
+             TRUE ~ NA_character_
+           )
+         
+  ) %>% 
+  select(id_new, id_1 = id_1.x, id_2 = id_2.y, er_old)
+
+id_mappings_step_2 <- id_mappings_step_2 %>% 
+  filter(!id_new %in% er_old_ids) %>% 
+  bind_rows(er_old_df_mapping)
+
+# Two test cases
+
+# no 1817, all under 1816
+# no er_1904, all under er_1881
+
+testthat::test_that(
+  desc = "there ids not allowed to be in id_new",
+  expect_equal(id_mappings_step_2 %>% filter(id_new %in% c("er_1817", "er_1904")) %>% nrow(), 0)
+)
+
+testthat::test_that(
+  desc = "there ids not allowed to be in id_new",
+  expect_equal(id_mappings_step_2 %>% filter(er_old %in% c("er_1817", "er_1904")) %>% nrow() > 0, TRUE)
+)
+
+testthat::test_that(
+  desc = "there ids not allowed to be in id_new",
+  expect_equal(id_mappings_step_2 %>% filter(id_new %in% c("chronik_815")) %>% nrow(), 0)
+)
+
 
 # add de-deduplicated IDs to df with all new entities ---------------------
 
@@ -200,18 +251,12 @@ duplicate_entities <- entities %>%
   # arrange so that er_ is at first and will be kept
   arrange(desc(id)) %>%  
   mutate(rowid = row_number()) %>% 
-  ungroup() %>%
+  ungroup() %>% 
   pivot_wider(id_col = name, names_from = rowid, values_from = id) %>% 
-  rename(id_old = `1`, id_new = `2`) %>% 
-  mutate(
-    id_new =
-      case_when(
-        !is.na(`4`) ~ `4`,
-        !is.na(`3`) ~ `3`,
-        TRUE ~ id_new
-      )
-  ) %>%
-  select(name, id_new = id_old, id_old = id_new)
+  pivot_longer(cols = 3:ncol(.), names_to = "helper", values_to = "id_old") %>% 
+  rename(id_new = `1`) %>% 
+  distinct(id_new, id_old, name) %>% 
+  filter(!is.na(id_old))
 
 
 # Same removed ones in mapping df -----------------------------------------
@@ -222,14 +267,13 @@ id_mappings_step_3 <- bind_rows(
   )
 
 # Add de-duduplicated to entities df --------------------------------------
-
-
 entities_final <- bind_rows(
   entities %>% anti_join(entities %>% 
                            count(name, sort = T) %>% 
                            filter(n>1), by = "name"),
   duplicate_entities %>% select(id = id_new, name)
-)
+) %>% 
+  distinct()
 
 
 # Extract orgs etc --------------------------------------------------------
@@ -353,16 +397,39 @@ testthat::test_that(
 
 import %>% View()
 
-con <- connect_db(credential_name = "db_clean")
-DBI::dbAppendTable(con, "entities", import)
-DBI::dbDisconnect(con); rm(con)
+# con <- connect_db(credential_name = "db_clean")
+# DBI::dbAppendTable(con, "entities", import)
+# DBI::dbDisconnect(con); rm(con)
 
 
 # Save mappings table -----------------------------------------------------
 
-import <- id_mappings_step_3
+import_mapping_final <- id_mappings_step_3 %>% 
+  filter(!id_new %in% er_old_ids)
 
+# Two test cases
+
+# no 1817, all under 1816
+# no er_1904, all under er_1881
+
+testthat::test_that(
+  desc = "there ids not allowed to be in id_new",
+  expect_equal(import_mapping_final %>% filter(id_new %in% c("er_1817", "er_1904")) %>% nrow(), 0)
+)
+
+testthat::test_that(
+  desc = "there ids not allowed to be in id_new",
+  expect_equal(import_mapping_final %>% filter(er_old %in% c("er_1817", "er_1904")) %>% nrow() > 0, TRUE)
+)
+
+testthat::test_that(
+  desc = "there ids not allowed to be in id_new",
+  expect_equal(import_mapping_final %>% filter(id_new %in% c("chronik_815")) %>% nrow(), 0)
+)
+
+
+# 
 con <- connect_db(credential_name = "db_clean")
-DBI::dbAppendTable(con, "id_mapping", import)
+DBI::dbAppendTable(con, "id_mapping", import_mapping_final)
 DBI::dbDisconnect(con); rm(con)
 
