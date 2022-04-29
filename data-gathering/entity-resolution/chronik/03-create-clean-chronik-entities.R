@@ -1,8 +1,7 @@
 # title: Save deduplicated entities to new database lgbtiq_kg_clean
-# desc: In order to keep different thing separatly, I create a new database that contains only cleaned data. In the first step this is are authors and publishers from books and posters. 
-# input: lgbtiq_kg_clean.entities, lgbtiq_kg.books_author*, lgbtiq_kg.books_publisher*, lgbtiq_kg.posters_author*
-# output: lgbtiq_kg_clean.books_author*, lgbtiq_kg_clean.books_publisher*, lgbtiq_kg_clean.posters_author*
-
+# desc: In order to keep different thing separatly, I create a new database that contains only cleaned data.
+# input: lgbtiq_kg_clean.entities, lgbtiq_kg.lgbtiq_kg.chronik_entities
+# output: lgbtiq_kg_clean.chronik_entities
 
 library(tidyverse)
 library(kabrutils)
@@ -21,35 +20,12 @@ id_mapping <- tbl(con, "id_mapping") %>%
   collect()
 DBI::dbDisconnect(con); rm(con)
 
-
 # Get authors and publishers ----------------------------------------------
 
 con <- connect_db()
 
-books_authors_raw <- tbl(con, "books_authors") %>%
-  left_join(tbl(con, "book_author"), by = "author_id") %>% 
-  collect() %>% 
-  mutate(source = "book_author",
-         id = paste(source, author_id, sep = "_")) %>% 
-  rename(
-    name = author,
-    item_id = author_id)
-
-books_publishers_raw <- tbl(con, "books_publishers") %>%
-  left_join(tbl(con, "book_publisher"), by = "publisher_id") %>% 
-  collect() %>% 
-  mutate(source = "book_publisher",
-         id = paste(source, publisher_id, sep = "_")) %>% 
-  rename(name = publisher,
-         item_id = publisher_id)
-
-posters_authors_raw <- tbl(con, "posters_authors") %>%
-  left_join(tbl(con, "poster_author"), by = "author_id") %>% 
-  collect() %>% 
-  mutate(source = "poster_author",
-         id = paste(source, author_id, sep = "_")) %>% 
-  rename(name = author,
-         item_id = author_id)
+chronik_entities_raw <- tbl(con, "chronik_entities") %>% 
+  collect()
 
 dbDisconnect(con); rm(con)
 
