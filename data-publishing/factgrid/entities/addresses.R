@@ -31,9 +31,27 @@ sparql_to_tibble <- function(query, endpoint, useragent) {
   tibble(res$results) 
 }
 
+#' Add a statement to an item
+#' 
+#' This function helps to add certain statements. A statement consists of a PID-QID combination that is added to a dataframe. The PID will be the column name, QID the row content.
+#' It assumes there is a dataframe that has at least three columns: (1) `statements`, (2) `pid`, (3) `qid`.
+#' @param data dataframe to add the new column
+#' @param available_statements dataframe with all statements that can be added with this method. It assumes there is a dataframe that has at least three columns: (1) `statement`, (2) `pid`, (3) `qid`.
+#' @param new_statement string of new statement. Must exist in `available_statements$statement`
+#' @param verbose show in terminal what was added
+#' @export
+#' @examples 
+#' statements <- data.frame(statement = c("my_statement"), pid = c("P2"), qid = c("Q1"))
+#' data <- data.frame(item = "my item")
+#' data %>% add_statement(available_statements = statements, new_statement = "my_statement")
+
 add_statement <- function(data, available_statements = statements, new_statement, verbose = TRUE) {
   
   new_statement_df <- filter(available_statements, statement == new_statement)
+  
+  if(nrow(new_statement_df) == 0) {
+    stop("Your statement can't be found. Please check if it exists in the table `available_statements` or if there's a typo.")
+  }
   
   pid_as_column_name <- rlang::sym(new_statement_df$pid)
   data <- mutate(data, !!pid_as_column_name := new_statement_df$qid)
@@ -112,19 +130,7 @@ new_addresses <- entities %>%
   geocode(street = name, city = city, method = "osm", lat = latitude, long = longitude)
 
 
-# 
-# quickstatements <- new_addresses %>% 
-#   mutate(
-#     # Labels
-#     Lde = paste0('"', munich_label$de, ', ', name, '"'),
-#     Len = paste0('"', munich_label$en, ', ', name, '"'),
-#     Lfr = paste0('"', munich_label$fr, ', ', name, '"'),
-#     Les = paste0('"', munich_label$es, ', ', name, '"'),
-#     # Description
-#     Dde = paste0('"Straße in ' , munich_label$de, '"'),
-#     Den = paste0('"Street in ', munich_label$en, '"'),
-#     Dfr = paste0('"Rue en ', munich_label$fr, '"'),
-#     Des = paste0('"Calle en ', munich_label$es, ''))
+
 
 
 api <- new_addresses %>% 
@@ -147,14 +153,24 @@ api <- new_addresses %>%
   ) %>%
   add_statement(statements, "instance_of_address") %>% 
   add_statement(statements, "location_in_munich") %>% 
-  add_statement(statements, "research_area") %>% 
-  add_statement(statements, "research_project")
-  
-  
-  add_statement(qid = statements$research_area$qid, pid = statements$research_area$pid) %>% 
-  add_statement(qid = statements$research_project$qid, pid = statements$research_project$pid) %>%
-  add_statement(qid = statements$instance_of_address$qid, pid = statements$instance_of_address$pid) %>% add_statement(qid = statements$location_in_munich$qid, pid = statements$location_in_munich$pid)
-   
+  add_statement(statements, "research_project") %>% 
+  add_statement(statements, "research_area")
+
+
+
+# 
+# quickstatements <- new_addresses %>% 
+#   mutate(
+#     # Labels
+#     Lde = paste0('"', munich_label$de, ', ', name, '"'),
+#     Len = paste0('"', munich_label$en, ', ', name, '"'),
+#     Lfr = paste0('"', munich_label$fr, ', ', name, '"'),
+#     Les = paste0('"', munich_label$es, ', ', name, '"'),
+#     # Description
+#     Dde = paste0('"Straße in ' , munich_label$de, '"'),
+#     Den = paste0('"Street in ', munich_label$en, '"'),
+#     Dfr = paste0('"Rue en ', munich_label$fr, '"'),
+#     Des = paste0('"Calle en ', munich_label$es, ''))
 
 
 
