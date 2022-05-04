@@ -1,5 +1,5 @@
-# title: Write entities to Factgrid
-# desc: 
+# title: Write address entities to Factgrid
+# desc: First iteration of a working process for bulk import to Factgrid
 # input: 
 # output: 
 
@@ -65,14 +65,21 @@ add_statement <- function(data = NULL,
   if(qid_from_row == TRUE) {
     
     if (new_statement == "coordinates") {
+      if (!is.null(data$latitude) & !is.null(data$longitude)) {
       latitude <- "latitude"
       longitude <- "longitude"
       data <- data %>% mutate(
         !!pid_as_column_name := 
           case_when(
-            !is.na(.data[[latitude]]) ~ paste0("@", .data[[latitude]], "/", .data[[longitude]]),
+            !is.na(.data[[latitude]]) ~ 
+              
+              #paste0(.data[[latitude]], ",", .data[[longitude]]),
+              paste0('"@', .data[[latitude]], '/', .data[[longitude]], '"'),
             TRUE ~ NA_character_
           ))
+      } else {
+        stop("The input data frame `data` needs a column `latitude` and a column `longitude` in order to add coordinates.")
+      }
     } else {
       data <- mutate(data, !!pid_as_column_name := .data[[col_for_row_content]])  
     }
@@ -156,7 +163,7 @@ new_addresses <- entities %>%
 
 
 
-
+# Create statements -------------------------------------------------------
 
 api <- new_addresses %>% 
   mutate(
@@ -176,37 +183,64 @@ api <- new_addresses %>%
   add_statement(statements, "research_area") %>% 
   add_statement(statements, "external_id_forum", qid_from_row = TRUE, col_for_row_content = "id") %>% 
   add_statement(statements, "address_as_string", qid_from_row = TRUE, col_for_row_content = "name") %>% 
-  add_statement(statements, "coordinates", qid_from_row = TRUE)
+  add_statement(statements, "coordinates", qid_from_row = TRUE) %>% 
+  mutate(item = paste0("CREATE_", id))
 
 
-api
+# Clean data for import ---------------------------------------------------
 
-# 
-# quickstatements <- new_addresses %>% 
-#   mutate(
-#     # Labels
-#     Lde = paste0('"', munich_label$de, ', ', name, '"'),
-#     Len = paste0('"', munich_label$en, ', ', name, '"'),
-#     Lfr = paste0('"', munich_label$fr, ', ', name, '"'),
-#     Les = paste0('"', munich_label$es, ', ', name, '"'),
-#     # Description
-#     Dde = paste0('"Straße in ' , munich_label$de, '"'),
-#     Den = paste0('"Street in ', munich_label$en, '"'),
-#     Dfr = paste0('"Rue en ', munich_label$fr, '"'),
-#     Des = paste0('"Calle en ', munich_label$es, ''))
+# as list for batch import
+
+import <- api %>% 
+  select(-latitude, -longitude) %>% 
+  select(item, starts_with("L"), starts_with("D"), starts_with("P")) %>% 
+  distinct() %>% 
+  pivot_longer(cols = 2:16, names_to = "property", values_to = "value") %>% 
+  
+  # remove, because test case, already in Factgrid
+  filter(!item %in% c("CREATE_chronik_1003", "CREATE_chronik_147", "CREATE_chronik_148", "CREATE_chronik_168", "CREATE_chronik_181", "CREATE_chronik_1004", "CREATE_chronik_2", "CREATE_chronik_187")) %>% 
+  group_split(item, .keep = TRUE)
 
 
+purrr::iwalk(
+  .x = import,
+  .f = function(data, object_name) {
+    write_wikibase(
+      items = data$item,
+      properties = data$property,
+      values = data$value,
+      format = "api",
+      api.username = config$connection$api_username,
+      api.token = config$connection$api_token,
+      api.format = "v1",
+      api.batchname = "entities_addresses",
+      api.submit = T,
+      quickstatements.url = config$connection$quickstatements_url,
+      coordinate_pid = "P48"
+    )
+    }
+)
 
-# write_wikibase(
-#   items = "Q24",
-#   properties = "Lde",
-#   values = "ein deutsches label",
-#   format = "api",
-#   api.username = config$api_username,
-#   api.token = config$api_token,
-#   api.format = "v1",
-#   api.batchname = "entities_addresses",
-#   api.submit = TRUE,
-#   quickstatements.url = config$quickstatements_url
-# )
 
+
+# Get QIDs just created ---------------------------------------------------
+
+addresses_in_munich_in_factgrid <- addresses_in_munich %>% 
+  sparql_to_tibble(endpoint = config$connection$sparql_endpoint) %>% 
+  mutate(itemLabel = str_remove_all(itemLabel, '\"|\"|, München|@de|München, '),
+         external_id = str_extract(item, "Q[0-9]+"))
+
+
+import <- new_addresses %>% 
+  left_join(addresses_in_munich_in_factgrid, by = c("name" = "itemLabel")) %>% 
+  # from first test case
+  mutate(external_id = ifelse(id == "chronik_1003", "Q401649", external_id)) %>% 
+  select(id, external_id) %>% 
+  mutate(
+    entity_id_type = "entities",
+    external_id_type = "factgrid", source = "forum", hierarchy = 1)
+
+
+con <- connect_db("db_clean")
+DBI::dbAppendTable(con, "el_matches", import)
+DBI::dbDisconnect(con); rm(con)
