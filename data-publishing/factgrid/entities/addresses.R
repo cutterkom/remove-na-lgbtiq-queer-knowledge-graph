@@ -37,15 +37,22 @@ sparql_to_tibble <- function(query, endpoint, useragent) {
 #' It assumes there is a dataframe that has at least three columns: (1) `statements`, (2) `pid`, (3) `qid`.
 #' @param data dataframe to add the new column
 #' @param available_statements dataframe with all statements that can be added with this method. It assumes there is a dataframe that has at least three columns: (1) `statement`, (2) `pid`, (3) `qid`.
-#' @param new_statement string of new statement. Must exist in `available_statements$statement`
+#' @param new_statement string of new statement. Must exist in `available_statements$statement`. If statement is `coordinates`, then a column `longitude` and a column `latitude` is expected.
 #' @param verbose show in terminal what was added
+#' @param qid_from_row boolean; default `FALSE` - then QID is taken from dataframe `statements`, if `TRUE` id QID value should be taken from another row
+#' @param col_for_row_content string; name of column in dataframe `data` that contains the QID values
 #' @export
 #' @examples 
 #' statements <- data.frame(statement = c("my_statement"), pid = c("P2"), qid = c("Q1"))
 #' data <- data.frame(item = "my item")
 #' data %>% add_statement(available_statements = statements, new_statement = "my_statement")
 
-add_statement <- function(data, available_statements = statements, new_statement, verbose = TRUE) {
+add_statement <- function(data = NULL, 
+                          available_statements = statements, 
+                          new_statement = NULL,
+                          verbose = TRUE, 
+                          qid_from_row = FALSE,
+                          col_for_row_content = NULL) {
   
   new_statement_df <- filter(available_statements, statement == new_statement)
   
@@ -54,7 +61,25 @@ add_statement <- function(data, available_statements = statements, new_statement
   }
   
   pid_as_column_name <- rlang::sym(new_statement_df$pid)
-  data <- mutate(data, !!pid_as_column_name := new_statement_df$qid)
+  
+  if(qid_from_row == TRUE) {
+    
+    if (new_statement == "coordinates") {
+      latitude <- "latitude"
+      longitude <- "longitude"
+      data <- data %>% mutate(
+        !!pid_as_column_name := 
+          case_when(
+            !is.na(.data[[latitude]]) ~ paste0("@", .data[[latitude]], "/", .data[[longitude]]),
+            TRUE ~ NA_character_
+          ))
+    } else {
+      data <- mutate(data, !!pid_as_column_name := .data[[col_for_row_content]])  
+    }
+    
+  } else {
+    data <- mutate(data, !!pid_as_column_name := new_statement_df$qid)
+  }
   
   if (verbose == TRUE) {
     cli::cli_h1('add "{new_statement}" statement')
@@ -144,19 +169,17 @@ api <- new_addresses %>%
     Dde = paste0('Straße in ' , munich_label$de),
     Den = paste0('Street in ', munich_label$en),
     Dfr = paste0('Rue en ', munich_label$fr),
-    Des = paste0('Calle en ', munich_label$es),
-    P48 =
-      case_when(
-        !is.na(latitude) ~ paste0("@", latitude, "/", longitude),
-        TRUE ~ NA_character_
-      )
-  ) %>%
+    Des = paste0('Calle en ', munich_label$es)) %>% 
   add_statement(statements, "instance_of_address") %>% 
   add_statement(statements, "location_in_munich") %>% 
   add_statement(statements, "research_project") %>% 
-  add_statement(statements, "research_area")
+  add_statement(statements, "research_area") %>% 
+  add_statement(statements, "external_id_forum", qid_from_row = TRUE, col_for_row_content = "id") %>% 
+  add_statement(statements, "address_as_string", qid_from_row = TRUE, col_for_row_content = "name") %>% 
+  add_statement(statements, "coordinates", qid_from_row = TRUE)
 
 
+api
 
 # 
 # quickstatements <- new_addresses %>% 
