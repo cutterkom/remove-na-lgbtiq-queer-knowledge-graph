@@ -31,17 +31,24 @@ sparql_to_tibble <- function(query, endpoint, useragent) {
   tibble(res$results) 
 }
 
-add_statement_config_list <- function(data, pid, qid) {
-  column_sym <- rlang::sym(pid)
-  data <- data %>% mutate(!!column_sym := qid)
-  data
-}
-
-add_statement <- function(data, available_statements = statements, statement) {
-  statement <- filter(available_statements, statement == statement)
-  column_sym <- rlang::sym(statement$pid)
-  data <- mutate(data, !!column_sym := statement$qid)
-  data
+add_statement <- function(data, available_statements = statements, new_statement, verbose = TRUE) {
+  
+  new_statement_df <- filter(available_statements, statement == new_statement)
+  
+  pid_as_column_name <- rlang::sym(new_statement_df$pid)
+  data <- mutate(data, !!pid_as_column_name := new_statement_df$qid)
+  
+  if (verbose == TRUE) {
+    cli::cli_h1('add "{new_statement}" statement')
+    cli::cli_bullets(
+      c(
+        "*" = "PID = {new_statement_df$pid}",
+        "*" = "QID = {new_statement_df$qid}"
+      )
+    )
+  }
+  
+  return(data)
 }
 
 con <- connect_db("db_clean")
