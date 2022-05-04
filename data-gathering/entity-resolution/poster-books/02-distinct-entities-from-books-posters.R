@@ -1,5 +1,5 @@
 # title: Create distinct entities from manual entity resolution
-# desc: Takes authors and publishers and check, if they were in the manual entitiy resolution process. If so, then entitiy gets a new ID. Also, some first rough guesses are made if an entity is an organisation, club or person. 
+# desc: Takes authors and publishers and check, if they were in the manual entity resolution process. If so, then entitiy gets a new ID. Also, some first rough guesses are made if an entity is an organisation, club or person. 
 # input: books_authors, book_publishers, posters_authors, er_candidates
 # output: lgbtiq_kg_clean.entities
 
@@ -330,6 +330,6 @@ CREATE TABLE `id_mapping` (
 "
 
 con <- connect_db(credential_name = "db_clean")
-dbExecute(con, create_table)
-dbAppendTable(con, "id_mapping", import)
-dbDisconnect(con); rm(con)
+DBI::dbExecute(con, create_table)
+DBI::dbAppendTable(con, "id_mapping", import)
+DBI::dbDisconnect(con); rm(con)
