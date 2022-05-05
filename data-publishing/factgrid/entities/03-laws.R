@@ -1,7 +1,7 @@
-# title: Write address entities to Factgrid
+# title: Write LAW entities to Factgrid
 # desc: First iteration of a working process for bulk import to Factgrid
-# input: 
-# output: 
+# input: lgbtiq_kg_clean.entities
+# output: Factgrid items
 
 
 library(tidyverse)
