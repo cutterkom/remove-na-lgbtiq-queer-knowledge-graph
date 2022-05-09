@@ -35,7 +35,7 @@ input_data <- el_matches %>%
   # remove those that were already searched for
   anti_join(el_matches %>% filter(external_id_type == "wikidata"), by = "id") %>% 
   distinct(id, external_id_type, external_id) %>%
-  filter(external_id_type == "gnd", !is.na(external_id))
+  filter(external_id_type %in% c("lobid", "gnd"), !is.na(external_id))
 
 # call lobid API ----------------------------------------------------------
 
