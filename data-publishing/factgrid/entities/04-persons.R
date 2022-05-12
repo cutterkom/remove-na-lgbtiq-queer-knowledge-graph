@@ -1,13 +1,7 @@
 # title: Write person entities in Factgrid
-# desc: Data is reconciled against 
+# desc: Data modeling for different kind of data, e.g. gender, forum id and others. If decriptions, gender or sexual orientations is avaible from wikidata, I fetch it from there.
 # input: 
 # output: 
-
-
-# TODO: 
-# transgender etc: Wie umgehen? 
-# Anlegen: Items
-
 
 
 library(tidyverse)
@@ -287,9 +281,72 @@ if (!file.exists(wikidata_descriptions_file)) {
       )
     })
   
-  saveRDS(wikidata_descriptions, file = wikidata_descriptions_file)
+
+# Translate labels --------------------------------------------------------
+
+# automated translation via deepl API
+  meta_desc <- wikidata_descriptions %>% 
+    pivot_longer(cols = starts_with("D")) %>% 
+    mutate(nchar = nchar(value)) %>% 
+    group_by(id) %>% 
+    # find the longest string -> will be input for translation
+    mutate(max_nchar = ifelse(nchar == max(nchar, na.rm = TRUE), 1, 0)) %>% 
+    select(id, name, contains("nchar"))
+  
+  wikidata_descriptions <- wikidata_descriptions %>% 
+    mutate(needs_translation = ifelse(rowSums(is.na(wikidata_descriptions)) > 0, TRUE, FALSE),
+           no_trans_possible = ifelse(rowSums(is.na(wikidata_descriptions)) == 4, TRUE, FALSE))
+  
+  wikidata_descriptions_incl_translations <- wikidata_descriptions %>% 
+    filter(needs_translation == TRUE, no_trans_possible == FALSE) %>% View
+    select(-contains("trans")) %>% 
+    pmap_df(function(...) {
+      current <- tibble(...)
+      current_meta <- meta_desc %>% filter(id == current$id)
+      
+      # get the one with the longest string, will be input for translation;
+      # include also a slice if there there are multiple string with same length
+      translate_from <- current_meta %>% filter(max_nchar == 1) %>% slice(1) %>% pull(name)
+      
+      # get the languages/cols that need a translation
+      # can be found in meta df: dont have an nchar
+      translate_to <- current_meta %>% filter(is.na(nchar)) %>% pull(name)
+      
+      map2_df(translate_from, translate_to, function(from, to) {
+        
+        # get text to translate
+        text <- pull(current, {{from}})
+        
+        # translate target_lang to deepl abbr
+        to_deepl <- replace(to, to == "Dde", "DE")
+        to_deepl <- replace(to_deepl, to_deepl == "Den", "EN")
+        to_deepl <- replace(to_deepl, to_deepl == "Dfr", "FR")
+        to_deepl <- replace(to_deepl, to_deepl == "Des", "ES")
+        
+        # call Deepl API
+        current %>%
+          mutate({{to}}:= deeplr::translate2(text = text, target_lang = to_deepl, auth_key = Sys.getenv("DEEPL_API_KEY")))
+      })
+    })
+  
+  wikidata_descriptions_incl_translations <- wikidata_descriptions_incl_translations %>% 
+    pivot_longer(cols = 2:last_col()) %>% 
+    filter(!is.na(value)) %>% distinct() %>% 
+    pivot_wider(id_col = "id", names_from = "name", values_from = "value") %>% 
+    mutate(across(starts_with("D"), ~ as.character(.)))
+  
+  wikidata_descriptions_final <-
+    bind_rows(
+      wikidata_descriptions %>% 
+        filter(needs_translation == FALSE),
+      wikidata_descriptions %>% 
+        filter(no_trans_possible == TRUE),
+      wikidata_descriptions_incl_translations
+    )
+  
+  saveRDS(wikidata_descriptions_final, file = wikidata_descriptions_file)
 } else {
-  wikidata_descriptions <- readRDS(wikidata_descriptions_file)
+  wikidata_descriptions_final <- readRDS(wikidata_descriptions_file)
 }
 
 
