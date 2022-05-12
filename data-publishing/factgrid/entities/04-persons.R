@@ -297,8 +297,13 @@ if (!file.exists(wikidata_descriptions_file)) {
     mutate(needs_translation = ifelse(rowSums(is.na(wikidata_descriptions)) > 0, TRUE, FALSE),
            no_trans_possible = ifelse(rowSums(is.na(wikidata_descriptions)) == 4, TRUE, FALSE))
   
-  wikidata_descriptions_incl_translations <- wikidata_descriptions %>% 
-    filter(needs_translation == TRUE, no_trans_possible == FALSE) %>% View
+  # make buckets if translation is possible or not
+  all_desc_filled <- wikidata_descriptions %>% filter(needs_translation == FALSE)
+  no_desc_from_wikidata <- wikidata_descriptions %>% filter(no_trans_possible == TRUE)
+  translation_possible <-  wikidata_descriptions %>% 
+    filter(needs_translation == TRUE, no_trans_possible == FALSE)
+  
+  translations <- translation_possible %>% 
     select(-contains("trans")) %>% 
     pmap_df(function(...) {
       current <- tibble(...)
@@ -327,24 +332,18 @@ if (!file.exists(wikidata_descriptions_file)) {
         current %>%
           mutate({{to}}:= deeplr::translate2(text = text, target_lang = to_deepl, auth_key = Sys.getenv("DEEPL_API_KEY")))
       })
-    })
-  
-  wikidata_descriptions_incl_translations <- wikidata_descriptions_incl_translations %>% 
+    }) %>% 
     pivot_longer(cols = 2:last_col()) %>% 
     filter(!is.na(value)) %>% distinct() %>% 
     pivot_wider(id_col = "id", names_from = "name", values_from = "value") %>% 
     mutate(across(starts_with("D"), ~ as.character(.)))
   
   wikidata_descriptions_final <-
-    bind_rows(
-      wikidata_descriptions %>% 
-        filter(needs_translation == FALSE),
-      wikidata_descriptions %>% 
-        filter(no_trans_possible == TRUE),
-      wikidata_descriptions_incl_translations
-    )
+    bind_rows(all_desc_filled, no_desc_from_wikidata, translations) %>% 
+    distinct(id, Dde, Den, Dfr, Des)
   
   saveRDS(wikidata_descriptions_final, file = wikidata_descriptions_file)
+  
 } else {
   wikidata_descriptions_final <- readRDS(wikidata_descriptions_file)
 }
@@ -383,7 +382,7 @@ vocab <- list(
 # Add descriptions for 4 languages ----------------------------------------
 
 descriptions <- persons %>% 
-  left_join(wikidata_descriptions, by = "id") %>% #filter(is.na(Dde))
+  left_join(wikidata_descriptions_final, by = "id") %>% View
   mutate(
     Dde = 
       case_when(
