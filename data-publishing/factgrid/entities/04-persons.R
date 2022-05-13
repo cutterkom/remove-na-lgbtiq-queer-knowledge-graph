@@ -1,14 +1,14 @@
-# title: Write person entities in Factgrid
+# title: Data modeling for person entities, Import to Factgrid
 # desc: Data modeling for different kind of data, e.g. gender, forum id and others. If decriptions, gender or sexual orientations is avaible from wikidata, I fetch it from there.
-# input: 
-# output: 
-
+# input: lgbtiq_kg_clean.entities, lgbtiq_kg_clean.el_matches, wikidata links
+# output: Factgrid imports, lgbtiq_kg_clean.el_matches links between id and qid
 
 library(tidyverse)
 library(kabrutils)
 library(testdat)
 library(tidywikidatar)
 library(WikidataR)
+library(SPARQL)
 
 # Some config ------------------------------------------------------------
 
@@ -529,8 +529,8 @@ import_long <- import %>%
   pivot_longer(cols = 3:last_col(), names_to = "property", values_to = "value") %>% 
   # fix helper with two instances_of:
   mutate(property = str_remove(property, "_.*")) %>% 
-  filter(!is.na(value)) %>% 
-  filter(!item %in% already_in_db)
+  filter(!is.na(value)) #%>% 
+  #filter(!item %in% already_in_db)
 
 # import_list <- import_long %>% group_split(group, .keep = TRUE)
 
@@ -558,7 +558,6 @@ testthat::test_that(
 
 # Write to factgrid -------------------------------------------------------
 
-
 write_wikibase(
   items = import_long$item,
   properties = import_long$property,
@@ -573,5 +572,61 @@ write_wikibase(
   quickstatements.url = config$connection$quickstatements_url
 )
 
+# Add QIDs from Factgrid --------------------------------------------------
 
+query <- 
+  '
+SELECT ?item ?itemLabel WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],de". }
+  ?item wdt:P2 wd:Q7;
+    wdt:P97 wd:Q400013.
+}
+'
+
+query_res <- query %>% 
+  sparql_to_tibble(endpoint = config$connection$sparql_endpoint) %>% 
+  mutate(itemLabel = str_remove_all(itemLabel, '\"|\"|, München|@de|München, '),
+         external_id = str_extract(item, "Q[0-9]+"))
+
+
+factgrid_qids <- import_long %>% 
+  filter(property == "Lde") %>% 
+  mutate(id = trimws(str_remove(item, "CREATE_"))) %>% 
+  distinct(id, name = value) %>% 
+  left_join(query_res, by = c("name" = "itemLabel")) %>% 
+  mutate(
+    external_id = ifelse(id == "book_author_885", "Q403724", external_id),
+    external_id = ifelse(id == "book_author_387", "Q403234", external_id),
+    external_id = ifelse(id == "book_author_784", "Q403622", external_id),
+    ) %>% 
+  left_join(
+    rrefine::refine_export(project.id = "2262330608958") %>% 
+      select(id, external_id = factgrid),
+    by = "id"
+  ) %>% 
+  mutate(external_id = ifelse(is.na(external_id.y), external_id.x, external_id.y)) %>% 
+  distinct(id, external_id) %>% 
+  # add those that were already in Factgrid
+  bind_rows(
+    persons %>% 
+      inner_join(el_matches %>% filter(external_id_type == "factgrid") %>% distinct(id, external_id), by = "id") %>% 
+      distinct(id, external_id)
+  )
+
+# the one's with NA reconciled
+# get results back
+
+
+import <- factgrid_qids %>% 
+  distinct(id, external_id) %>% 
+  filter(!is.na(external_id)) %>% 
+  mutate(
+    entity_id_type = "entities",
+    external_id_type = "factgrid", 
+    source = "forum", 
+    hierarchy = 1)
+
+con <- connect_db("db_clean")
+DBI::dbAppendTable(con, "el_matches", import)
+DBI::dbDisconnect(con); rm(con)
 
