@@ -8,14 +8,15 @@ library(tidyverse)
 library(kabrutils)
 library(testdat)
 library(tidywikidatar)
+library(WikidataR)
 
 # Some config ------------------------------------------------------------
 
 config_file <- "data-publishing/factgrid/config.yml"
 config <- yaml::read_yaml(config_file)
-statements <- read_sheet(config$statements$gs_table, sheet = "statements")
+statements <- googlesheets4::read_sheet(config$statements$gs_table, sheet = "statements")
 
-manual_sex_or_gender <- read_sheet("https://docs.google.com/spreadsheets/d/1V1pO2lawpn7j8uQfWSwPYb2F6lvhcUO6pXaj9qvM-cw/edit#gid=0", sheet = "sex_or_gender_manual")
+manual_sex_or_gender <- googlesheets4::read_sheet("https://docs.google.com/spreadsheets/d/1V1pO2lawpn7j8uQfWSwPYb2F6lvhcUO6pXaj9qvM-cw/edit#gid=0", sheet = "sex_or_gender_manual")
 
 # Enable Caching ----------------------------------------------------------
 
@@ -129,7 +130,7 @@ if (!file.exists(sitelinks_file)) {
         id = current$id,
         sex_or_gender = tw_get_property(id = current$qid, p = "P21")
       )
-    }) 
+    })
   saveRDS(wikidata_sex_or_gender_raw, file = wikidata_sex_or_gender_file)
   } else {
     wikidata_sex_or_gender_raw <- readRDS(wikidata_sex_or_gender_file)
@@ -382,7 +383,7 @@ vocab <- list(
 # Add descriptions for 4 languages ----------------------------------------
 
 descriptions <- persons %>% 
-  left_join(wikidata_descriptions_final, by = "id") %>% View
+  left_join(wikidata_descriptions_final, by = "id") %>% 
   mutate(
     Dde = 
       case_when(
@@ -522,13 +523,16 @@ import <- person_statements %>%
   # https://stackoverflow.com/questions/32078578/how-to-group-by-every-7-rows-and-aggregate-those-7-values-by-median
   mutate(group = c(0, rep(1:(nrow(.)-1)%/%20)), .before = "item")
 
+already_in_db <- c("CREATE_book_author_1", "CREATE_book_author_10", "book_author_1013", "book_author_1006", "CREATE_book_author_1019")
+
 import_long <- import %>% 
   pivot_longer(cols = 3:last_col(), names_to = "property", values_to = "value") %>% 
   # fix helper with two instances_of:
   mutate(property = str_remove(property, "_.*")) %>% 
-  filter(!is.na(value))
+  filter(!is.na(value)) %>% 
+  filter(!item %in% already_in_db)
 
-import_list <- import_long %>% group_split(group, .keep = TRUE)
+# import_list <- import_long %>% group_split(group, .keep = TRUE)
 
 # Tests -------------------------------------------------------------------
 
@@ -554,24 +558,13 @@ testthat::test_that(
 
 # Write to factgrid -------------------------------------------------------
 
-# test case 
-# CREATE_book_author_1
-# CREATE_book_author_10
-# CREATE_book_author_1013
-# Q383677
-# CREATE_book_author_1013
-# CREATE_book_author_1006
-# CREATE_book_author_1019
-
-test_long <- import_long %>% filter(item %in% c("CREATE_book_author_1006", "CREATE_book_author_1019"))
-test_long
-# test_import_list <- test_long %>% group_split(group, .keep = TRUE)
 
 write_wikibase(
-  items = test_long$item,
-  properties = test_long$property,
-  values = test_long$value,
+  items = import_long$item,
+  properties = import_long$property,
+  values = import_long$value,
   format = "csv",
+  format.csv.file = "data-publishing/factgrid/data/persons.csv",
   api.username = config$connection$api_username,
   api.token = config$connection$api_token,
   api.format = "v1",
