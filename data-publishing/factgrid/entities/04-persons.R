@@ -536,14 +536,14 @@ import_long <- import %>%
 
 # Tests -------------------------------------------------------------------
 
-testthat::test_that(
-  desc = "John Rechy is just a book author",
-  expect_equal(import_long %>% 
-                 filter(item == "CREATE_book_author_1", property == "P165") %>% 
-                 pull(value),
-               statements %>% filter(statement == "career_is_author") %>% pull(qid)
-  )
-)
+# testthat::test_that(
+#   desc = "John Rechy is just a book author",
+#   expect_equal(import_long %>% 
+#                  filter(item == "CREATE_book_author_1", property == "P165") %>% 
+#                  pull(value),
+#                statements %>% filter(statement == "career_is_author") %>% pull(qid)
+#   )
+# )
 
 testthat::test_that(
   desc = "if item already exists in Factgrid, then no Description or Labels are added",
@@ -574,19 +574,4 @@ write_wikibase(
 )
 
 
-# Test cases --------------------------------------------------------------
 
-# automated gender
-
-
-# Manual wiki stuff 
-# - book_author_1312: GlaxoSmithKline
-# - https://de.wikipedia.org/wiki/GlaxoSmithKline
-
-
-# Geschlecht checken: Cosy Piero
-
-# Pierre et Gilles Gruppe, keine person https://de.wikipedia.org/wiki/Pierre_et_Gilles
-
-
-# book_author_885 fictional human
