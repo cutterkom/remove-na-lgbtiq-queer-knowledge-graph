@@ -463,7 +463,7 @@ person_statements <-
              !is.na(Swikidatawiki) ~ paste0(config$import_helper$single_quote, Swikidatawiki, config$import_helper$single_quote),
              TRUE ~ Swikidatawiki)) %>% 
   # GND ID
-  left_join(gnd_ids %>% distinct(id, P622 = external_id), by = "id") %>% 
+  left_join(gnd_ids %>% distinct(id, P76 = external_id), by = "id") %>% 
   # Forum ID
   add_statement(statements, "external_id_forum", qid_from_row = TRUE, col_for_row_content = "id") %>% 
   # descriptions: If person already in Factgrid, then don't add an new description
