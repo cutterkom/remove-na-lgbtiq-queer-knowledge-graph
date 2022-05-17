@@ -248,8 +248,118 @@ write_wikibase(
   quickstatements.url = config$connection$quickstatements_url
 )
 
-# Aufräumen ---------------------------------------------------------------
 
-# alias verband - verbein https://de.wikipedia.org/wiki/Deutscher_Verband_f%C3%BCr_Frauenstimmrecht
-# TransMann e.V zielgruppe
+# Fetch new Factgrid IDs --------------------------------------------------
+
+query <- '
+SELECT ?item ?itemLabel ?id WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "de". }
+  
+  OPTIONAL {  }
+  ?item wdt:P131 wd:Q400012.
+  OPTIONAL { ?item wdt:P728 ?id }
+}
+'
+
+query_res <- query %>% 
+  sparql_to_tibble(endpoint = config$connection$sparql_endpoint) %>% 
+  mutate(itemLabel = str_remove_all(itemLabel, '\"|\"|, München|@de|München, '),
+         external_id = str_extract(item, "Q[0-9]+"))
+
+
+factgrid_qids <- input_statements %>%
+  distinct(id, name) %>% 
+  left_join(query_res %>% select(-id), by = c("name" = "itemLabel"))
+
+
+import <- factgrid_qids %>% 
+  distinct(id, external_id) %>% 
+  filter(!is.na(external_id)) %>% 
+  mutate(
+    entity_id_type = "entities",
+    external_id_type = "factgrid", 
+    source = "forum", 
+    hierarchy = 1)
+
+con <- connect_db("db_clean")
+DBI::dbAppendTable(con, "el_matches", import)
+DBI::dbDisconnect(con); rm(con)
+
+
+
+# Add Forum ID to Factgrid ------------------------------------------------
+
+import <- factgrid_qids %>% 
+  distinct(external_id, id) %>% 
+  add_statement(statements, "external_id_forum", qid_from_row = TRUE, col_for_row_content = "id") %>% 
+  select(-id) %>% 
+  rename(item = external_id) %>% 
+  pivot_longer(cols = 2:last_col(), names_to = "property", values_to = "value") %>% 
+  # fix helper with two instances_of:
+  mutate(property = str_remove(property, "_.*")) %>% 
+  filter(!is.na(value)) %>% 
+  distinct()
+  
+write_wikibase(
+  items = import$item,
+  properties = import$property,
+  values = import$value,
+  format = "csv",
+  format.csv.file = "data-publishing/factgrid/data/clubs_forum_id.csv",
+  api.username = config$connection$api_username,
+  api.token = config$connection$api_token,
+  api.format = "v1",
+  api.batchname = "entities_clubs",
+  api.submit = F,
+  quickstatements.url = config$connection$quickstatements_url
+)
+
+
+# Arbeitsgebiet -----------------------------------------------------------
+# Arbeitsgebiet P452
+
+import <- input_statements %>% 
+  # location zu Regional coverage
+  # Field of work P452 = Target group 
+  select(id, name, group, P429 = P47) %>% 
+  distinct() %>% 
+  left_join(factgrid_qids %>% select(id, item = external_id)) %>% 
+  mutate(
+    P452_2_aids = ifelse(str_detect(tolower(name), "aids"), "Q404295", NA),
+    #P452_3_lesben = ifelse(str_detect(tolower(name), "frauen|lesbe|feminis|kofra|amazonen|intervention|rad und tat|lesbisch"), "Q399990", NA),
+    # Wenn Lesbe, dann Frauenbewegung
+    # Q245592
+    P452_344_lgbt_move = ifelse(!is.na(group), "Q404296", NA),
+    P452_6_lgbt_move = ifelse(str_detect(tolower(name), "fluss|lesmamas|queer"), "Q404296", NA),
+    P452_6_lgbt_move = ifelse(str_detect(tolower(name), "fluss|lesmamas|queer"), "Q404296", NA),
+    P452_4_feminism = ifelse(group == "lesbian", "Q245592", NA),
+    # frauenbewegung
+    P452_5_feminism = ifelse(str_detect(tolower(name), "frauen|lesbe|feminis|kofra|amazonen|intervention|rad und tat|lesbisch|lesben|tribunal"), "Q245592", NA),
+    # schwulen- und lesbenbewegung
+    P452_6 = ifelse(str_detect(tolower(name), "fluss|lesmamas|queer"), "Q404296", NA)
+    ) %>% 
+  select(item, contains("P")) %>% 
+  select(-group) %>% 
+  pivot_longer(cols = 2:last_col(), names_to = "property", values_to = "value") %>% 
+  # fix helper with two instances_of:
+  mutate(property = str_remove(property, "_.*")) %>% 
+  filter(!is.na(value)) %>% 
+  distinct() %>% 
+    filter(!is.na(item))
+
+
+write_wikibase(
+  items = import$item,
+  properties = import$property,
+  values = import$value,
+  format = "csv",
+  format.csv.file = "data-publishing/factgrid/data/clubs_movements.csv",
+  api.username = config$connection$api_username,
+  api.token = config$connection$api_token,
+  api.format = "v1",
+  api.batchname = "entities_clubs",
+  api.submit = F,
+  quickstatements.url = config$connection$quickstatements_url
+)
+
 
