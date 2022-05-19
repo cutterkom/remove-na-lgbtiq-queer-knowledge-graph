@@ -140,10 +140,10 @@ wikidata_descriptions <- wikidata %>%
     current <- tibble(...)
     tmp <- tibble(
       id = current$id,
-      Dde = tw_get_description(id = current$qid, language = "de"),
-      Den = tw_get_description(id = current$qid, language = "en"),
-      Des = tw_get_description(id = current$qid, language = "es"),
-      Dfr = tw_get_description(id = current$qid, language = "fr")
+      Dde = tw_get_description(id = current$qid, language = "de", cache = TRUE),
+      Den = tw_get_description(id = current$qid, language = "en", cache = TRUE),
+      Des = tw_get_description(id = current$qid, language = "es", cache = TRUE),
+      Dfr = tw_get_description(id = current$qid, language = "fr", cache = TRUE)
     )
   })
 
@@ -230,10 +230,10 @@ wikipedia_sitelinks <- wikidata %>%
     current <- tibble(...)
     tmp <- tibble(
       id = current$id,
-      Sdewiki = tw_get_wikipedia(id = current$qid, language = "de"),
-      Senwiki = tw_get_wikipedia(id = current$qid, language = "en"),
-      Sfrwiki = tw_get_wikipedia(id = current$qid, language = "fr"),
-      Seswiki = tw_get_wikipedia(id = current$qid, language = "es")
+      Sdewiki = tw_get_wikipedia(id = current$qid, language = "de", cache = TRUE),
+      Senwiki = tw_get_wikipedia(id = current$qid, language = "en", cache = TRUE),
+      Sfrwiki = tw_get_wikipedia(id = current$qid, language = "fr", cache = TRUE),
+      Seswiki = tw_get_wikipedia(id = current$qid, language = "es", cache = TRUE)
     )
   }) %>% 
   mutate(
@@ -251,12 +251,101 @@ wikipedia_sitelinks <- wikidata %>%
 # |- Instance of ----------------------------------------------------------
 
 wikidata_instances <- wikidata %>%
+  
   pmap_df(function(...) {
     current <- tibble(...)
-    tw_get_property(id = current$qid, p = "P31", language = "de") %>% 
-      mutate(label = tw_get_label(value))
+    #print(current)
+    tmp <- tw_get_property(id = current$qid, p = "P31", language = "de", cache = TRUE)
+    if (nrow(tmp) > 0) {
+      tmp <- tmp %>% mutate(label = tw_get_label(value))
+    }
+    tmp
   })
-wikidata_instances
+
+#wikidata_instances %>% count(label, sort = T) %>% View
+
+# Create Statements -------------------------------------------------------
+
+input_statements <- input %>% 
+  distinct(id, item) %>% 
+  left_join(final_labels, by = "id") %>% 
+  left_join(final_descriptions, by = "id") %>% 
+  left_join(wikipedia_sitelinks, by = "id") %>% 
+  add_statement(statements, "instance_of_organisation") %>% 
+  add_statement(statements, "research_project") %>% 
+  add_statement(statements, "research_area") %>% 
+  left_join(input %>% select(id, P76 = gnd), by = "id") %>% 
+  # add wikidata qid
+  left_join(input %>% select(id, Swikidatawiki = wikidata) %>% 
+              mutate(Swikidatawiki = ifelse(!is.na(Swikidatawiki), paste0(config$import_helper$single_quote, Swikidatawiki, config$import_helper$single_quote), Swikidatawiki)), by = "id") %>% 
+  mutate(P728 = id)
+
+# Prepare import ----------------------------------------------------------
+
+import <- input_statements %>% 
+  select(item, 
+         matches("^L", ignore.case = FALSE), 
+         matches("^D", ignore.case = FALSE), 
+         matches("^S", ignore.case = FALSE), 
+         matches("^P", ignore.case = FALSE)) %>% 
+  pivot_longer(cols = 2:last_col(), names_to = "property", values_to = "value") %>% 
+  # fix helper with two instances_of:
+  mutate(property = str_remove(property, "_.*")) %>% 
+  filter(!is.na(value)) %>% 
+  distinct()
+
+import
+
+# Import ------------------------------------------------------------------
+
+write_wikibase(
+  items = import$item,
+  properties = import$property,
+  values = import$value,
+  format = "csv",
+  format.csv.file = "data-publishing/factgrid/data/orgs.csv",
+  api.username = config$connection$api_username,
+  api.token = config$connection$api_token,
+  api.format = "v1",
+  api.batchname = "entities_clubs",
+  api.submit = F,
+  quickstatements.url = config$connection$quickstatements_url
+)
+
+
+# Fetch Factgrid IDs ------------------------------------------------------
+
+query <- 
+  '
+SELECT ?item ?itemLabel ?id ?idLabel WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "de". }
+  ?item wdt:P131 wd:Q400012.
+  OPTIONAL { ?item wdt:P728 ?id. }
+}
+'
+
+query_res <- query %>% 
+  sparql_to_tibble(endpoint = config$connection$sparql_endpoint) %>% 
+  mutate(itemLabel = str_remove_all(itemLabel, '\"|\"|, München|@de|München, '),
+         external_id = str_extract(item, "Q[0-9]+"))
+
+
+factgrid_qids <- input_statements %>% distinct(id, Lde) %>% 
+  left_join(query_res, by = c("id" = "idLabel"))
+
+import <- factgrid_qids %>% 
+  distinct(id, external_id) %>% 
+  filter(!is.na(external_id)) %>% 
+  mutate(
+    entity_id_type = "entities",
+    external_id_type = "factgrid", 
+    source = "forum", 
+    hierarchy = 1)
+
+con <- connect_db("db_clean")
+DBI::dbAppendTable(con, "el_matches", import)
+DBI::dbDisconnect(con); rm(con)
+
 
 
 # Wenn Frauenzentrum, dann diese OrgForm frauenze
@@ -331,3 +420,7 @@ wikidata_instances
 
 
 # Geest-Verlag -> verlag
+
+queermedia Verlag -> verlag
+
+
