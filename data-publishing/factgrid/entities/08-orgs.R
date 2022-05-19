@@ -447,17 +447,3 @@ write_wikibase(
   quickstatements.url = config$connection$quickstatements_url
 )
 
-
-
-
-
-
-# Wenn AG/Gruppe, Arbeitskreis
-
-# Inititative Initiativgruppe Homosexualität
-
-# Vorbereitungsgruppe Lesbenwoche hängt zusammen mit?
-
-# poster_author_214 LFC Leder und Fetisch - wie das hinterlegen? -> Schwul Zielgruppe
-
-
