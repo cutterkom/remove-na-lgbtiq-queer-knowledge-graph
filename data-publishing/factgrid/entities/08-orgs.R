@@ -348,79 +348,116 @@ DBI::dbDisconnect(con); rm(con)
 
 
 
-# Wenn Frauenzentrum, dann diese OrgForm frauenze
-# Was hat https://www.wikidata.org/wiki/Q28942424 für Klasse?
+# Changes -----------------------------------------------------------------
 
-# Wenn Universität
+input <- factgrid_qids %>% distinct(id, name = Lde, item = external_id) %>% 
+  mutate(item = ifelse(id == "book_author_1795", "Q405283", item))
+
+# |- Aids als Arbeitsgebiet -----------------------------------------------
+
+import <- input %>% filter(str_detect(tolower(name), "aids")) %>% 
+  distinct(item) %>% 
+  add_statement(statements, "field_of_work_aids") %>% 
+  long_for_quickstatements()
+import
+
+write_wikibase(
+  items = import$item,
+  properties = import$property,
+  values = import$value,
+  format = "api",
+  format.csv.file = "data-publishing/factgrid/data/pub_forum_id.csv",
+  api.username = config$connection$api_username,
+  api.token = config$connection$api_token,
+  api.format = "v1",
+  api.batchname = "entities_aids",
+  api.submit = T,
+  quickstatements.url = config$connection$quickstatements_url
+)
+
+
+
+# |- München --------------------------------------------------------------
+
+import <- input %>% filter(str_detect(tolower(name), "münchen")) %>% 
+  distinct(item) %>% 
+  add_statement(statements, "location_in_munich") %>% 
+  long_for_quickstatements()
+
+write_wikibase(
+  items = import$item,
+  properties = import$property,
+  values = import$value,
+  format = "api",
+  format.csv.file = "data-publishing/factgrid/data/pub_forum_id.csv",
+  api.username = config$connection$api_username,
+  api.token = config$connection$api_token,
+  api.format = "v1",
+  api.batchname = "loc_munich",
+  api.submit = T,
+  quickstatements.url = config$connection$quickstatements_url
+)
+
+
+# |- Verlag ---------------------------------------------------------------
+
+
+import <- input %>% filter(str_detect(tolower(name), "verlag")) %>% 
+  distinct(item) %>% 
+  add_statement(statements, "instance_of_publishing_enterprise") %>% 
+  long_for_quickstatements()
+
+write_wikibase(
+  items = import$item,
+  properties = import$property,
+  values = import$value,
+  format = "api",
+  format.csv.file = "data-publishing/factgrid/data/pub_forum_id.csv",
+  api.username = config$connection$api_username,
+  api.token = config$connection$api_token,
+  api.format = "v1",
+  api.batchname = "verlag",
+  api.submit = T,
+  quickstatements.url = config$connection$quickstatements_url
+)
+
+
+# |- Zielgruppe Frauen ----------------------------------------------------
+
+# und Lesben
+
+import <- input %>% filter(str_detect(tolower(name), "frau")) %>% 
+  distinct(item) %>% 
+  add_statement(statements, "target_group_women") %>% 
+  add_statement(statements, "field_of_work_feminism") %>% 
+  long_for_quickstatements()
+
+import
+
+write_wikibase(
+  items = import$item,
+  properties = import$property,
+  values = import$value,
+  format = "api",
+  api.username = config$connection$api_username,
+  api.token = config$connection$api_token,
+  api.format = "v1",
+  api.batchname = "target_group_field_of_work",
+  api.submit = T,
+  quickstatements.url = config$connection$quickstatements_url
+)
+
+
+
+
+
 
 # Wenn AG/Gruppe, Arbeitskreis
 
 # Inititative Initiativgruppe Homosexualität
 
-# Ministerium
-
-# Stiftung
-
-# AIDS-Hilfe -> Arbeitsgebiet AIDS
-
-# Act up
-
-# HAW-Frauen zu HAW dazu
-
-# Bayerischer Rundfunk (BR), ARD, ZDF, SWR, WDR
-
-# Bristol-Myers Squibb, GlaxoSmith--- Unternehmen, Arbeitsgebiet Pharma
-
-# GlaxoWellcome -> Nachfolger davon GlaxosmithLine
-
-# FHG Homosexualität und Geschichte Dachverband
-
-# Forum der schwul-lesbischen Chöre Europas -> Arbeitsgebiet Chor/Musik
-# Philhomoniker
-# Rainbow Sound Orchestra Munich
-# poster_author_235 Die Schrillmänner
-
-
-# "Frauen" -> Zielgruppe Frauen
-
-# bei homosexuellen Initiativen als Abkürzung nur Österreeich offenbar https://de.wikipedia.org/wiki/HOSI
-
-
-# Kölner Lesben- und Schwulentag c/o Schulz -> c/o weg
-
-# Kommunistische Partei als Partei
-
-# poster_author_393 Medium Verlag als Verlag
-
-# Als mit München, Münchner -> P47 München
-
-
-
-# Stefanie Seibold Mensch keine Org
-
-
-
-
 # Vorbereitungsgruppe Lesbenwoche hängt zusammen mit?
 
-# chronik_182 HuK München zu HuK Allegemein verbinden
-
-# chronik_466 Sozialreferat -> zu Stadt München hängen
-# poster_author_114 Kulturreferat
-
-
 # poster_author_214 LFC Leder und Fetisch - wie das hinterlegen? -> Schwul Zielgruppe
-
-
-# poster_author_474
-
-# BiNe – Bisexuelles Netzwerk  -> zielgruppe
-
-# poster_author_71
-
-
-# Geest-Verlag -> verlag
-
-queermedia Verlag -> verlag
 
 
