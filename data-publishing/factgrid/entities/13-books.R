@@ -194,3 +194,8 @@ import <- factgrid_qids %>%
 con <- connect_db("db_clean")
 DBI::dbAppendTable(con, "el_matches", import)
 DBI::dbDisconnect(con); rm(con)
+
+
+
+books_raw %>% 
+  left_join(el_matches)
