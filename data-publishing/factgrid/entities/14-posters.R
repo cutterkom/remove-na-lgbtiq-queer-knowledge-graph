@@ -1,6 +1,3 @@
-# Data model Publications https://database.factgrid.de/wiki/FactGrid:Print_publications_data_model
-
-
 library(tidyverse)
 library(kabrutils)
 library(testdat)
