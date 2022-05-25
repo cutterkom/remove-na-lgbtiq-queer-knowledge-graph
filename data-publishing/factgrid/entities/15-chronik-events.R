@@ -369,7 +369,38 @@ DBI::dbAppendTable(con, "el_matches", import)
 DBI::dbDisconnect(con); rm(con)
 
 
-# Inkrafttreten des „Codex iuris bavarici criminalis“ -> Bayern
-# BR -> Bayern
 
-# Various Voices -> Desc 14. europäische LGBTI* Chorfestival
+# Change labels -----------------------------------------------------------
+
+new_labels <- import %>% 
+  select(id, item = external_id) %>% 
+  left_join(input_statements %>% distinct(P728, Lde, Len, Les, Lfr, year), by = c("id" = "P728")) %>% 
+  mutate(
+    Lde = paste0(str_remove(Lde, ".*: "), " (", year, ")"),
+    Len = paste0(str_remove(Len, ".*: "), " (", year, ")"),
+    Lfr = paste0(str_remove(Lfr, ".*: "), " (", year, ")"),
+    Les = paste0(str_remove(Les, ".*: "), " (", year, ")")) %>% 
+  filter(item != "Q409997")
+
+import <- new_labels %>% 
+  select(item, Lde, Len, Lfr, Les) %>% 
+  pivot_longer(cols = 2:last_col(), names_to = "property", values_to = "value", values_drop_na = TRUE) %>%
+  distinct()
+import
+
+# Import ------------------------------------------------------------------
+
+write_wikibase(
+  items = import$item,
+  properties = import$property,
+  values = import$value,
+  format = "csv",
+  format.csv.file = "data-publishing/factgrid/data/new-labels.csv",
+  api.username = config$connection$api_username,
+  api.token = config$connection$api_token,
+  api.format = "v1",
+  api.batchname = "entities_books",
+  api.submit = F,
+  quickstatements.url = config$connection$quickstatements_url
+)
+
