@@ -43,6 +43,13 @@ deathdates <-
 
 
 
+# Birthplace --------------------------------------------------------------
+
+persons %>% 
+  distinct(geburtsort) %>% clipr::write_clip()
+
+rrefine::refine_export("kz-birthplaces")
+
 # Haft --------------------------------------------------------------------
 
 haft_long <- persons %>% 
@@ -68,6 +75,48 @@ types <- persons %>%
 
 
 
+# citizenship -------------------------------------------------------------
+
+citizenship <- persons %>% 
+  distinct(id, staatsangehorigkeit) %>% 
+  mutate(
+    P616 = 
+      case_when(
+        staatsangehorigkeit == "deutsch" ~ "Q256463",
+        staatsangehorigkeit == "tschechisch" ~ "Q418268",
+        staatsangehorigkeit == "österreichisch" ~ "Q418269",
+        TRUE ~ NA_character_
+      )
+  )
+
+
+# Religion ----------------------------------------------------------------
+
+religion <- persons %>% 
+  distinct(id, religion) %>% 
+  mutate(
+    P172 = 
+      case_when(
+        religion == "katholisch" ~ "Q22233",
+        religion == "evangelisch" ~ "Q230447",
+        religion == "jüdisch" ~ "Q23252",
+        religion == "konfessionslos" ~ "Q418270",
+        TRUE ~ NA_character_
+      )
+  )
+
+
+# beruf --------------------------------------------------------------
+
+persons %>% 
+  distinct(beruf) %>% 
+  separate_rows(beruf) %>% 
+  mutate(beruf=trimws(beruf)) %>% 
+  clipr::write_clip()
+
+rrefine::refine_export("kz-beruf")
+
+
 # Prepare for reconciliation ----------------------------------------------
 
 persons %>% 
@@ -77,6 +126,12 @@ persons %>%
   
 
 
+
+
+persons %>% 
+  left_join(birthdates, by = "id") %>% 
+  left_join(deathdates, by = "id") %>% 
+  left_join(religion, by = "id")
 
 
 
