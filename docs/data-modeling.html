@@ -4,18 +4,18 @@
 
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>5 Misc | Remove NA</title>
-  <meta name="description" content="5 Misc | Remove NA" />
+  <title>3 Data Modeling | Remove NA</title>
+  <meta name="description" content="3 Data Modeling | Remove NA" />
   <meta name="generator" content="bookdown 0.25 and GitBook 2.6.7" />
 
-  <meta property="og:title" content="5 Misc | Remove NA" />
+  <meta property="og:title" content="3 Data Modeling | Remove NA" />
   <meta property="og:type" content="book" />
   
   
   
 
   <meta name="twitter:card" content="summary" />
-  <meta name="twitter:title" content="5 Misc | Remove NA" />
+  <meta name="twitter:title" content="3 Data Modeling | Remove NA" />
   
   
   
@@ -29,8 +29,8 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black" />
   
   
-<link rel="prev" href="data-linking.html"/>
-
+<link rel="prev" href="data-gathering.html"/>
+<link rel="next" href="data-linking.html"/>
 <script src="libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.4.6/dist/fuse.min.js"></script>
 <link href="libs/gitbook-2.6.7/css/style.css" rel="stylesheet" />
@@ -202,18 +202,38 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           <div class="page-inner">
 
             <section class="normal" id="section-">
-<div id="misc" class="section level1 hasAnchor" number="5">
-<h1><span class="header-section-number">5</span> Misc<a href="misc.html#misc" class="anchor-section" aria-label="Anchor link to header"></a></h1>
-<div id="virtual-environments-and-dependency-management" class="section level2 hasAnchor" number="5.1">
-<h2><span class="header-section-number">5.1</span> Virtual Environments and dependency management<a href="misc.html#virtual-environments-and-dependency-management" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<ul>
-<li>Python <code>venv</code></li>
-<li>R: <code>renv.lock</code> (one has to activate it with <code>renv::activate()</code>), <a href="https://rstudio.github.io/renv/articles/renv.html">see more in docs</a></li>
-</ul>
+<div id="data-modeling" class="section level1 hasAnchor" number="3">
+<h1><span class="header-section-number">3</span> Data Modeling<a href="data-modeling.html#data-modeling" class="anchor-section" aria-label="Anchor link to header"></a></h1>
+<p>In this document you’ll find explainations and descriptions of the data model used in the <code>Remove NA</code> project.</p>
+<p>Remove NA collects data about real world entities, such as people, organizations or locations, and the relationships between them.</p>
+<div id="import-to-factgrid" class="section level2 hasAnchor" number="3.1">
+<h2><span class="header-section-number">3.1</span> Import to Factgrid<a href="data-modeling.html#import-to-factgrid" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>Factgrid is a database for historians, technically based on a Wikibase instance.
+I can use this platform to publish data gathered for this project.</p>
+<div id="data-modeling-and-import" class="section level3 hasAnchor" number="3.1.1">
+<h3><span class="header-section-number">3.1.1</span> Data modeling and import<a href="data-modeling.html#data-modeling-and-import" class="anchor-section" aria-label="Anchor link to header"></a></h3>
+<p>To import the data in Factgrid, I have to model the data accordingly.
+I developed a process for doing so.</p>
+<p>All scripts can be found in <a href="https://github.com/cutterkom/remove-na-lgbtiq-queer-knowledge-graph/tree/main/data-publishing/factgrid/entities"><code>data-publishing/factgrid/</code></a>.</p>
+<p>A simple one, is the one for addings <a href="https://github.com/cutterkom/remove-na-lgbtiq-queer-knowledge-graph/blob/main/data-publishing/factgrid/entities/17-awards.R"><code>awards</code></a>.</p>
 </div>
-<div id="render-docs" class="section level2 hasAnchor" number="5.2">
-<h2><span class="header-section-number">5.2</span> Render docs<a href="misc.html#render-docs" class="anchor-section" aria-label="Anchor link to header"></a></h2>
-<p>Render docs: <code>bookdown::render_book("docs/", output_dir = ".")</code></p>
+</div>
+<div id="create-rdf-files-from-database" class="section level2 hasAnchor" number="3.2">
+<h2><span class="header-section-number">3.2</span> Create RDF files from database<a href="data-modeling.html#create-rdf-files-from-database" class="anchor-section" aria-label="Anchor link to header"></a></h2>
+<p>RDF files created with <code>RML</code> rules.</p>
+<p>Scripts in <code>data-modelling</code></p>
+<ol style="list-style-type: decimal">
+<li>run parser:</li>
+</ol>
+<ul>
+<li>Knowledge Graph v1 with de-duplicated books, authors, publishers (best version!): <code>yarrrml-parser -i mappings/kg_v1.yml -o mappings/kg_v1.r2rml.ttl -f R2RML</code></li>
+<li>for posters: <code>yarrrml-parser -i mappings/posters-rules.yml -o mappings/posters-mapping.r2rml.ttl -f R2RML</code></li>
+<li>for books: <code>yarrrml-parser -i mappings/books-rules.yml -o mappings/books-mapping.r2rml.ttl -f R2RML</code></li>
+<li>for books and authors <code>yarrrml-parser -i mappings/books-authors.yml -o mappings/books-authors.r2rml.ttl -f R2RML</code></li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li>create RDF files with <code>python3 create-rdf.py</code></li>
+</ol>
 
 </div>
 </div>
@@ -222,8 +242,8 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
           </div>
         </div>
       </div>
-<a href="data-linking.html" class="navigation navigation-prev navigation-unique" aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
-
+<a href="data-gathering.html" class="navigation navigation-prev " aria-label="Previous page"><i class="fa fa-angle-left"></i></a>
+<a href="data-linking.html" class="navigation navigation-next " aria-label="Next page"><i class="fa fa-angle-right"></i></a>
     </div>
   </div>
 <script src="libs/gitbook-2.6.7/js/app.min.js"></script>

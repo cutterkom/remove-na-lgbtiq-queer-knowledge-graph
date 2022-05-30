@@ -21,4 +21,53 @@ I also publish blog posts on topic related to this projects
 * [RDF, RML, YARRRML: A basic tutorial to create Linked Data from a relational database table](https://katharinabrunner.de/2022/03/rdf-rml-yarrrml-kglab-morph-kgc/)
 * [Stock Taking: How big is the queer Wikidata](https://katharinabrunner.de/wp-content/uploads/2022/03/wikidata-lgbt/index.html)
 * [Vier Wochen Prototype Fund: Was bisher geschah](https://katharinabrunner.de/2022/04/vier-wochen-prototype-fund-was-bisher-geschah/)
+* [Der zweite Monat Remove NA: ein Update](https://katharinabrunner.de/2022/05/der-zweite-monat-remove-na-ein-update/)
+* [Vom Rechner in die Welt: Notizen zum ersten großen Import in Factgrid](https://katharinabrunner.de/2022/05/vom-rechner-in-die-welt-notizen-zum-ersten-grossen-import-in-factgrid/)
 
+
+## Status
+
+
+```{r, echo=FALSE, message=F, warning=F}
+library(tidyverse)
+library(kabrutils)
+library(SPARQL)
+
+config_file <- "../data-publishing/factgrid/config.yml"
+config <- yaml::read_yaml(config_file)
+
+query <- '
+SELECT DISTINCT ?item ?itemLabel ?statementcount
+WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+  ?item wdt:P131 wd:Q400012 .
+  ?item wikibase:statements ?statementcount.
+}'
+
+query_res <- query %>% 
+  sparql_to_tibble(endpoint = config$connection$sparql_endpoint)
+
+
+
+# Number of items ---------------------------------------------------------
+
+nr_of_items <- length(unique(query_res$item))
+
+# Number of relations -----------------------------------------------------
+
+nr_of_relations <- sum(query_res$statementcount)
+
+# minus 4098 für "Werke"
+redundant_works <- 4098
+# sum(query_res$statementcount)-redundant_works
+# minus 3 meta data per item
+netto_relations <- nr_of_relations - (nr_of_items*3) - redundant_works
+```
+
+I use [Factgrid](https://database.factgrid.de/wiki/Main_Page) as my main data publishing hub.
+
+As of `r Sys.Date()`, there are `r nr_of_items` items related to `Remove NA` which have `r as.character(netto_relations)` relations (without basic meta data statements).
+
+You can see them here as a table: 
+
+<iframe style="width: 100%; height: 50vh; border: none;" src="https://database.factgrid.de/query/embed.html#SELECT%20%3Fitem%20%3FitemLabel%20WHERE%20%7B%0A%20%20SERVICE%20wikibase%3Alabel%20%7B%20bd%3AserviceParam%20wikibase%3Alanguage%20%22%5BAUTO_LANGUAGE%5D%2Cen%22.%20%7D%0A%20%20%3Fitem%20wdt%3AP131%20wd%3AQ400012.%0A%7D%0Aorder%20by%20%3FitemLabel" referrerpolicy="origin" sandbox="allow-scripts allow-same-origin allow-popups" ></iframe>

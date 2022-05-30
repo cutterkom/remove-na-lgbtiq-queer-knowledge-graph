@@ -1,9 +1,22 @@
-# Data Modelling
+# Data Modeling
 
 In this document you'll find explainations and descriptions of the data model used in the `Remove NA` project.
 
 Remove NA collects data about real world entities, such as people, organizations or locations, and the relationships between them.
 
+## Import to Factgrid
+
+Factgrid is a database for historians, technically based on a Wikibase instance. 
+I can use this platform to publish data gathered for this project.
+
+### Data modeling and import
+
+To import the data in Factgrid, I have to model the data accordingly.
+I developed a process for doing so. 
+
+All scripts can be found in [`data-publishing/factgrid/`](https://github.com/cutterkom/remove-na-lgbtiq-queer-knowledge-graph/tree/main/data-publishing/factgrid/entities).
+
+A simple one, is the one for addings [`awards`](https://github.com/cutterkom/remove-na-lgbtiq-queer-knowledge-graph/blob/main/data-publishing/factgrid/entities/17-awards.R).
 
 ## Create RDF files from database
 
@@ -18,6 +31,8 @@ Scripts in `data-modelling`
   - for books and authors `yarrrml-parser -i mappings/books-authors.yml -o mappings/books-authors.r2rml.ttl -f R2RML`
 
 2. create RDF files with `python3 create-rdf.py`
+
+
 
 
 
