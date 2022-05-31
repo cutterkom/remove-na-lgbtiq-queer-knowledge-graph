@@ -1,0 +1,158 @@
+---
+title: "Status Update: How much data?"
+date: "2022-05-31"
+author: "Katharina Brunner"
+format: 
+  html:
+    toc: true
+    code-fold: true
+    self-contained: true
+editor: visual
+comments:
+  hypothesis: 
+    theme: clean
+---
+
+It's the end of May, halfway through the time I officially have for my Prototype Fund project. What is the status? Pretty good. I've consolidated a lot of the data from different, heterogeneous sources.
+
+This post is intended to provide an overview of the current state of the linked open data base.
+
+## Short Recap
+
+The data is [stored and published in Factgrid](https://katharinabrunner.de/2022/05/vom-rechner-in-die-welt-notizen-zum-ersten-grossen-import-in-factgrid/), a database for historians. The software is Wikibase, so the same as Wikidata only as a separate installation. This also means: The properties are different. An example: The elementary property "instance of" (such as person, event, organization...) is [P31 in Wikidata](https://www.wikidata.org/wiki/Property:P31), [P2 in Factgrid](https://database.factgrid.de/wiki/Property:P2).
+
+Everything else besides the specific data modeling works similar, like the data import via [Quickstatements](https://www.wikidata.org/wiki/Help:QuickStatements) or the query via a SPARQL endpoint. I now use this endpoint to give an overview of how much data is in Factgrid as of today.
+
+## Summary of imported data
+
+```{r warning=F, message=F }
+library(tidyverse)
+library(kabrutils)
+library(SPARQL)
+
+config_file <- "../../data-publishing/factgrid/config.yml"
+config <- yaml::read_yaml(config_file)
+
+# fetch all items from RemoveNA Project and get the statement count
+query <- '
+SELECT DISTINCT ?item ?itemLabel ?statementcount
+WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+  ?item wdt:P131 wd:Q400012 .
+  ?item wikibase:statements ?statementcount.
+}'
+
+query_res <- query %>%
+  sparql_to_tibble(endpoint = config$connection$sparql_endpoint)
+
+# Number of items ---------------------------------------------------------
+
+nr_of_items <- length(unique(query_res$item))
+
+# Number of relations -----------------------------------------------------
+
+gross_relations <- sum(query_res$statementcount)
+
+# redundandt: 4098 for works (posters/books)
+redundant_works <- 4098
+
+# minus 3 meta data items per item
+netto_relations <- gross_relations - (nr_of_items*3) - redundant_works
+```
+
+In summary:
+
+**As of today, I imported `r nr_of_items` Items with `r as.character(netto_relations)` relations between them.**
+
+Gross there are more connections, but since each item has three metadata fields ([1](), [2](), [3]()), I leave them out of the count. Also, I remove [Published works](https://database.factgrid.de/wiki/Property:P174), because it can be interpreted as a duplicated count for those.
+
+| Type                           | value                             |
+|--------------------------------|-----------------------------------|
+| Items                          | `r nr_of_items`                   |
+| Gross relations                | `r gross_relations`               |
+| redundant data on poster/books | `r redundant_works`               |
+| standard metadata              | `r as.character(nr_of_items*3)`   |
+| Net relations                  | `r as.character(netto_relations)` |
+
+## A network of all data
+
+Plotting all relations between items that belong to the Remove NA project:
+
+![](full-network-big.png)
+
+Looks quite nice!
+
+But besides looks, what does it mean?
+
+It's obvious that many, many items converge to a handful items. You can see this through the lines that end in just few points. For example many items have [`author`](https://database.factgrid.de/entity/Q23190) as a [`career statement`](https://database.factgrid.de/wiki/Item:Q37073) or [`LGBT`](https://database.factgrid.de/entity/Q399988) as [`target group`](https://database.factgrid.de/wiki/Property:P573).
+
+What are those items?
+
+## Main targeted objects
+
+The table shows how often a statement points to a certain object (top 50):
+
+```{r}
+query <- '
+# get a count of target items (objects)
+# removing standard properties
+SELECT ?value ?valueLabel ?count WHERE {
+  {
+    SELECT ?value (COUNT(DISTINCT ?item) AS ?count) WHERE {
+       ?item wdt:P131 wd:Q400012 .
+       ?item ?prop ?value . 
+      # only entities as targets, no strings
+      FILTER(STRSTARTS(STR(?value), "https://database.factgrid.de/entity/"))
+      # without standard properties like instance of, and research project stuff
+      MINUS {?item wdt:P2 ?value.}
+      MINUS {?item wdt:P131 ?value.}
+      MINUS {?item wdt:P97 ?value.}
+            
+    } GROUP BY ?value
+  } . 
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language "en" .
+  }
+}
+ORDER BY DESC(?count) 
+Limit 50
+'
+
+query %>% 
+  sparql_to_tibble(endpoint = config$connection$sparql_endpoint) %>% 
+  DT::datatable()
+```
+
+A deeper network analysis is ongoing.
+
+## Count of `instances of` in the data
+
+`Instances of` are the most basic property in Factgrid as well as Wikidata. It gives information about what an item is: A human? A group? A demonstration? ...
+
+The table shows how often an instance occurs:
+
+```{r fetch_count_ofinstances}
+query <- '
+#  Query to find the most common values for the property ?prop
+#  on items in the class ?class
+
+SELECT ?value ?valueLabel ?count WHERE {
+  {
+    SELECT ?value (COUNT(DISTINCT ?a) AS ?count) WHERE {
+       ?a ?prop ?value . 
+       ?a wdt:P131 ?class .
+       BIND (wdt:P2 AS ?prop) .
+       BIND (wd:Q400012 AS ?class) .
+    } GROUP BY ?value
+  } . 
+  SERVICE wikibase:label {
+    bd:serviceParam wikibase:language "en" .
+  }
+}
+ORDER BY DESC(?count) ?valueLabel
+'
+
+query %>% 
+  sparql_to_tibble(endpoint = config$connection$sparql_endpoint) %>% 
+  DT::datatable()
+```
