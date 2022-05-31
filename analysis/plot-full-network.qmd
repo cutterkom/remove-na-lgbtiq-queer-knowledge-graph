@@ -1,0 +1,110 @@
+---
+title: "Network of Remove NA data"
+author: 
+  - "Katharina Brunner"
+  - "Martina Schories"
+format: 
+  html:
+    self-contained: true
+editor: visual
+---
+
+## Get data from Factgrid
+
+Factgrid, the database for historians, hosts all data of this project. We can query the data with the SPARQL endpoint:
+
+```{r}
+#| warning: false
+#| message: false
+library(tidyverse)
+library(kabrutils)
+library(SPARQL)
+
+config_file <- "../data-publishing/factgrid/config.yml"
+config <- yaml::read_yaml(config_file)
+
+full_network_data_file <- "data/full_network_query.Rds"
+
+if(!file.exists(full_network_data_file)) {
+  full_network_query <- '
+SELECT ?item ?property ?value  WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+  ?item wdt:P131 wd:Q400012 .
+  ?item ?property ?value 
+ }
+'
+query_res_raw <- full_network_query %>% sparql_to_tibble(endpoint = config$connection$sparql_endpoint)
+
+saveRDS(query_res_raw, full_network_data_file)
+} else {
+  query_res_raw <- readRDS(full_network_data_file)
+}
+
+# some filtering
+
+standard_metadata_properties <- c("P728", "P97", "P131")
+
+query_res <- query_res_raw %>% 
+  # remove some data artefacts
+  filter(!str_detect(property, "https://database.factgrid.de/prop/P")) %>% 
+  # remove standard metadata
+  filter(!str_detect(property, paste(standard_metadata_properties, collapse = "|")))
+
+
+query_res
+```
+
+```{r}
+library(tidygraph)
+library(ggraph) 
+
+item_relations <- query_res %>% 
+  filter(str_detect(property, "prop"), str_detect(value, "entity")) %>% 
+  select(item, value, property)
+
+
+from_df <- item_relations %>% distinct(item) %>% rowid_to_column(var = "id")
+to_df <- item_relations %>% distinct(value) %>% rowid_to_column(var = "id")
+
+edges <- item_relations %>% select(from = item, to = value)
+
+nodes <- bind_rows(item_relations %>% select(item),
+                   item_relations %>% select(item = value)) %>% 
+  distinct() %>% 
+  rowid_to_column("id")
+
+# zwei wege, um graph_tbl he
+graph_tbl <- item_relations %>% 
+  select(from = item, to = value, property) %>% 
+  tidygraph::as_tbl_graph()
+
+# simple metrics
+# but cant access degree this way... 
+graph_metrics <- graph_tbl %>% 
+  activate(nodes) %>%
+  mutate(degree = centrality_degree()) %>%
+  activate(edges) %>%
+  mutate(centrality = centrality_edge_betweenness()) %>%
+  arrange(desc(centrality)) %>% 
+  as_tibble() %>% 
+  left_join(nodes %>% rename(item_from = item), by = c("from" = "id")) %>% 
+  left_join(nodes %>% rename(item_to = item), by = c("to" = "id"))
+
+
+
+# graph_tbl %>%
+#   ggraph(layout == "kk") +
+#   geom_node_point() +
+#   geom_edge_diagonal() 
+# 
+# ggraph(
+#   graph = graph_tbl, 
+#   layout = "kk") +
+#   geom_node_point() +
+#   geom_edge_diagonal(alpha = 0.2)
+
+```
+
+https://bjnnowak.netlify.app/2021/09/30/r-network-analysis-with-tidygraph/
+
+https://rviews.rstudio.com/2019/03/06/intro-to-graph-analysis/
