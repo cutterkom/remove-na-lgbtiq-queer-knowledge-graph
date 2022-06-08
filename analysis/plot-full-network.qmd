@@ -33,6 +33,18 @@ SELECT ?item ?property ?value  WHERE {
   ?item ?property ?value 
  }
 '
+  
+  # include namespaces
+  #   full_network_query <- '
+# SELECT ?item ?property ?value  ?itemLabel ?propLabel ?valueLabel WHERE {
+#   # access namespace for labels
+#   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+#   ?item wdt:P131 wd:Q400012 .
+#   ?item ?property ?value .
+#   # access namespace for properties
+#   ?prop wikibase:directClaim ?property
+#  }
+# '
 query_res_raw <- full_network_query %>% sparql_to_tibble(endpoint = config$connection$sparql_endpoint)
 
 saveRDS(query_res_raw, full_network_data_file)
