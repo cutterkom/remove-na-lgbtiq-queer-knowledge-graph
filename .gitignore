@@ -99,3 +99,8 @@ data-publishing/factgrid/data/clubs.csv
 *.csv
 data-publishing/factgrid/data/persons.csv
 data-publishing/factgrid/data/location_addresses.csv
+analysis/plot-full-network.html
+analysis/2022-05-31-status-update/full-network-big.png
+analysis/img/full-network-big.png
+analysis/img/full-network.png
+analysis/2022-05-31-status-update/index.html
