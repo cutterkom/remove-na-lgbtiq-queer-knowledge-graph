@@ -18,13 +18,13 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX schema: <http://schema.org/>
 prefix foaf:  <http://xmlns.com/foaf/0.1/> 
     
-SELECT DISTINCT ?fg_itemLabel ?value ?propertyLabel ?image WHERE {
+SELECT DISTINCT ?fg_itemLabel ?value ?valueLabel ?image WHERE {
 
   # labels from Factgrid
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  
   
   # starting point is a factgrid item
-  BIND(fg:Q225307 as ?fg_item)
+  BIND(fg:Q223420 as ?fg_item)
   # transform wikidata qid in factgrid to wikidata entity iri
   ?link schema:about ?fg_item .
   ?link schema:isPartOf <https://www.wikidata.org/> . 
@@ -32,13 +32,26 @@ SELECT DISTINCT ?fg_itemLabel ?value ?propertyLabel ?image WHERE {
   BIND(IRI(CONCAT(STR(wd:), ?qid)) AS ?wd_item)
 
   {
+    OPTIONAL {
+       VALUES ?relations_fg {
+        # see list: https://tinyurl.com/268grhz2
+        fgt:P84 # spouse
+        fgt:P117 # unmarried partner
+        fgt:P117 #affair
+        }
+        ?fg_item ?relations_fg ?value .
+        ?value fgt:P189 ?image
+        
+
+    }
+  } UNION {
   # fetch data from DBpedia
   SERVICE <https://dbpedia.org/sparql> {
     # get Wikidata QID from DBPedia resource
     ?db_item owl:sameAs ?wd_item
 
     OPTIONAL {
-       VALUES ?relations1 {
+       VALUES ?relations_db {
         # see list: https://dbpedia.org/ontology/Person
         dbo:partner
         dbo:relation
@@ -54,8 +67,8 @@ SELECT DISTINCT ?fg_itemLabel ?value ?propertyLabel ?image WHERE {
         dbo:spouseName
         dbo:student
         }
-        ?db_item ?relations1 ?value .
-        ?db_item dbo:thumbnail ?image
+        ?db_item ?relations_db ?value .
+        ?value dbo:thumbnail ?image
         
 
     }
@@ -64,7 +77,7 @@ SELECT DISTINCT ?fg_itemLabel ?value ?propertyLabel ?image WHERE {
   # fetch data from wikidata
   SERVICE <https://query.wikidata.org/sparql> {
    OPTIONAL {
-     VALUES ?relations {
+     VALUES ?relations_wd {
         # see list: https://www.wikidata.org/wiki/Wikidata:List_of_properties/Wikidata_property_for_items_about_people_or_organisations/human
         wdt:P26 # spouse
         wdt:P22 # father
@@ -77,7 +90,7 @@ SELECT DISTINCT ?fg_itemLabel ?value ?propertyLabel ?image WHERE {
         wdt:P3373 # sibling
         wdt:P3448 # stepparent
         }
-    ?wd_item ?relations ?value.
+    ?wd_item ?relations_wd ?value.
     #?property wikibase:directClaim ?relations.
     ?value wdt:P18 ?image
    }
