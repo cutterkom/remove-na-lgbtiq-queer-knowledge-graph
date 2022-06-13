@@ -18,7 +18,7 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX schema: <http://schema.org/>
 prefix foaf:  <http://xmlns.com/foaf/0.1/> 
     
-SELECT DISTINCT ?fg_itemLabel ?db_wikilink ?image where {
+SELECT DISTINCT ?db_wikilink ?image where {
 
   # labels from Factgrid
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  
@@ -45,7 +45,7 @@ SELECT DISTINCT ?fg_itemLabel ?db_wikilink ?image where {
       ?db_wikilink a dbo:Person .
       # remove Stefan Zweig, because there is some data fuckup within that resource (I informed DBpedia)
       MINUS {
-         FILTER(REGEX(STR(?db_wikilink), "Stefan_Zweig"))
+         FILTER(REGEX(STR(?db_wikilink), "Stefan_Zweig|LGBT_rights_by_country_or_territory"))
       }
       # also get their wikidata qid's
       ?db_wikilink owl:sameAs ?db_wikilink_wd_item FILTER(regex(str(?db_wikilink_wd_item), "wikidata" ))
