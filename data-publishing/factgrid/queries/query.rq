@@ -41,17 +41,22 @@ select distinct ?fg_item ?fg_itemLabel ?wd_item ?db_item ?db_wikilink ?db_wikili
       ?db_item dbo:wikiPageWikiLink ?db_wikilink .
       # just those that are persons
       ?db_wikilink a dbo:Person .
+      # remove Stefan Zweig, because there is some data fuckup within that resource (I informed DBpedia)
+      MINUS {
+         FILTER(REGEX(STR(?db_wikilink), "Stefan_Zweig"))
+      }
       # also get their wikidata qid's
       ?db_wikilink owl:sameAs ?db_wikilink_wd_item FILTER(regex(str(?db_wikilink_wd_item), "wikidata" ))
+      # add thumbnail image
       ?db_wikilink dbo:thumbnail ?image
     }
   }
 
    # fetch data from wikidata
-  SERVICE <https://query.wikidata.org/sparql> {
-   OPTIONAL {
-    {?wd_item wdt:P18 ?image }
-    UNION {?db_wikilink_wd_item wdt:P18 ?image}
-   }
-  }
+  # SERVICE <https://query.wikidata.org/sparql> {
+  #  OPTIONAL {
+  #   {?wd_item wdt:P18 ?image }
+  #   UNION {?db_wikilink_wd_item wdt:P18 ?image}
+  #  }
+  # }
 }
