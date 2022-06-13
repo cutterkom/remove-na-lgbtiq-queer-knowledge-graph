@@ -15,7 +15,7 @@ PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX schema: <http://schema.org/>
     
-select distinct ?fg_item ?fg_itemLabel ?wd_item ?image where {
+select distinct ?fg_item ?fg_itemLabel ?wd_item ?db_item ?db_wikilink ?db_wikilink_wd_item where {
 
   # labels from Factgrid
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  
@@ -33,4 +33,21 @@ select distinct ?fg_item ?fg_itemLabel ?wd_item ?image where {
    OPTIONAL {
     ?wd_item wdt:P18 ?image }
    }
+
+  # fetch data from DBpedia
+  SERVICE <https://dbpedia.org/sparql> {
+    # get Wikidata QID from DBPedia resource
+    ?db_item owl:sameAs ?wd_item
+
+    # Links from Hirschfeld's Wikipedia Page to other Wikipedia pages of humans
+    # also get the Wikidata QIDs of those linked humans
+    OPTIONAL {
+      # get all wikipedia links
+      ?db_item dbo:wikiPageWikiLink ?db_wikilink .
+      # just those that are persons
+      ?db_wikilink a dbo:Person .
+      # also get their wikidata qid's
+      # ?db_wikilink owl:sameAs ?db_wikilink_wd_item FILTER(regex(str(?db_wikilink_wd_item), "wikidata" ))
+    }
+  }
 }
