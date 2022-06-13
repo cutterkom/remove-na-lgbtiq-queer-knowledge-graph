@@ -1,4 +1,4 @@
-#defaultView:ImageGrid
+#defaultView:Table
 
 # Prefix standard 
 # Factgrid
@@ -18,7 +18,7 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX schema: <http://schema.org/>
 prefix foaf:  <http://xmlns.com/foaf/0.1/> 
     
-SELECT DISTINCT ?fg_itemLabel ?value ?valueLabel ?image ?label WHERE {
+SELECT DISTINCT ?label ?image WHERE {
 
   # labels from Factgrid
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  
@@ -68,10 +68,20 @@ SELECT DISTINCT ?fg_itemLabel ?value ?valueLabel ?image ?label WHERE {
         dbo:student
         }
         ?db_item ?relations_db ?value .
-        ?value dbo:thumbnail ?image
+               
+     
+      # get images
+      {?value dbo:thumbnail ?image .}
+      
     }
+  }
+} UNION {
+  # fetch data from DBpedia
+  SERVICE <https://dbpedia.org/sparql> {
+    # get Wikidata QID from DBPedia resource
+    ?db_item owl:sameAs ?wd_item
 
-     OPTIONAL {
+    OPTIONAL { 
       # get all wikipedia links
       ?db_item dbo:wikiPageWikiLink ?db_wikilink .
       # just those that are persons
@@ -80,10 +90,11 @@ SELECT DISTINCT ?fg_itemLabel ?value ?valueLabel ?image ?label WHERE {
       MINUS {FILTER(REGEX(STR(?db_wikilink), "Stefan_Zweig|LGBT_rights_by_country_or_territory"))}
       # also get their wikidata qid's
       ?db_wikilink owl:sameAs ?db_wikilink_wd_item FILTER(regex(str(?db_wikilink_wd_item), "wikidata" ))
-      # add thumbnail image
-      ?db_wikilink dbo:thumbnail ?image
+
+    ?db_wikilink dbo:thumbnail ?image}
+      
     }
-  }
+  
 } UNION {
   # fetch data from wikidata
   SERVICE <https://query.wikidata.org/sparql> {
@@ -107,7 +118,6 @@ SELECT DISTINCT ?fg_itemLabel ?value ?valueLabel ?image ?label WHERE {
    }
    }
   }
-
-# generate label from cascade
-BIND(COALESCE(?valueLabel, ?db_wikilink, ?wd_item, "no_label") AS ?label).
+  # generate label from cascade
+ BIND(COALESCE(?valueLabel, ?value, ?db_wikilink , "no_label") AS ?label).
 }
