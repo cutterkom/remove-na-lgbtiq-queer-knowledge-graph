@@ -13,9 +13,13 @@ PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX dct:  <http://purl.org/dc/terms/>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX schema: <http://schema.org/>
 
 
 SELECT distinct ?wd_item ?db_wikilink ?db_wikilink_wd_item ?image where {
+    
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  
+    
     SERVICE <https://dbpedia.org/sparql> {
       # get Wikidata QID from DBPedia resource
       dbr:Magnus_Hirschfeld owl:sameAs ?wd_item FILTER(regex(str(?wd_item), "www.wikidata.org" )).
@@ -32,5 +36,6 @@ SELECT distinct ?wd_item ?db_wikilink ?db_wikilink_wd_item ?image where {
      # get images of those linked people, from wikidata
      ?db_wikilink_wd_item wdt:P18 ?image }
    }	
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  	
+
 }
+
