@@ -14,28 +14,23 @@ PREFIX dct:  <http://purl.org/dc/terms/>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX schema: <http://schema.org/>
-
-
-SELECT distinct ?wd_item ?db_wikilink ?db_wikilink_wd_item ?image where {
     
+select distinct ?fg_item ?fg_itemLabel ?wd_item ?image where {
+
+  # labels from Factgrid
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  
-    
-    SERVICE <https://dbpedia.org/sparql> {
-      # get Wikidata QID from DBPedia resource
-      dbr:Magnus_Hirschfeld owl:sameAs ?wd_item FILTER(regex(str(?wd_item), "www.wikidata.org" )).
-      
-      # Links from Hirschfeld's Wikipedia Page to other Wikipedia pages of humans
-      # also get the Wikidata QIDs of those linked humans
-      OPTIONAL {dbr:Magnus_Hirschfeld dbo:wikiPageWikiLink ?db_wikilink .
-               ?db_wikilink a dbo:Person .
-               ?db_wikilink owl:sameAs ?db_wikilink_wd_item FILTER(regex(str(?db_wikilink_wd_item), "www.wikidata.org" ))}
-    }  
-   SERVICE <https://query.wikidata.org/sparql> {
-	  
+  
+  # starting point is a factgrid item
+  BIND(fg:Q225307 as ?fg_item)
+  # transform wikidata qid in factgrid to wikidata entity iri
+  ?link schema:about ?fg_item .
+  ?link schema:isPartOf <https://www.wikidata.org/> . 
+  ?link schema:name ?qid.
+  BIND(IRI(CONCAT(STR(wd:), ?qid)) AS ?wd_item)
+
+  # fetch data from wikidata
+  SERVICE <https://query.wikidata.org/sparql> {
    OPTIONAL {
-     # get images of those linked people, from wikidata
-     ?db_wikilink_wd_item wdt:P18 ?image }
-   }	
-
+    ?wd_item wdt:P18 ?image }
+   }
 }
-
