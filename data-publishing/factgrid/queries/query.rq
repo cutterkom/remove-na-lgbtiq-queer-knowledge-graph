@@ -1,3 +1,5 @@
+#defaultView:ImageGrid
+
 # Prefix standard 
 # Factgrid
 PREFIX fg: <https://database.factgrid.de/entity/>
@@ -16,7 +18,7 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX schema: <http://schema.org/>
 prefix foaf:  <http://xmlns.com/foaf/0.1/> 
     
-select distinct ?fg_item ?fg_itemLabel ?wd_item ?db_item ?db_wikilink ?db_wikilink_wd_item ?image where {
+SELECT DISTINCT ?fg_itemLabel ?db_wikilink ?image where {
 
   # labels from Factgrid
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  
@@ -52,11 +54,9 @@ select distinct ?fg_item ?fg_itemLabel ?wd_item ?db_item ?db_wikilink ?db_wikili
     }
   }
 
-   # fetch data from wikidata
-  # SERVICE <https://query.wikidata.org/sparql> {
-  #  OPTIONAL {
-  #   {?wd_item wdt:P18 ?image }
-  #   UNION {?db_wikilink_wd_item wdt:P18 ?image}
-  #  }
-  # }
+  # fetch data from wikidata
+  SERVICE <https://query.wikidata.org/sparql> {
+   OPTIONAL {
+   }
+  }
 }
