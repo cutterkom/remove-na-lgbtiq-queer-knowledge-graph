@@ -11,6 +11,9 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 # misc
 PREFIX owl: <http://www.w3.org/2002/07/owl#>
 PREFIX dct:  <http://purl.org/dc/terms/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+
 
 SELECT distinct ?wd_item ?db_wikilink ?db_wikilink_wd_item ?image where {
     SERVICE <https://dbpedia.org/sparql> {
@@ -29,5 +32,5 @@ SELECT distinct ?wd_item ?db_wikilink ?db_wikilink_wd_item ?image where {
      # get images of those linked people, from wikidata
      ?db_wikilink_wd_item wdt:P18 ?image }
    }	
-   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  	
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  	
 }
