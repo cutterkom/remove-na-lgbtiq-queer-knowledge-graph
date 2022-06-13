@@ -14,8 +14,9 @@ PREFIX dct:  <http://purl.org/dc/terms/>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX schema: <http://schema.org/>
+prefix foaf:  <http://xmlns.com/foaf/0.1/> 
     
-select distinct ?fg_item ?fg_itemLabel ?wd_item ?db_item ?db_wikilink ?db_wikilink_wd_item where {
+select distinct ?fg_item ?fg_itemLabel ?wd_item ?db_item ?db_wikilink ?db_wikilink_wd_item ?image where {
 
   # labels from Factgrid
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  
@@ -27,12 +28,6 @@ select distinct ?fg_item ?fg_itemLabel ?wd_item ?db_item ?db_wikilink ?db_wikili
   ?link schema:isPartOf <https://www.wikidata.org/> . 
   ?link schema:name ?qid.
   BIND(IRI(CONCAT(STR(wd:), ?qid)) AS ?wd_item)
-
-  # fetch data from wikidata
-  SERVICE <https://query.wikidata.org/sparql> {
-   OPTIONAL {
-    ?wd_item wdt:P18 ?image }
-   }
 
   # fetch data from DBpedia
   SERVICE <https://dbpedia.org/sparql> {
@@ -47,7 +42,16 @@ select distinct ?fg_item ?fg_itemLabel ?wd_item ?db_item ?db_wikilink ?db_wikili
       # just those that are persons
       ?db_wikilink a dbo:Person .
       # also get their wikidata qid's
-      # ?db_wikilink owl:sameAs ?db_wikilink_wd_item FILTER(regex(str(?db_wikilink_wd_item), "wikidata" ))
+      ?db_wikilink owl:sameAs ?db_wikilink_wd_item FILTER(regex(str(?db_wikilink_wd_item), "wikidata" ))
+      ?db_wikilink dbo:thumbnail ?image
     }
+  }
+
+   # fetch data from wikidata
+  SERVICE <https://query.wikidata.org/sparql> {
+   OPTIONAL {
+    {?wd_item wdt:P18 ?image }
+    UNION {?db_wikilink_wd_item wdt:P18 ?image}
+   }
   }
 }
