@@ -1,4 +1,4 @@
-#defaultView:Table
+#defaultView:ImageGrid
 
 # Prefix standard 
 # Factgrid
@@ -18,13 +18,13 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX schema: <http://schema.org/>
 prefix foaf:  <http://xmlns.com/foaf/0.1/> 
     
-SELECT DISTINCT ?label ?image WHERE {
+SELECT DISTINCT ?fg_item ?label ?image WHERE {
 
   # labels from Factgrid
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  
   
   # starting point is a factgrid item
-  BIND(fg:Q223420 as ?fg_item)
+  BIND(fg:Q226350 as ?fg_item)
   # transform wikidata qid in factgrid to wikidata entity iri
   ?link schema:about ?fg_item .
   ?link schema:isPartOf <https://www.wikidata.org/> . 
@@ -120,4 +120,4 @@ SELECT DISTINCT ?label ?image WHERE {
   }
   # generate label from cascade
  BIND(COALESCE(?valueLabel, ?value, ?db_wikilink , "no_label") AS ?label).
-}
+} 
