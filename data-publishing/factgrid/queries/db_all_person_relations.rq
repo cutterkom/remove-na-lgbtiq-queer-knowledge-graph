@@ -1,4 +1,4 @@
-#defaultView:Table
+#defaultView:ImageGrid
 
 # Prefix standard 
 # Factgrid
@@ -69,8 +69,6 @@ SELECT DISTINCT ?fg_itemLabel ?value ?valueLabel ?image WHERE {
         }
         ?db_item ?relations_db ?value .
         ?value dbo:thumbnail ?image
-        
-
     }
   }
 } UNION {
