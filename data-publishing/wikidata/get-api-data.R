@@ -69,6 +69,7 @@ revisions <- map_df(all_data, ~print(.)) %>%
 
 # write to sheet
 write_sheet(revisions, ss = gs_file, sheet = "raw_data")
+write_delim(revisions, "data-publishing/wikidata/data/revisions.csv", delim = "\t")
 
 # # test
 # testdata <- user_contributions(domain = domain, project = project, 
