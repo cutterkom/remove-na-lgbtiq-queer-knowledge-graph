@@ -1,0 +1,68 @@
+#defaultView:Table
+
+# Prefix standard 
+# Factgrid
+PREFIX fg: <https://database.factgrid.de/entity/>
+PREFIX fgt: <https://database.factgrid.de/prop/direct/>
+# DBpedia
+PREFIX dbo: <http://dbpedia.org/ontology/> 
+PREFIX dbr: <http://dbpedia.org/resource/> 
+# Wikidata
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+# misc
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX dct:  <http://purl.org/dc/terms/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX schema: <http://schema.org/>
+prefix foaf:  <http://xmlns.com/foaf/0.1/> 
+
+
+    
+SELECT DISTINCT ?fg_item ?fg_itemLabel ?fg_property ?wd_property ?fg_value ?wd_value_from_fg ?wd_value_from_wd ?a where {
+
+  # labels from Factgrid
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  
+  
+  # starting points
+  # which factgrid item?
+  BIND(fg:Q223420 as ?fg_item)
+  # which property in focus?
+  #todo in one var
+  BIND(fgt:P117 as ?fg_property)
+  BIND(fg:P117 as ?fg_property_as_item)
+  # set property of corresponding wikidata property
+  BIND(fgt:P343 as ?fg_corr_wd)
+
+  # transform wikidata qid in factgrid to wikidata entity iri
+  ?link schema:about ?fg_item .
+  ?link schema:isPartOf <https://www.wikidata.org/> . 
+  ?link schema:name ?qid.
+  BIND(IRI(CONCAT(STR(wd:), ?qid)) AS ?wd_item)
+
+  # get corresponding wikidata property
+  # and store as IRI
+?fg_property_as_item ?fg_corr_wd ?fg_corr_wd_value .
+BIND(IRI(CONCAT(STR(wdt:), ?fg_corr_wd_value)) AS ?wd_property)
+
+ # get factgrid statement
+  ?fg_item ?fg_property ?fg_value .
+  # get wikidata qid of fg_value
+  # used later for comparison
+ ?link_value schema:about ?fg_value .
+  ?link_value schema:isPartOf <https://www.wikidata.org/> . 
+  ?link_value schema:name ?qid_value.
+  BIND(IRI(CONCAT(STR(wd:), ?qid_value)) AS ?wd_value_from_fg)
+
+# now change to wikidata as data source
+# get value from wikidata
+SERVICE <https://query.wikidata.org/sparql> {
+   OPTIONAL {
+    ?wd_item ?wd_property ?wd_value_from_wd.
+   }
+   }
+   # only return those that have different values
+  # filter (?wd_value_from_fg != ?wd_value_from_wd) 
+
+ }
