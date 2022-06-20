@@ -23,7 +23,6 @@ SELECT DISTINCT ?fg_item ?fg_itemLabel ?wd_item ?wd_fg_id where {
     # labels from Factgrid
     SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  
     
-    # get all from Remove NA
     ?fg_item fgt:P131 fg:Q400012 .
 
     # transform wikidata qid in factgrid to wikidata entity iri
@@ -39,4 +38,4 @@ SELECT DISTINCT ?fg_item ?fg_itemLabel ?wd_item ?wd_fg_id where {
             ?wd_item wdt:P8168 ?wd_fg_id.
             }
     }
-}
+} 
