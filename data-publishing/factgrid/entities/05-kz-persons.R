@@ -62,7 +62,7 @@ birthdates <-
       filter(str_detect(geburtsdatum, "\\/")) %>% 
       mutate(birthdate = lubridate::mdy(geburtsdatum))
   ) %>% 
-  distinct(id, P77 = birthdate) %>% 
+  distinct(id, P77 = birthdate, birthdate_raw = birthdate) %>% 
   mutate(P77 = paste0("+", P77, "T00:00:00Z/", 11))
 
 
@@ -79,7 +79,7 @@ deathdates <-
       filter(str_detect(todesdatum, "\\/")) %>% 
       mutate(deathdate = lubridate::mdy(todesdatum))
   ) %>% 
-  distinct(id, P38 = deathdate) %>% 
+  distinct(id, P38 = deathdate, deathdate_raw = deathdate) %>% 
   mutate(P38 = paste0("+", P38, "T00:00:00Z/", 11))
 
 # Birthplace --------------------------------------------------------------
@@ -115,8 +115,12 @@ birthplaces <- persons %>%
         TRUE ~ factgrid
       )
   ) %>% 
-  rename(P82 = factgrid) %>% 
-  select(-geburtsort)
+  rename(P82 = factgrid, geburtsort_raw = geburtsort)
+  
+birthplaces_for_desc <- birthplaces %>% 
+  filter(!is.na(P82)) %>% 
+  right_join(birthplaces_factgrid, c("P82" = "factgrid")) %>% 
+  filter(!is.na(P82))
 
 # citizenship -------------------------------------------------------------
 
@@ -125,9 +129,9 @@ citizenship <- persons %>%
   mutate(
     P616 = 
       case_when(
-        staatsangehorigkeit == "deutsch" ~ "Q256463",
-        staatsangehorigkeit == "tschechisch" ~ "Q418268",
-        staatsangehorigkeit == "österreichisch" ~ "Q418269",
+        staatsangehorigkeit == "deutsch" ~ "Q140530",
+        staatsangehorigkeit == "tschechisch" ~ "Q256356", # alt:"Q418268",
+        staatsangehorigkeit == "österreichisch" ~ "Q140532", # alt: "Q418269",
         TRUE ~ NA_character_
       )
   ) %>% 
@@ -163,7 +167,7 @@ place_of_death <- persons %>%
   left_join(factgrid_place_death, by = "id") %>% 
   # Killed in a National Socialist concentration camp
   mutate(P550 = ifelse(str_detect(gestorben_in, "KZ|Konzentrationslager|NS"), "Q220577", NA)) %>% 
-  select(id, P168 = factgrid, P550)
+  select(id, P168 = factgrid, P550, death_place_raw = gestorben_in)
 
 # beruf --------------------------------------------------------------
 
@@ -179,7 +183,7 @@ factgrid_beruf <- rrefine::refine_export("kz-beruf")
 berufe <- persons %>% 
   distinct(id, beruf) %>% 
   left_join(factgrid_beruf, by = "id") %>% 
-  select(id, P165 = factgrid)
+  select(id, P165 = factgrid, beruf_raw = beruf.x)
 
 
 
@@ -419,25 +423,82 @@ quellen_input <- rrefine::refine_export("kz-quellen") %>%
     factgrid = ifelse(str_detect(quellen, "Buchenwald"), "Q195179", factgrid),
     factgrid = ifelse(str_detect(quellen, "Mauthausen"), "Q220826", factgrid),
     S73 = paste0('"', quellen ,'"')) %>% 
-  distinct(id, XXXX = factgrid, S73)
+  distinct(id, P12 = factgrid, S73) %>% 
+  filter(!is.na(P12))
 
-# kz_persons <- readxl::read_excel("data-gathering/data/input/Personenliste Verfolgung Wohnort München.xls") %>% 
-#   janitor::clean_names() %>% 
-#   rowid_to_column(var = "id")
-# 
-# 
-# 
-# kz_persons %>% 
-#   distinct(id, wohnort_ort_strasse_von_bis) %>% 
-#   separate(wohnort_ort_strasse_von_bis, into = c("address", "date"), sep = ";") %>% 
-#   mutate(city = str_extract(address, ".*,"),
-#          street = str_remove(address, city)) %>% View
-#   
-#   
+# Better descriptions -----------------------------------------------------
+#  * 1906-06-28 Munich, + 1943-06-04 Dachau, Maler, Homosexuelles NS-Opfer
+desc_better <- labels_desc %>% 
+  left_join(birthdates, by = "id") %>% 
+  left_join(deathdates, by = "id") %>% 
+  left_join(birthplaces_for_desc %>% distinct(id, geburtsort), by = "id") %>% 
+  left_join(place_of_death, by = "id") %>% 
+  left_join(berufe %>% distinct(id, beruf_raw), by = "id") %>% 
+  mutate(deathdate_raw = as.character(deathdate_raw),
+         birthdate_raw = as.character(birthdate_raw)) %>% 
+  replace(is.na(.), "") %>% 
+  mutate(
+    Dde = 
+      case_when(
+        deathdate_raw == "" ~ paste0("* ", birthdate_raw, " ", geburtsort, ", ", beruf_raw, ", ", Dde),
+        TRUE ~ paste0("* ", birthdate_raw, " ", geburtsort, ", + ", deathdate_raw, " ", death_place_raw, ", ", Dde)
+        ),
+    Dde = str_replace_all(Dde, "  ", " "),
+    Dde = str_replace_all(Dde, " , ", ", "),
+    Dde = str_replace_all(Dde, ",,", ","),
+  ) %>%  
+  
+  mutate(
+    Den = 
+      case_when(
+        deathdate_raw == "" ~ paste0("* ", birthdate_raw, " ", geburtsort, ", ", beruf_raw, ", ", Den),
+        TRUE ~ paste0("* ", birthdate_raw, " ", geburtsort, ", + ", deathdate_raw, " ", death_place_raw, ", ", Den)
+      ),
+    Den = str_replace_all(Den, "  ", " "),
+    Den = str_replace_all(Den, " , ", ", "),
+    Den = str_replace_all(Den, ",,", ","),
+  ) %>%  
+  
+  mutate(
+    Dfr = 
+      case_when(
+        deathdate_raw == "" ~ paste0("* ", birthdate_raw, " ", geburtsort, ", ", beruf_raw, ", ", Dfr),
+        TRUE ~ paste0("* ", birthdate_raw, " ", geburtsort, ", + ", deathdate_raw, " ", death_place_raw, ", ", Dfr)
+      ),
+    Dfr = str_replace_all(Dfr, "  ", " "),
+    Dfr = str_replace_all(Dfr, " , ", ", "),
+    Dfr = str_replace_all(Dfr, ",,", ","),
+  ) %>%  
+  
+  mutate(
+    Des = 
+      case_when(
+        deathdate_raw == "" ~ paste0("* ", birthdate_raw, " ", geburtsort, ", ", beruf_raw, ", ", Des),
+        TRUE ~ paste0("* ", birthdate_raw, " ", geburtsort, ", + ", deathdate_raw, " ", death_place_raw, ", ", Des)
+      ),
+    Des = str_replace_all(Des, "  ", " "),
+    Des = str_replace_all(Des, " , ", ", "),
+    Des = str_replace_all(Des, ",,", ","),
+  ) %>%  
+
+  distinct(id, Dde, Den, Dfr, Des)
 
 
 
+# Notiz -------------------------------------------------------------------
 
+notizen <- persons %>% 
+  select(id, haft_ort_von_bis_art, strafverfahren_behorde_aktenzeichen_abschlussdatum_ausgang, quellen) %>% 
+  replace(is.na(.), "") %>% 
+  mutate(P73 = 
+           case_when(
+             strafverfahren_behorde_aktenzeichen_abschlussdatum_ausgang == "" ~ paste0('"', 'Haft: ', haft_ort_von_bis_art, '; Quellen: ', quellen, '"'
+             ),
+             TRUE ~ paste0('"', 'Haft: ', haft_ort_von_bis_art, '; Stafverfahren: ', strafverfahren_behorde_aktenzeichen_abschlussdatum_ausgang, '; Quellen: ', quellen, '"'
+             )
+           )
+  )
+          
 # Statements --------------------------------------------------------------
 
 # haftorte wo und wie? factgrid_kzs_gefaengnisse
@@ -445,7 +506,8 @@ quellen_input <- rrefine::refine_export("kz-quellen") %>%
 
 input_statements <- persons %>% 
   distinct(id) %>% 
-  left_join(labels_desc, by = "id") %>% 
+  left_join(labels_desc %>% select(-Dde, -Den, -Dfr, -Des), by = "id") %>% 
+  left_join(desc_better, by = "id") %>% 
   mutate(item = 
            case_when(
              Lde == "Max Ursprung" ~ "Q403954",
@@ -467,10 +529,10 @@ input_statements <- persons %>%
       Les = ifelse(str_detect(item, "CREATE"), Les, NA_character_),
     ) %>% 
   add_statement(statements, "instance_of_human") %>% 
-  left_join(birthdates, by = "id") %>% 
-  left_join(birthplaces, by = "id") %>% 
-  left_join(deathdates, by = "id") %>% 
-  left_join(place_of_death, by = "id") %>% 
+  left_join(birthdates %>% select(-birthdate_raw), by = "id") %>% 
+  left_join(birthplaces %>% select(-geburtsort_raw), by = "id") %>% 
+  left_join(deathdates %>% select(-deathdate_raw), by = "id") %>% 
+  left_join(place_of_death %>% select(-death_place_raw), by = "id") %>% 
   # geschlecht
   mutate(P154 = "Q18") %>% 
   left_join(citizenship, by = "id") %>% 
@@ -480,21 +542,18 @@ input_statements <- persons %>%
   # Betroffen von KZ-Internierung
   mutate(P550_2 = "Q220582") %>% 
   # Gefangenschaft in ...
-  left_join(berufe, by = "id") %>% 
+  left_join(berufe %>% select(-beruf_raw), by = "id") %>% 
   left_join(address_per_person, by = "id") %>% 
   left_join(city_per_person, by = "id") %>% 
   left_join(factgrid_kzs_gefaengnisse, by = "id") %>% 
+  left_join(quellen_input, by = "id") %>% 
+  left_join(notizen, by = "id") %>% 
   add_statement(statements, "research_project") %>% 
   add_statement(statements, "research_area")
 
-# add notes?
-#%>% 
-  left_join(quellen_input %>% select())
-
-
 # Prepare import ----------------------------------------------------------
 
-  sort_helper <- input_statements %>% 
+sort_helper <- input_statements %>% 
     select(matches("^L", ignore.case = FALSE), 
            matches("^D", ignore.case = FALSE), 
            matches("^S", ignore.case = FALSE),
@@ -512,13 +571,15 @@ input_statements <- persons %>%
            P550, P216,
            # religion
            P172,
-           # cizitenshio
+           # citizenship
            P616, 
            # beruf
            P165,
-          
+
            # location and address
            P83, P208,
+           # quelle, notiz
+           P12, P73,
            # meta data forum, research area
            P97, P131) %>% 
     names() %>% 
@@ -526,11 +587,12 @@ input_statements <- persons %>%
     rename(sort = name, property = value)
   
 
-import_test <- input_statements %>% filter(id == 30) %>% 
+import_test <- input_statements %>% 
+  filter(!id %in% c(30, 32)) %>% 
   select(item, 
          matches("^L", ignore.case = FALSE), 
          matches("^D", ignore.case = FALSE), 
-         matches("^S", ignore.case = FALSE), 
+         #matches("^S", ignore.case = FALSE), 
          matches("^P", ignore.case = FALSE)) %>% 
   long_for_quickstatements() %>% 
   left_join(sort_helper, by = "property") %>%
@@ -551,18 +613,3 @@ WikidataR::write_wikibase(
   api.submit = F,
   quickstatements.url = config$connection$quickstatements_url
 )
-
-
-# Später dazu mit sources ....%>% 
-  #left_join(quellen_input, by = "id") %>% View
-
-
-# todo 
-
-# vornamen bei "Otto-Robert"
-
-# berufe
-# Professor für Kunstgeschichte an der TU München
-# Geschäftsführer der Süddeutschen Feinmechanik GmbH
-# Sekretär von Alexander Graf von Hochberg
-
