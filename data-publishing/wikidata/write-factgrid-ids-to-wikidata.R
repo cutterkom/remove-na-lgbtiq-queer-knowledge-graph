@@ -16,6 +16,9 @@ library(SPARQL)
 config_file <- "data-publishing/factgrid/config.yml"
 config <- yaml::read_yaml(config_file)
 
+# only remove na
+#query <- readr::read_file("data-publishing/factgrid/queries/get_factgrid_ids_from_wikidata-removena.rq")
+# all factgrid
 query <- readr::read_file("data-publishing/factgrid/queries/get_factgrid_ids_from_wikidata.rq")
 
 query_res <- query %>% 
