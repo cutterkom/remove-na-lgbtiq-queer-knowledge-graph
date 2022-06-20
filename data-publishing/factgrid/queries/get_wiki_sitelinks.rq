@@ -1,0 +1,65 @@
+#defaultView:Table
+
+# Prefix standard 
+# Factgrid
+PREFIX fg: <https://database.factgrid.de/entity/>
+PREFIX fgt: <https://database.factgrid.de/prop/direct/>
+# DBpedia
+PREFIX dbo: <http://dbpedia.org/ontology/> 
+PREFIX dbr: <http://dbpedia.org/resource/> 
+# Wikidata
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+# misc
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX dct:  <http://purl.org/dc/terms/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX schema: <http://schema.org/>
+prefix foaf:  <http://xmlns.com/foaf/0.1/> 
+
+SELECT DISTINCT ?fg_item ?fg_itemLabel ?wd_item ?dewiki ?enwiki ?frwiki ?eswiki where {
+
+    # labels from Factgrid
+    SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  
+    
+    # get all from Remove NA
+   ?fg_item fgt:P131 fg:Q400012 .
+
+  
+    # transform wikidata qid in factgrid to wikidata entity iri
+   ?link schema:about ?fg_item .
+   ?link schema:isPartOf <https://www.wikidata.org/> . 
+   ?link schema:name ?qid.
+   BIND(IRI(CONCAT(STR(wd:), ?qid)) AS ?wd_item)
+
+  
+  OPTIONAL {
+   # transform wikidata qid in factgrid to wikidata entity iri
+   ?link_fr schema:about ?fg_item .
+   ?link_fr schema:isPartOf <https://fr.wikipedia.org/> . 
+   ?link_fr schema:name ?frwiki.
+    }
+  OPTIONAL {
+    
+       # transform wikidata qid in factgrid to wikidata entity iri
+   ?link_de schema:about ?fg_item .
+   ?link_de schema:isPartOf <https://de.wikipedia.org/> . 
+   ?link_de schema:name ?dewiki.
+    }
+  OPTIONAL {
+
+          # transform wikidata qid in factgrid to wikidata entity iri
+   ?link_en schema:about ?fg_item .
+   ?link_en schema:isPartOf <https://en.wikipedia.org/> . 
+   ?link_en schema:name ?enwiki.
+    }
+  OPTIONAL {
+
+    ?link_es schema:about ?fg_item .
+   ?link_es schema:isPartOf <https://es.wikipedia.org/> . 
+   ?link_es schema:name ?eswiki.
+  }
+  
+
+}
