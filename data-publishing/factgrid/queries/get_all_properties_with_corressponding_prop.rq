@@ -1,0 +1,18 @@
+#defaultView:Table
+
+# Prefix standard 
+# Factgrid
+PREFIX fg: <https://database.factgrid.de/entity/>
+PREFIX fgt: <https://database.factgrid.de/prop/direct/>
+# Wikidata
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+
+SELECT ?fg_property ?fg_propertyLabel ?wd_property WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+  ?fg_property fgt:P343 ?fg_corr_wd_value.
+  BIND(IRI(CONCAT(STR(wdt:), ?fg_corr_wd_value)) AS ?wd_property)
+}
