@@ -26,10 +26,8 @@ SELECT DISTINCT ?fg_item ?fg_itemLabel ?wd_item ?fg_property ?wd_property ?fg_va
     SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  
 
     # starting points
-    # which factgrid item? uncomment next line if all
-    # BIND(fg:Q223420 as ?fg_item)
     # which property in focus?
-    #todo in one var
+    # todo in one var
     BIND(fgt:P117 as ?fg_property)
     BIND(fg:P117 as ?fg_property_as_item)
     # set property of corresponding wikidata property; is constant
