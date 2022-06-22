@@ -17,11 +17,6 @@ library(flexdashboard)
 
 config_file <- "data-publishing/factgrid/config.yml"
 config <- yaml::read_yaml(here(config_file))
-
-
-
-
-
 ```
 
 
@@ -61,6 +56,8 @@ checkboxGroupInput("person_properties", label = "Properties available that refer
 
 actionButton("button_start_person_properties", "Submit", class = "btn-primary")
 ```
+
+Please be patient, it may take a few moments if a lot of data is requested... 
 
 ```{r}
 
@@ -143,6 +140,7 @@ get_comparison <- function(input) {
         mutate(
           fg_property_id = str_extract(fg_property, "P[0-9]+"),
           wd_property_id = str_extract(wd_property, "P[0-9]+"))
+     
     })
   
 }
@@ -152,33 +150,66 @@ get_comparison <- function(input) {
 
 ```{r}
 comparison_raw <- eventReactive(input$button_start_person_properties, {
-    get_comparison(input$person_properties) 
+    get_comparison(input$person_properties)
   })
-
-
-# renderTable({comparison_raw() })
 
 ```
 
-Properties you asked for:  {data-height=200}
+Properties you asked for:  {data-height=70}
 -------------------------------------
 
-### property-value combination in both {.value-box}
+```{r}
+### Properties to compare:
+# render_properties_in_action <- reactive({
+#   persons_properties %>% 
+#     filter(fg_property_id %in% input$person_properties) %>% 
+#     pull(label) %>% 
+#     glue::glue_collapse(., sep = ", ", last = "")
+# })
+# 
+# renderText({render_properties_in_action() })
+```
+
+### in both {.value-box}
 
 ```{r}
-#renderPrint({ input$person_properties })
-
-in_both_nrow <- eventReactive(input$button_start_person_properties, {
-  data <- comparison_raw() %>% 
-    filter(is_same == "true") %>% 
-    distinct(fg_item, fg_itemLabel, fg_property_id, fg_valueLabel, wd_value_from_fg, wd_value_from_wd) %>% 
-    nrow()
-  })
-
+in_both_nrow <- reactive({
+  nrow(in_both())
+})
 
 renderValueBox({
   valueBox(
     value = in_both_nrow(),
+    icon = "fa-area-chart"
+  )
+})
+```
+
+### only in Factgrid {.value-box}
+
+```{r}
+only_in_fg_nrow <- reactive({
+  nrow(only_in_fg())
+})
+
+renderValueBox({
+  valueBox(
+    value = only_in_fg_nrow(),
+    icon = "fa-area-chart"
+  )
+})
+```
+
+### only in Wikidata {.value-box}
+
+```{r}
+only_in_wd_nrow <- reactive({
+  nrow(only_in_wd())
+})
+
+renderValueBox({
+  valueBox(
+    value = only_in_wd_nrow(),
     icon = "fa-area-chart"
   )
 })
@@ -191,7 +222,7 @@ Row {.tabset .tabset-fade}
 ### Both, in Factgrid and Wikidata
 
 ```{r show_data_in_both}
-in_both <- eventReactive(input$button_start_person_properties, {
+in_both <- reactive({
   data <- comparison_raw() %>% 
     filter(is_same == "true") %>% 
     distinct(fg_item, fg_itemLabel, fg_property_id, fg_valueLabel, wd_value_from_fg, wd_value_from_wd) %>% 
@@ -208,7 +239,7 @@ renderTable({
 ### Only in Factgrid
 
 ```{r}
-only_in_fg <- eventReactive(input$button_start_person_properties, {
+only_in_fg <-  reactive({
   
   data <- comparison_raw() %>% 
     filter(is.na(is_same)) %>% 
@@ -227,7 +258,7 @@ renderTable({only_in_fg()  %>%
 ### Only in Wikidata
 
 ```{r}
-only_in_wd <- eventReactive(input$button_start_person_properties, {
+only_in_wd <- reactive({
   
   data <- comparison_raw() %>% 
     filter(is_same == "false") %>% 
