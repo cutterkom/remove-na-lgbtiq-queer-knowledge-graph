@@ -24,7 +24,10 @@ config <- yaml::read_yaml(here(config_file))
 ```
 
 
-```{r}
+```{r fetch_available_properties}
+
+#' Get properties related to persons
+#' @return dataframe
 get_person_properties <- function() {
   tmp <- readr::read_file("https://raw.githubusercontent.com/cutterkom/remove-na-lgbtiq-queer-knowledge-graph/main/data-publishing/factgrid/queries/get_all_properties_person_with_corresponding_prop.rq") %>% 
   sparql_to_tibble(endpoint = config$connection$sparql_endpoint) %>% 
