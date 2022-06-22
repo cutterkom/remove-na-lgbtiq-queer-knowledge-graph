@@ -42,10 +42,9 @@ get_person_properties <- function() {
 }
 ```
 
-Properties
+Refering to Persons
 =====================================  
-
-Refering to persons {.sidebar}
+ {.sidebar}
 -------------------------------------
 
 Which property should be compared?
@@ -57,16 +56,13 @@ persons_properties_list  <- persons_properties %>%
   select(label, fg_property_id) %>% 
   deframe()
 
-checkboxGroupInput("person_properties", label = "Available properties", choices = persons_properties_list)
+checkboxGroupInput("person_properties", label = "Properties available that refer to persons", choices = persons_properties_list)
 
 actionButton("button_start_person_properties", "Submit", class = "btn-primary")
 ```
 
-
-Comparison
--------------------------------------
 ```{r}
-renderPrint({ input$person_properties })
+
 
 #' Get comparison data based on property
 #' 
@@ -97,7 +93,7 @@ get_comparison <- function(input) {
       PREFIX bd: <http://www.bigdata.com/rdf#>
       PREFIX schema: <http://schema.org/>
       
-      SELECT DISTINCT ?fg_item ?fg_itemLabel ?wd_item ?fg_property ?fg_propertyLabel ?wd_property ?fg_value ?wd_value_from_fg ?wd_value_from_wd ?is_same where {
+      SELECT DISTINCT ?fg_item ?fg_itemLabel ?wd_item ?fg_property ?fg_propertyLabel ?wd_property ?fg_value ?fg_valueLabel ?wd_value_from_fg ?wd_value_from_wd ?is_same where {
       
         # labels from Factgrid
         SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  
@@ -142,7 +138,10 @@ get_comparison <- function(input) {
       
       ')
       
-      sparql_to_tibble(query, endpoint = config$connection$sparql_endpoint)
+      sparql_to_tibble(query, endpoint = config$connection$sparql_endpoint) %>% 
+        mutate(
+          fg_property_id = str_extract(fg_property, "P[0-9]+"),
+          wd_property_id = str_extract(wd_property, "P[0-9]+"))
     })
   
 }
@@ -152,7 +151,7 @@ get_comparison <- function(input) {
 
 ```{r}
 comparison_raw <- eventReactive(input$button_start_person_properties, {
-    get_comparison(input$person_properties)
+    get_comparison(input$person_properties) 
   })
 
 
@@ -160,16 +159,66 @@ comparison_raw <- eventReactive(input$button_start_person_properties, {
 
 ```
 
+Properties you asked for: 
+-------------------------------------
+```{r}
+renderPrint({ input$person_properties })
+```
 
+
+Row {.tabset .tabset-fade}
+-------------------------------------
+   
 ### Both, in Factgrid and Wikidata
 
-```{r}
+```{r show_data_in_both}
 in_both <- eventReactive(input$button_start_person_properties, {
-  in_both <- comparison_raw() %>% 
+  data <- comparison_raw() %>% 
     filter(is_same == "true") %>% 
-    distinct(fg_item, fg_itemLabel, fg_propertyLabel, wd_value_from_fg, wd_value_from_wd)
+    distinct(fg_item, fg_itemLabel, fg_property_id, fg_valueLabel, wd_value_from_fg, wd_value_from_wd) %>% 
+    left_join(persons_properties %>% select(fg_property_id, fg_propertyLabel), by = "fg_property_id")
   })
 
-renderTable({in_both() })
+renderTable({
+  in_both()  %>% 
+    select(fg_itemLabel, fg_propertyLabel, fg_valueLabel)
+  })
+```
+
+### Only in Factgrid
+
+```{r}
+only_in_fg <- eventReactive(input$button_start_person_properties, {
+  
+  data <- comparison_raw() %>% 
+    filter(is.na(is_same)) %>% 
+    distinct(fg_item, fg_itemLabel, fg_property_id, fg_valueLabel, wd_value_from_fg) %>% 
+    # remove those that are present in wd
+    anti_join(in_both(), by = c("fg_item", "wd_value_from_fg")) %>% 
+    left_join(persons_properties %>% select(fg_property_id, fg_propertyLabel), by = "fg_property_id")
+  
+  })
+
+renderTable({only_in_fg()  %>% 
+    select(fg_itemLabel, fg_propertyLabel, fg_valueLabel)})
+```
+
+
+### Only in Wikidata
+
+```{r}
+only_in_wd <- eventReactive(input$button_start_person_properties, {
+  
+  data <- comparison_raw() %>% 
+    filter(is_same == "false") %>% 
+    distinct(fg_item, fg_itemLabel, fg_property_id, wd_value_from_wd) %>% 
+    # remove those that are present in wd
+    anti_join(in_both(), by = c("fg_item", "wd_value_from_wd")) %>% 
+    left_join(persons_properties %>% select(fg_property_id, fg_propertyLabel), by = "fg_property_id")
+  
+  })
+
+renderTable({only_in_wd()  %>% 
+    select(fg_itemLabel, fg_propertyLabel, wd_value_from_wd)})
 ```
 
