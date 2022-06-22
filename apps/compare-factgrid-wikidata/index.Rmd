@@ -1,0 +1,59 @@
+---
+title: "Compare Factgrid and Wikidata"
+output: 
+  flexdashboard::flex_dashboard:
+    vertical_layout: scroll
+runtime: shiny
+---
+
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(glue)
+library(SPARQL)
+library(kabrutils)
+library(here)
+
+config_file <- "data-publishing/factgrid/config.yml"
+config <- yaml::read_yaml(here(config_file))
+
+
+
+
+
+```
+
+
+```{r}
+get_person_properties <- function() {
+  tmp <- readr::read_file("https://raw.githubusercontent.com/cutterkom/remove-na-lgbtiq-queer-knowledge-graph/main/data-publishing/factgrid/queries/get_all_properties_person_with_corresponding_prop.rq") %>% 
+  sparql_to_tibble(endpoint = config$connection$sparql_endpoint) %>% 
+  mutate(
+    fg_property_id = str_extract(fg_property, "P[0-9]+"),
+    wd_property_id = str_extract(wd_property, "P[0-9]+"),
+    label = paste0(fg_propertyLabel, " (FG: ", fg_property_id, ", WD: ", wd_property_id, ")"),
+    label = str_remove_all(label, '"|@en')
+    ) 
+    
+  return(tmp)
+}
+```
+
+Properties
+=====================================  
+
+Refering to persons {.sidebar}
+-------------------------------------
+
+Which property should be compared?
+
+```{r}
+persons_properties_list <- get_person_properties() %>% 
+  select(label, fg_property_id) %>% 
+  deframe()
+
+checkboxGroupInput("properties", label = "Available properties", choices = persons_properties_list)
+```
+
+
+
