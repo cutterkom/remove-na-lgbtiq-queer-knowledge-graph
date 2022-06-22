@@ -2,7 +2,7 @@
 title: "Compare Factgrid and Wikidata"
 output: 
   flexdashboard::flex_dashboard:
-    vertical_layout: scroll
+    orientation: rows
 runtime: shiny
 ---
 
@@ -13,6 +13,7 @@ library(glue)
 library(SPARQL)
 library(kabrutils)
 library(here)
+library(flexdashboard)
 
 config_file <- "data-publishing/factgrid/config.yml"
 config <- yaml::read_yaml(here(config_file))
@@ -159,10 +160,28 @@ comparison_raw <- eventReactive(input$button_start_person_properties, {
 
 ```
 
-Properties you asked for: 
+Properties you asked for:  {data-height=200}
 -------------------------------------
+
+### property-value combination in both {.value-box}
+
 ```{r}
-renderPrint({ input$person_properties })
+#renderPrint({ input$person_properties })
+
+in_both_nrow <- eventReactive(input$button_start_person_properties, {
+  data <- comparison_raw() %>% 
+    filter(is_same == "true") %>% 
+    distinct(fg_item, fg_itemLabel, fg_property_id, fg_valueLabel, wd_value_from_fg, wd_value_from_wd) %>% 
+    nrow()
+  })
+
+
+renderValueBox({
+  valueBox(
+    value = in_both_nrow(),
+    icon = "fa-area-chart"
+  )
+})
 ```
 
 
@@ -178,6 +197,7 @@ in_both <- eventReactive(input$button_start_person_properties, {
     distinct(fg_item, fg_itemLabel, fg_property_id, fg_valueLabel, wd_value_from_fg, wd_value_from_wd) %>% 
     left_join(persons_properties %>% select(fg_property_id, fg_propertyLabel), by = "fg_property_id")
   })
+
 
 renderTable({
   in_both()  %>% 
