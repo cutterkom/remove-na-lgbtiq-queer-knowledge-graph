@@ -14,7 +14,8 @@ library(SPARQL)
 library(kabrutils)
 library(here)
 library(flexdashboard)
-
+library(WikidataR)
+library(shinyjs)
 config_file <- "data-publishing/factgrid/config.yml"
 config <- yaml::read_yaml(here(config_file))
 ```
@@ -252,6 +253,59 @@ only_in_fg <-  reactive({
 
 renderTable({only_in_fg()  %>% 
     select(fg_itemLabel, fg_propertyLabel, fg_valueLabel)})
+
+
+```
+
+```{r wikidata_not_working}
+actionButton("button_import_wikidata", "Submit", class = "btn-primary")
+import_in_wikidata <- reactive({
+  import <- comparison_raw() %>% 
+    inner_join(only_in_fg() %>% distinct(fg_item, wd_value_from_fg), by = c("fg_item", "wd_value_from_fg")) %>% 
+    mutate(
+      wd_item_id = str_extract(wd_item, "Q[0-9]+"),
+      wd_value_from_fg_id = str_extract(wd_value_from_fg, "Q[0-9]+")
+      ) %>% 
+    select(item = wd_item_id, property = wd_property_id, value = wd_value_from_fg_id) 
+  print(import)
+  
+  WikidataR::write_wikidata(
+    items = import$item,
+    properties = import$property,
+    values = import$value,
+    format = "website"
+  )
+})
+
+useShinyjs()
+actionButton("showtxt", "Show/Download File")
+
+ observeEvent(input$showtxt,{
+        # Write some text
+        write.table(c("Test"), file = "www/test.txt")
+      })
+
+
+      # Call Onclick
+      #onclick("showtxt", runjs("window.open('test.txt')"))
+  onclick("showtxt", runjs('window.open("http://google.com", "Google", "width=480,height=360,resizable=no,toolbar=no,menubar=no,location=no,status=no'))
+ 
+# 
+# shiny::actionButton(inputId='ab1', label="Learn More", 
+#                           icon = icon("th"), 
+#                           onclick =paste0("window.open('", import_in_wikidata(), "', '_blank')"))
+
+# eventReactive(input$button_import_wikidata, {
+#   im <- import_in_wikidata()
+#    WikidataR::write_wikidata(
+#     items = im$item,
+#     properties = im$property,
+#     values = im$value,
+#     format = "api",
+#     submit = FALSE
+#   )
+# })
+
 ```
 
 
