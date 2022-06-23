@@ -16,7 +16,7 @@ library(kabrutils)
 library(here)
 library(flexdashboard)
 library(WikidataR)
-library(shinyjs)
+library(clipr)
 config_file <- "data-publishing/factgrid/config.yml"
 config <- yaml::read_yaml(here(config_file))
 ```
@@ -137,13 +137,32 @@ get_comparison <- function(input) {
       
       ')
       
-      sparql_to_tibble(query, endpoint = config$connection$sparql_endpoint) %>% 
-        mutate(
-          fg_property_id = str_extract(fg_property, "P[0-9]+"),
-          wd_property_id = str_extract(wd_property, "P[0-9]+"))
-     
+      res <- sparql_to_tibble(query, endpoint = config$connection$sparql_endpoint) 
+      print(res)
+       if(nrow(res) > 0) {
+        res <- res %>% 
+          mutate(
+            fg_property_id = str_extract(fg_property, "P[0-9]+"),
+            wd_property_id = str_extract(wd_property, "P[0-9]+"))
+       } else {
+        res <- tibble(
+          fg_item = NA_character_,
+          fg_itemLabel = NA_character_,
+          wd_item = NA_character_,
+          fg_property = NA_character_,
+          fg_propertyLabel = NA_character_,
+          wd_property = NA_character_,
+          fg_value = NA_character_,
+          fg_valueLabel = NA_character_,
+          wd_value_from_fg = NA_character_,
+          wd_value_from_wd = NA_character_,
+          is_same = NA_character_,
+          fg_property_id = NA_character_,
+          wd_property_id = NA_character_
+        )
+      }
+     res
     })
-  
 }
 
 ```
@@ -165,10 +184,40 @@ create_link <- function(data, url, name, new_col) {
 }
 ```
 
+```{r get_import_data}
+get_import_data <- function(data, target) {
+  if (target == "wikidata") {
+      import_data <- comparison_raw() %>% 
+    inner_join(data %>% distinct(fg_item, wd_value_from_fg), by = c("fg_item", "wd_value_from_fg")) %>% 
+    mutate(
+      wd_item_id = str_extract(wd_item, "Q[0-9]+"),
+      wd_value_from_fg_id = str_extract(wd_value_from_fg, "Q[0-9]+")
+      ) %>% 
+    select(item = wd_item_id, property = wd_property_id, value = wd_value_from_fg_id) 
+  print(import_data)
+  import_data
+  } else if (target == "factgrid") {
+    import_data <- comparison_raw() %>% 
+      inner_join(data %>% distinct(fg_item, wd_value_from_fg), by = c("fg_item", "wd_value_from_fg")) %>% 
+    mutate(
+      fg_item_id = str_extract(fg_item, "Q[0-9]+"),
+      fg_value_id = str_extract(fg_value, "Q[0-9]+")
+      ) %>% 
+    select(item = fg_item_id, property = fg_property_id, value = fg_value_id) 
+  print(import_data)
+  import_data
+  } else {
+    stop("no valid target. Only `wikidata` or `factgrid` allowed")
+  }
+
+}
+```
+
 
 ```{r fetch_data}
 comparison_raw <- eventReactive(input$button_start_person_properties, {
-    get_comparison(input$person_properties)
+    data <- get_comparison(input$person_properties)
+    data
   })
 ```
 
@@ -179,7 +228,8 @@ Properties you asked for:  {data-height=70}
 
 ```{r}
 in_both_nrow <- reactive({
-  nrow(in_both())
+  nrow(in_both() %>% 
+     distinct())
 })
 
 renderValueBox({
@@ -194,7 +244,8 @@ renderValueBox({
 
 ```{r}
 only_in_fg_nrow <- reactive({
-  nrow(only_in_fg())
+  nrow(only_in_fg() %>% 
+     distinct())
 })
 
 renderValueBox({
@@ -209,7 +260,8 @@ renderValueBox({
 
 ```{r}
 only_in_wd_nrow <- reactive({
-  nrow(only_in_wd())
+  nrow(only_in_wd() %>% 
+         distinct(fg_item, wd_value_from_wd))
 })
 
 renderValueBox({
@@ -226,6 +278,7 @@ Row {.tabset .tabset-fade}
    
 ### Both, in Factgrid and Wikidata
 
+#### Table
 ```{r filter_in_both}
 in_both <- reactive({
   data <- comparison_raw() %>% 
@@ -233,13 +286,14 @@ in_both <- reactive({
     distinct(fg_item, fg_itemLabel, wd_item, fg_property_id, fg_value, fg_valueLabel, wd_value_from_fg, wd_value_from_wd) %>% 
     # add property info
     left_join(persons_properties %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property), by = "fg_property_id")
-  })
+})
 
-````
+```
 
 ```{r show_table_in_both}
 DT::renderDataTable(
   DT::datatable(
+
   in_both() %>% 
     # link for items
     create_link(url = fg_item, name = "Factgrid", new_col = fg_item_link) %>% 
@@ -256,9 +310,11 @@ DT::renderDataTable(
     mutate(value = paste0(fg_valueLabel, " (", fg_value_link, ", ", wd_value_link, ")")) %>% 
     
     # get relevant columns
-    select(item, property, value),
+    select(item, property, value) %>% 
+     distinct(),
   escape = FALSE) # show link as link
 )
+
 
 ```
 
@@ -268,7 +324,7 @@ DT::renderDataTable(
 only_in_fg <-  reactive({
   
   data <- comparison_raw() %>% 
-    filter(is.na(is_same)) %>% 
+    filter(is.na(is_same), !is.na(fg_item)) %>% 
     distinct(fg_item, fg_itemLabel, wd_item, fg_property_id, fg_value, fg_valueLabel, wd_value_from_fg, wd_value_from_wd) %>% 
     # remove those that are present in wd
     anti_join(in_both(), by = c("fg_item", "wd_value_from_fg")) %>% 
@@ -276,8 +332,9 @@ only_in_fg <-  reactive({
     left_join(persons_properties %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property), by = "fg_property_id")
   
   })
-````
+```
 
+#### Table
 ```{r show_table_only_in_fg}
 DT::renderDataTable(
   DT::datatable(
@@ -297,63 +354,26 @@ DT::renderDataTable(
     mutate(value = paste0(fg_valueLabel, " (", fg_value_link, ", ", wd_value_link, ")")) %>% 
     
     # get relevant columns
-    select(item, property, value),
+    select(item, property, value) %>% 
+     distinct(),
   escape = FALSE)
 )
 
 ```
 
-```{r wikidata_not_working}
-actionButton("button_import_wikidata", "Submit", class = "btn-primary")
+#### Import to Wikidata
+This data can be imported to Wikidata. Click the button and paste it into [Wikidata's Quickstatements Tool](https://quickstatements.toolforge.org/#/).
+```{r}
+actionButton("button_import_to_wikidata", "Copy Data", class = "btn-primary")
 import_in_wikidata <- reactive({
-  import <- comparison_raw() %>% 
-    inner_join(only_in_fg() %>% distinct(fg_item, wd_value_from_fg), by = c("fg_item", "wd_value_from_fg")) %>% 
-    mutate(
-      wd_item_id = str_extract(wd_item, "Q[0-9]+"),
-      wd_value_from_fg_id = str_extract(wd_value_from_fg, "Q[0-9]+")
-      ) %>% 
-    select(item = wd_item_id, property = wd_property_id, value = wd_value_from_fg_id) 
-  print(import)
-  
-  WikidataR::write_wikidata(
-    items = import$item,
-    properties = import$property,
-    values = import$value,
-    format = "website"
-  )
+  data <- get_import_data(only_in_fg(), target = "wikidata") %>% 
+     distinct()
 })
 
-useShinyjs()
-actionButton("showtxt", "Show/Download File")
-
- observeEvent(input$showtxt,{
-        # Write some text
-        write.table(c("Test"), file = "www/test.txt")
-      })
-
-
-      # Call Onclick
-      #onclick("showtxt", runjs("window.open('test.txt')"))
-  onclick("showtxt", runjs('window.open("http://google.com", "Google", "width=480,height=360,resizable=no,toolbar=no,menubar=no,location=no,status=no'))
- 
-# 
-# shiny::actionButton(inputId='ab1', label="Learn More", 
-#                           icon = icon("th"), 
-#                           onclick =paste0("window.open('", import_in_wikidata(), "', '_blank')"))
-
-# eventReactive(input$button_import_wikidata, {
-#   im <- import_in_wikidata()
-#    WikidataR::write_wikidata(
-#     items = im$item,
-#     properties = im$property,
-#     values = im$value,
-#     format = "api",
-#     submit = FALSE
-#   )
-# })
-
+observeEvent(input$button_import_to_wikidata, {
+    clipr::write_clip(import_in_wikidata(), allow_non_interactive = TRUE)
+})
 ```
-
 
 ### Only in Wikidata
 
@@ -372,28 +392,46 @@ only_in_wd <- reactive({
 
 ```
 
+#### Table
+
+Labels from Wikidata are not shown (yet), because it would takes quite a time. 
 ```{r show_table_only_in_wd}
 DT::renderDataTable(
   DT::datatable(
     only_in_wd() %>% 
-   # link for items
-    create_link(url = fg_item, name = "Factgrid", new_col = fg_item_link) %>% 
-    create_link(url = wd_item, name = "Wikidata", new_col = wd_item_link) %>% 
-    mutate(item = paste0(fg_itemLabel, " (", fg_item_link, ", ", wd_item_link, ")")) %>% 
-    # links for properties
-    create_link(url = fg_property, name = "Factgrid", new_col = fg_property_link) %>% 
-    create_link(url = wd_property, name = "Wikidata", new_col = wd_property_link) %>% 
-    mutate(property = paste0(fg_propertyLabel, " (", fg_property_link, ", ", wd_property_link, ")")) %>% 
-    
-    # links for values
-    create_link(url = fg_value, name = "Factgrid", new_col = fg_value_link) %>% 
-    create_link(url = wd_value_from_fg, name = "Wikidata", new_col = wd_value_link) %>% 
-    mutate(value = paste0(fg_valueLabel, " (", fg_value_link, ", ", wd_value_link, ")")) %>% 
-    
-    # get relevant columns
-    select(item, property, value),
+     # link for items
+      create_link(url = fg_item, name = "Factgrid", new_col = fg_item_link) %>% 
+      create_link(url = wd_item, name = "Wikidata", new_col = wd_item_link) %>% 
+      mutate(item = paste0(fg_itemLabel, " (", fg_item_link, ", ", wd_item_link, ")")) %>% 
+      
+      # links for properties
+      create_link(url = fg_property, name = "Factgrid", new_col = fg_property_link) %>% 
+      create_link(url = wd_property, name = "Wikidata", new_col = wd_property_link) %>% 
+      mutate(property = paste0(fg_propertyLabel, " (", fg_property_link, ", ", wd_property_link, ")")) %>% 
+      
+      # links for values
+      # no label, needs to be fetched from wikidata
+      create_link(new_col = wd_value_link, url = wd_value_from_wd, name = "Wikidata") %>% 
+      mutate(value = paste0(wd_value_link)) %>% 
+      
+      # get relevant columns
+      select(item, property, value) %>% 
+       distinct(),
   escape = FALSE)
 )
 
 ```
 
+#### Import to Factgrid
+This data can be imported to Factgrid. Click the button and paste it into [Factgrid's Quickstatements Tool](https://database.factgrid.de/quickstatements/#/).
+```{r}
+actionButton("button_import_to_factgrid", "Copy Data", class = "btn-primary")
+import_in_factgrid <- reactive({
+  data <- get_import_data(only_in_wd(), target = "factgrid") %>% 
+    distinct()
+})
+
+observeEvent(input$button_import_to_factgrid, {
+    clipr::write_clip(import_in_factgrid(), allow_non_interactive = TRUE)
+})
+```
