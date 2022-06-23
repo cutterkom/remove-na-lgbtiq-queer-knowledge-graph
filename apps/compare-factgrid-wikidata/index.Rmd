@@ -48,7 +48,7 @@ Refering to Persons
 Which property should be compared?
 
 ```{r get_properties}
-persons_properties <- get_person_properties()
+persons_properties <- get_person_properties() %>% arrange(fg_propertyLabel)
 
 persons_properties_list  <- persons_properties %>% 
   select(label, fg_property_id) %>% 
@@ -92,7 +92,7 @@ get_comparison <- function(input) {
       PREFIX bd: <http://www.bigdata.com/rdf#>
       PREFIX schema: <http://schema.org/>
       
-      SELECT DISTINCT ?fg_item ?fg_itemLabel ?wd_item ?fg_property ?fg_propertyLabel ?wd_property ?fg_value ?fg_valueLabel ?wd_value_from_fg ?wd_value_from_wd ?is_same where {
+      SELECT DISTINCT ?fg_item ?fg_itemLabel ?wd_item ?fg_property ?fg_propertyLabel ?wd_property ?fg_value ?fg_valueLabel ?wd_value_from_fg ?wd_value_from_wd ?fg_value_from_wd ?is_same where {
       
         # labels from Factgrid
         SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  
@@ -130,7 +130,8 @@ get_comparison <- function(input) {
         SERVICE <https://query.wikidata.org/sparql> {
             OPTIONAL {
                 ?wd_item ?wd_property ?wd_value_from_wd.
-         }
+            }
+
         }
         BIND (IF(?wd_value_from_fg = ?wd_value_from_wd, "true", "false") AS ?is_same)
       }
@@ -160,7 +161,8 @@ get_comparison <- function(input) {
           fg_property_id = NA_character_,
           wd_property_id = NA_character_
         )
-      }
+       }
+      cli::cli_alert_success("data fetched")
      res
     })
 }
@@ -186,30 +188,35 @@ create_link <- function(data, url, name, new_col) {
 
 ```{r get_import_data}
 get_import_data <- function(data, target) {
-  if (target == "wikidata") {
-      import_data <- comparison_raw() %>% 
+  
+  tmp <- comparison_raw() %>% 
     inner_join(data %>% distinct(fg_item, wd_value_from_fg), by = c("fg_item", "wd_value_from_fg")) %>% 
     mutate(
+      fg_item_id = str_extract(fg_item, "Q[0-9]+"),
+      fg_value_id = str_extract(fg_value, "Q[0-9]+"),
       wd_item_id = str_extract(wd_item, "Q[0-9]+"),
       wd_value_from_fg_id = str_extract(wd_value_from_fg, "Q[0-9]+")
-      ) %>% 
-    select(item = wd_item_id, property = wd_property_id, value = wd_value_from_fg_id) 
-  print(import_data)
-  import_data
+    )
+  
+  if (target == "wikidata") {
+    import_data <- tmp %>% 
+      mutate(fg_value_id = paste0('"', fg_value_id, '"')) %>% 
+      # add source of Factgrid-Object
+      bind_cols(tibble(source = "S8168", time = "S813", timestamp = paste0("+", Sys.Date(), "T00:00:00Z/", 11))) %>% 
+      select(item = wd_item_id, property = wd_property_id, value = wd_value_from_fg_id, 
+             source, source_value = fg_value_id, 
+             time, timestamp) %>% 
+      distinct()
   } else if (target == "factgrid") {
-    import_data <- comparison_raw() %>% 
-      inner_join(data %>% distinct(fg_item, wd_value_from_fg), by = c("fg_item", "wd_value_from_fg")) %>% 
-    mutate(
-      fg_item_id = str_extract(fg_item, "Q[0-9]+"),
-      fg_value_id = str_extract(fg_value, "Q[0-9]+")
-      ) %>% 
-    select(item = fg_item_id, property = fg_property_id, value = fg_value_id) 
-  print(import_data)
-  import_data
+    # import_data <- tmp %>% 
+    #   mutate(wd_item_id = str_extract(wd_item, "Q[0-9]+"))
+    #   bind_cols(tibble(source = "S8168", time = "S813", timestamp = paste0("+", Sys.Date(), "T00:00:00Z/", 11))) %>% 
+    #   select(item = wd_item_id, property = wd_property_id, value = wd_value_from_fg_id, source, source_value = fg_item_id, time, timestamp) %>% 
+    #   distinct()
   } else {
     stop("no valid target. Only `wikidata` or `factgrid` allowed")
   }
-
+  
 }
 ```
 
@@ -422,9 +429,10 @@ DT::renderDataTable(
 
 ```
 
+
+```{r eval=F}
 #### Import to Factgrid
 This data can be imported to Factgrid. Click the button and paste it into [Factgrid's Quickstatements Tool](https://database.factgrid.de/quickstatements/#/).
-```{r}
 actionButton("button_import_to_factgrid", "Copy Data", class = "btn-primary")
 import_in_factgrid <- reactive({
   data <- get_import_data(only_in_wd(), target = "factgrid") %>% 
