@@ -3,6 +3,7 @@ title: "Compare Factgrid and Wikidata"
 output: 
   flexdashboard::flex_dashboard:
     orientation: rows
+    #vertical_layout: scroll
 runtime: shiny
 ---
 
@@ -226,15 +227,42 @@ Row {.tabset .tabset-fade}
 in_both <- reactive({
   data <- comparison_raw() %>% 
     filter(is_same == "true") %>% 
-    distinct(fg_item, fg_itemLabel, fg_property_id, fg_valueLabel, wd_value_from_fg, wd_value_from_wd) %>% 
-    left_join(persons_properties %>% select(fg_property_id, fg_propertyLabel), by = "fg_property_id")
+    distinct(fg_item, fg_itemLabel, wd_item, fg_property_id, fg_value, fg_valueLabel, wd_value_from_fg, wd_value_from_wd) %>% 
+    # add property info
+    left_join(persons_properties %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property), by = "fg_property_id")
   })
 
+create_link <- function(data, url, name, new_col) {
+  data %>% 
+    mutate(
+      {{new_col}} := str_replace({{url}}, "<", "<a href='"),
+      {{new_col}} := str_replace({{new_col}}, ">", "' target='_blank'>"),
+      {{new_col}} := paste0({{new_col}}, {{name}}, "</a>")
+    )
+}
 
-renderTable({
-  in_both()  %>% 
-    select(fg_itemLabel, fg_propertyLabel, fg_valueLabel)
-  })
+DT::renderDataTable(
+  DT::datatable(
+  in_both() %>% 
+    # link for items
+    create_link(url = fg_item, name = "Factgrid", new_col = fg_item_link) %>% 
+    create_link(url = wd_item, name = "Wikidata", new_col = wd_item_link) %>% 
+    mutate(item = paste0(fg_itemLabel, " (", fg_item_link, ", ", wd_item_link, ")")) %>% 
+    # links for properties
+    create_link(url = fg_property, name = "Factgrid", new_col = fg_property_link) %>% 
+    create_link(url = wd_property, name = "Wikidata", new_col = wd_property_link) %>% 
+    mutate(property = paste0(fg_propertyLabel, " (", fg_property_link, ", ", wd_property_link, ")")) %>% 
+    
+    # links for values
+    create_link(url = fg_value, name = "Factgrid", new_col = fg_value_link) %>% 
+    create_link(url = wd_value_from_fg, name = "Wikidata", new_col = wd_value_link) %>% 
+    mutate(value = paste0(fg_valueLabel, " (", fg_value_link, ", ", wd_value_link, ")")) %>% 
+    
+    # get relevant columns
+    select(item, property, value),
+  escape = FALSE) # show link as link
+)
+
 ```
 
 ### Only in Factgrid
@@ -244,16 +272,35 @@ only_in_fg <-  reactive({
   
   data <- comparison_raw() %>% 
     filter(is.na(is_same)) %>% 
-    distinct(fg_item, fg_itemLabel, fg_property_id, fg_valueLabel, wd_value_from_fg) %>% 
+    distinct(fg_item, fg_itemLabel, wd_item, fg_property_id, fg_value, fg_valueLabel, wd_value_from_fg, wd_value_from_wd) %>% 
     # remove those that are present in wd
     anti_join(in_both(), by = c("fg_item", "wd_value_from_fg")) %>% 
-    left_join(persons_properties %>% select(fg_property_id, fg_propertyLabel), by = "fg_property_id")
+    # add property info
+    left_join(persons_properties %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property), by = "fg_property_id")
   
   })
 
-renderTable({only_in_fg()  %>% 
-    select(fg_itemLabel, fg_propertyLabel, fg_valueLabel)})
-
+DT::renderDataTable(
+  DT::datatable(
+  only_in_fg() %>% 
+    # link for items
+    create_link(url = fg_item, name = "Factgrid", new_col = fg_item_link) %>% 
+    create_link(url = wd_item, name = "Wikidata", new_col = wd_item_link) %>% 
+    mutate(item = paste0(fg_itemLabel, " (", fg_item_link, ", ", wd_item_link, ")")) %>% 
+    # links for properties
+    create_link(url = fg_property, name = "Factgrid", new_col = fg_property_link) %>% 
+    create_link(url = wd_property, name = "Wikidata", new_col = wd_property_link) %>% 
+    mutate(property = paste0(fg_propertyLabel, " (", fg_property_link, ", ", wd_property_link, ")")) %>% 
+    
+    # links for values
+    create_link(url = fg_value, name = "Factgrid", new_col = fg_value_link) %>% 
+    create_link(url = wd_value_from_fg, name = "Wikidata", new_col = wd_value_link) %>% 
+    mutate(value = paste0(fg_valueLabel, " (", fg_value_link, ", ", wd_value_link, ")")) %>% 
+    
+    # get relevant columns
+    select(item, property, value),
+  escape = FALSE)
+)
 
 ```
 
@@ -311,19 +358,40 @@ actionButton("showtxt", "Show/Download File")
 
 ### Only in Wikidata
 
-```{r}
+```{r filter_table_only_in_wd}
 only_in_wd <- reactive({
   
   data <- comparison_raw() %>% 
     filter(is_same == "false") %>% 
-    distinct(fg_item, fg_itemLabel, fg_property_id, wd_value_from_wd) %>% 
+    distinct(fg_item, fg_itemLabel, wd_item, fg_property_id, fg_value, fg_valueLabel, wd_value_from_fg, wd_value_from_wd) %>% 
     # remove those that are present in wd
-    anti_join(in_both(), by = c("fg_item", "wd_value_from_wd")) %>% 
-    left_join(persons_properties %>% select(fg_property_id, fg_propertyLabel), by = "fg_property_id")
+    anti_join(in_both(), by = c("fg_item", "wd_value_from_wd")) %>%
+    # add property info
+    left_join(persons_properties %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property), by = "fg_property_id")
   
   })
 
-renderTable({only_in_wd()  %>% 
-    select(fg_itemLabel, fg_propertyLabel, wd_value_from_wd)})
+DT::renderDataTable(
+  DT::datatable(
+    only_in_wd() %>% 
+   # link for items
+    create_link(url = fg_item, name = "Factgrid", new_col = fg_item_link) %>% 
+    create_link(url = wd_item, name = "Wikidata", new_col = wd_item_link) %>% 
+    mutate(item = paste0(fg_itemLabel, " (", fg_item_link, ", ", wd_item_link, ")")) %>% 
+    # links for properties
+    create_link(url = fg_property, name = "Factgrid", new_col = fg_property_link) %>% 
+    create_link(url = wd_property, name = "Wikidata", new_col = wd_property_link) %>% 
+    mutate(property = paste0(fg_propertyLabel, " (", fg_property_link, ", ", wd_property_link, ")")) %>% 
+    
+    # links for values
+    create_link(url = fg_value, name = "Factgrid", new_col = fg_value_link) %>% 
+    create_link(url = wd_value_from_fg, name = "Wikidata", new_col = wd_value_link) %>% 
+    mutate(value = paste0(fg_valueLabel, " (", fg_value_link, ", ", wd_value_link, ")")) %>% 
+    
+    # get relevant columns
+    select(item, property, value),
+  escape = FALSE)
+)
+
 ```
 
