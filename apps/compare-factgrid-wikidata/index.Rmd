@@ -2,8 +2,8 @@
 title: "Compare Factgrid and Wikidata"
 output: 
   flexdashboard::flex_dashboard:
-    orientation: rows
-    #vertical_layout: scroll
+    #orientation: rows
+    vertical_layout: scroll
 runtime: shiny
 ---
 
@@ -47,7 +47,7 @@ Refering to Persons
 
 Which property should be compared?
 
-```{r}
+```{r get_properties}
 persons_properties <- get_person_properties()
 
 persons_properties_list  <- persons_properties %>% 
@@ -61,8 +61,7 @@ actionButton("button_start_person_properties", "Submit", class = "btn-primary")
 
 Please be patient, it may take a few moments if a lot of data is requested... 
 
-```{r}
-
+```{r get_comparison_fun}
 
 #' Get comparison data based on property
 #' 
@@ -149,28 +148,32 @@ get_comparison <- function(input) {
 
 ```
 
+```{r create_link_fun}
 
-```{r}
+#' Function that creates a link from href and string
+#' @param data dataframe with cols
+#' @param url href for link
+#' @param name string for inside <a href>name</a>
+#' @param new_col name of new col
+create_link <- function(data, url, name, new_col) {
+  data %>% 
+    mutate(
+      {{new_col}} := str_replace({{url}}, "<", "<a href='"),
+      {{new_col}} := str_replace({{new_col}}, ">", "' target='_blank'>"),
+      {{new_col}} := paste0({{new_col}}, {{name}}, "</a>")
+    )
+}
+```
+
+
+```{r fetch_data}
 comparison_raw <- eventReactive(input$button_start_person_properties, {
     get_comparison(input$person_properties)
   })
-
 ```
 
 Properties you asked for:  {data-height=70}
 -------------------------------------
-
-```{r}
-### Properties to compare:
-# render_properties_in_action <- reactive({
-#   persons_properties %>% 
-#     filter(fg_property_id %in% input$person_properties) %>% 
-#     pull(label) %>% 
-#     glue::glue_collapse(., sep = ", ", last = "")
-# })
-# 
-# renderText({render_properties_in_action() })
-```
 
 ### in both {.value-box}
 
@@ -223,7 +226,7 @@ Row {.tabset .tabset-fade}
    
 ### Both, in Factgrid and Wikidata
 
-```{r show_data_in_both}
+```{r filter_in_both}
 in_both <- reactive({
   data <- comparison_raw() %>% 
     filter(is_same == "true") %>% 
@@ -232,15 +235,9 @@ in_both <- reactive({
     left_join(persons_properties %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property), by = "fg_property_id")
   })
 
-create_link <- function(data, url, name, new_col) {
-  data %>% 
-    mutate(
-      {{new_col}} := str_replace({{url}}, "<", "<a href='"),
-      {{new_col}} := str_replace({{new_col}}, ">", "' target='_blank'>"),
-      {{new_col}} := paste0({{new_col}}, {{name}}, "</a>")
-    )
-}
+````
 
+```{r show_table_in_both}
 DT::renderDataTable(
   DT::datatable(
   in_both() %>% 
@@ -267,7 +264,7 @@ DT::renderDataTable(
 
 ### Only in Factgrid
 
-```{r}
+```{r filter_only_in_fg}
 only_in_fg <-  reactive({
   
   data <- comparison_raw() %>% 
@@ -279,7 +276,9 @@ only_in_fg <-  reactive({
     left_join(persons_properties %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property), by = "fg_property_id")
   
   })
+````
 
+```{r show_table_only_in_fg}
 DT::renderDataTable(
   DT::datatable(
   only_in_fg() %>% 
@@ -358,7 +357,7 @@ actionButton("showtxt", "Show/Download File")
 
 ### Only in Wikidata
 
-```{r filter_table_only_in_wd}
+```{r filter_only_in_wd}
 only_in_wd <- reactive({
   
   data <- comparison_raw() %>% 
@@ -371,6 +370,9 @@ only_in_wd <- reactive({
   
   })
 
+```
+
+```{r show_table_only_in_wd}
 DT::renderDataTable(
   DT::datatable(
     only_in_wd() %>% 
