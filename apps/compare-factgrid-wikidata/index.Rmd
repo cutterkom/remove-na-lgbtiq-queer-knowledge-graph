@@ -18,7 +18,6 @@ library(flexdashboard)
 #library(WikidataR)
 library(clipr)
 library(shinyFeedback)
-library(yaml)
 
 endpoint <- "https://database.factgrid.de/sparql"
 
