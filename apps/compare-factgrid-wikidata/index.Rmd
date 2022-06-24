@@ -228,7 +228,7 @@ get_import_data <- function(data, target) {
     
         #fg_value_id = #paste0('"', fg_value_id, '"')) %>% View
       # add source of Factgrid-Object
-      bind_cols(tibble(source = "S8168", time = "S813", timestamp = paste0("+", Sys.Date(), "T00:00:00Z/", 11))) %>% 
+      bind_cols(tibble(source = "S771", time = "S432", timestamp = paste0("+", Sys.Date(), "T00:00:00Z/", 11))) %>% 
       select(item = fg_item_id, property = fg_property_id, value = fg_value_from_wd_id, 
              source, source_value = wd_value_from_wd, 
              time, timestamp) %>% 
