@@ -61,7 +61,7 @@ persons_properties_list  <- persons_properties %>%
 checkboxGroupInput("person_properties", label = "Properties available that refer to persons", choices = persons_properties_list)
 
 actionButton("button_start_person_properties", "Submit", class = "btn-primary")
-shinyFeedback::loadingButton("button_start_person_properties", label = "Submit")
+#shinyFeedback::loadingButton("button_start_person_properties", label = "Submit")
 ```
 
 Please be patient, it may take a few moments if a lot of data is requested... 
@@ -249,13 +249,21 @@ get_import_data <- function(data, target) {
 
 ```{r fetch_data}
 comparison_raw <- eventReactive(input$button_start_person_properties, {
+  
+  if(is.null(input$person_properties)) {
+        shinyFeedback::showToast(
+      "error", 
+      "You have to select at least one property"
+    )
+  } else {
     data <- get_comparison(input$person_properties)
-    shinyFeedback::resetLoadingButton("button_start_person_properties")
+    #shinyFeedback::resetLoadingButton("button_start_person_properties")
     shinyFeedback::showToast(
       "success", 
       "data loaded"
     )
     data
+  }
   })
 ```
 
