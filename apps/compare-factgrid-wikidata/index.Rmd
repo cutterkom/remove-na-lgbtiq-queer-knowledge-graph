@@ -99,7 +99,6 @@ get_comparison <- function(input) {
       
         # starting points
         # which property in focus?
-        # todo in one var
         BIND(fgt:', fg_property_id, ' as ?fg_property)
         BIND(fg:', fg_property_id, ' as ?fg_property_as_item)
         # set property of corresponding wikidata property; is constant
@@ -130,6 +129,9 @@ get_comparison <- function(input) {
         SERVICE <https://query.wikidata.org/sparql> {
             OPTIONAL {
                 ?wd_item ?wd_property ?wd_value_from_wd.
+              OPTIONAL {
+                ?wd_value_from_wd wdt:P8168 ?fg_value_from_wd.
+              }
             }
 
         }
@@ -188,31 +190,50 @@ create_link <- function(data, url, name, new_col) {
 
 ```{r get_import_data}
 get_import_data <- function(data, target) {
-  
-  tmp <- comparison_raw() %>% 
-    inner_join(data %>% distinct(fg_item, wd_value_from_fg), by = c("fg_item", "wd_value_from_fg")) %>% 
-    mutate(
-      fg_item_id = str_extract(fg_item, "Q[0-9]+"),
-      fg_value_id = str_extract(fg_value, "Q[0-9]+"),
-      wd_item_id = str_extract(wd_item, "Q[0-9]+"),
-      wd_value_from_fg_id = str_extract(wd_value_from_fg, "Q[0-9]+")
-    )
-  
+
   if (target == "wikidata") {
-    import_data <- tmp %>% 
-      mutate(fg_value_id = paste0('"', fg_value_id, '"')) %>% 
+    import_data <- comparison_raw() %>% 
+      inner_join(data %>% distinct(fg_item, wd_value_from_fg), by = c("fg_item", "wd_value_from_fg")) %>% 
+      mutate(
+        fg_item_id = str_extract(fg_item, "Q[0-9]+"),
+        fg_value_id = str_extract(fg_value, "Q[0-9]+"),
+        wd_item_id = str_extract(wd_item, "Q[0-9]+"),
+        wd_value_from_fg_id = str_extract(wd_value_from_fg, "Q[0-9]+"),
+        fg_value_from_wd_id = str_extract(fg_value_from_wd, "Q[0-9]+"),
+        fg_value_id = paste0('"', fg_value_id, '"')) %>% 
+        # add source of Factgrid-Object
+        bind_cols(tibble(source = "S8168", time = "S813", timestamp = paste0("+", Sys.Date(), "T00:00:00Z/", 11))) %>% 
+        select(item = wd_item_id, property = wd_property_id, value = wd_value_from_fg_id, 
+               source, source_value = fg_value_id, 
+               time, timestamp) %>% 
+        distinct()
+    
+    cli::cli_alert_success("data copied for import in wikidata")
+    
+    import_data
+  } else if (target == "factgrid") {
+    import_data <- comparison_raw() %>% 
+      inner_join(data %>% distinct(fg_item, wd_value_from_wd), by = c("fg_item", "wd_value_from_wd")) %>%
+      mutate(
+        # item: FG item
+        fg_item_id = str_extract(fg_item, "Q[0-9]+"),
+        # FG value derived from Wikidata
+        fg_value_from_wd_id = str_extract(fg_value_from_wd, "Q[0-9]+"),
+        # Wikidata value for source
+        wd_value_from_wd = str_extract(wd_value_from_fg, "Q[0-9]+")) %>% 
+    
+        #fg_value_id = #paste0('"', fg_value_id, '"')) %>% View
       # add source of Factgrid-Object
       bind_cols(tibble(source = "S8168", time = "S813", timestamp = paste0("+", Sys.Date(), "T00:00:00Z/", 11))) %>% 
-      select(item = wd_item_id, property = wd_property_id, value = wd_value_from_fg_id, 
-             source, source_value = fg_value_id, 
+      select(item = fg_item_id, property = fg_property_id, value = fg_value_from_wd_id, 
+             source, source_value = wd_value_from_wd, 
              time, timestamp) %>% 
+      # can only import those with a Factgrid ID in Wikidata
+      filter(!is.na(value)) %>% 
       distinct()
-  } else if (target == "factgrid") {
-    # import_data <- tmp %>% 
-    #   mutate(wd_item_id = str_extract(wd_item, "Q[0-9]+"))
-    #   bind_cols(tibble(source = "S8168", time = "S813", timestamp = paste0("+", Sys.Date(), "T00:00:00Z/", 11))) %>% 
-    #   select(item = wd_item_id, property = wd_property_id, value = wd_value_from_fg_id, source, source_value = fg_item_id, time, timestamp) %>% 
-    #   distinct()
+    cli::cli_alert_success("data copied for import in factgrid")
+    import_data
+
   } else {
     stop("no valid target. Only `wikidata` or `factgrid` allowed")
   }
@@ -228,7 +249,7 @@ comparison_raw <- eventReactive(input$button_start_person_properties, {
   })
 ```
 
-Properties you asked for:  {data-height=70}
+Properties you asked for:  {data-height=70, data-width=70}
 -------------------------------------
 
 ### in both {.value-box}
@@ -389,7 +410,7 @@ only_in_wd <- reactive({
   
   data <- comparison_raw() %>% 
     filter(is_same == "false") %>% 
-    distinct(fg_item, fg_itemLabel, wd_item, fg_property_id, fg_value, fg_valueLabel, wd_value_from_fg, wd_value_from_wd) %>% 
+    distinct(fg_item, fg_itemLabel, wd_item, fg_property_id, wd_value_from_wd, fg_value_from_wd) %>% 
     # remove those that are present in wd
     anti_join(in_both(), by = c("fg_item", "wd_value_from_wd")) %>%
     # add property info
@@ -419,7 +440,14 @@ DT::renderDataTable(
       # links for values
       # no label, needs to be fetched from wikidata
       create_link(new_col = wd_value_link, url = wd_value_from_wd, name = "Wikidata") %>% 
-      mutate(value = paste0(wd_value_link)) %>% 
+      mutate(
+        fg_value_from_wd_link = paste0('<a href="https://database.factgrid.de/wiki/Item:', fg_value_from_wd, '">Factgrid</a>'),
+        value = 
+               case_when(
+                 !is.na(fg_value_from_wd) ~ paste0(" (", fg_value_from_wd_link, ", ", wd_value_link, ")"),
+                 TRUE ~ paste0(wd_value_link)
+                 )
+        ) %>% 
       
       # get relevant columns
       select(item, property, value) %>% 
@@ -429,13 +457,13 @@ DT::renderDataTable(
 
 ```
 
-
-```{r eval=F}
 #### Import to Factgrid
-This data can be imported to Factgrid. Click the button and paste it into [Factgrid's Quickstatements Tool](https://database.factgrid.de/quickstatements/#/).
+This data can be imported to Factgrid. Click the button and paste it into [Factgrid's Quickstatements Tool](https://database.factgrid.de/quickstatements/#/). Only those can be imported, that have a Factgrid-ID in Wikidata.
+```{r}
 actionButton("button_import_to_factgrid", "Copy Data", class = "btn-primary")
 import_in_factgrid <- reactive({
   data <- get_import_data(only_in_wd(), target = "factgrid") %>% 
+    filter(!is.na(value)) %>% 
     distinct()
 })
 
