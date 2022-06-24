@@ -15,12 +15,12 @@ library(SPARQL)
 library(kabrutils)
 library(here)
 library(flexdashboard)
-library(WikidataR)
+#library(WikidataR)
 library(clipr)
 library(shinyFeedback)
+library(yaml)
 
-config_file <- "data-publishing/factgrid/config.yml"
-config <- yaml::read_yaml(here(config_file))
+endpoint <- "https://database.factgrid.de/sparql"
 
 shinyFeedback::useShinyFeedback()
 ```
@@ -32,7 +32,7 @@ shinyFeedback::useShinyFeedback()
 #' @return dataframe
 get_person_properties <- function() {
   tmp <- readr::read_file("https://raw.githubusercontent.com/cutterkom/remove-na-lgbtiq-queer-knowledge-graph/main/data-publishing/factgrid/queries/get_all_properties_person_with_corresponding_prop.rq") %>% 
-  sparql_to_tibble(endpoint = config$connection$sparql_endpoint) %>% 
+  sparql_to_tibble(endpoint = endpoint) %>%
   mutate(
     fg_property_id = str_extract(fg_property, "P[0-9]+"),
     wd_property_id = str_extract(wd_property, "P[0-9]+"),
@@ -145,7 +145,7 @@ get_comparison <- function(input) {
       
       ')
       
-      res <- sparql_to_tibble(query, endpoint = config$connection$sparql_endpoint) 
+      res <- sparql_to_tibble(query, endpoint = endpoint) 
       print(res)
        if(nrow(res) > 0) {
         res <- res %>% 
