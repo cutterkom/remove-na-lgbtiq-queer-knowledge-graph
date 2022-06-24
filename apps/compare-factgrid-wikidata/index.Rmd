@@ -17,8 +17,12 @@ library(here)
 library(flexdashboard)
 library(WikidataR)
 library(clipr)
+library(shinyFeedback)
+
 config_file <- "data-publishing/factgrid/config.yml"
 config <- yaml::read_yaml(here(config_file))
+
+shinyFeedback::useShinyFeedback()
 ```
 
 
@@ -57,6 +61,7 @@ persons_properties_list  <- persons_properties %>%
 checkboxGroupInput("person_properties", label = "Properties available that refer to persons", choices = persons_properties_list)
 
 actionButton("button_start_person_properties", "Submit", class = "btn-primary")
+shinyFeedback::loadingButton("button_start_person_properties", label = "Submit")
 ```
 
 Please be patient, it may take a few moments if a lot of data is requested... 
@@ -245,6 +250,11 @@ get_import_data <- function(data, target) {
 ```{r fetch_data}
 comparison_raw <- eventReactive(input$button_start_person_properties, {
     data <- get_comparison(input$person_properties)
+    shinyFeedback::resetLoadingButton("button_start_person_properties")
+    shinyFeedback::showToast(
+      "success", 
+      "data loaded"
+    )
     data
   })
 ```
@@ -400,6 +410,12 @@ import_in_wikidata <- reactive({
 
 observeEvent(input$button_import_to_wikidata, {
     clipr::write_clip(import_in_wikidata(), allow_non_interactive = TRUE)
+    shinyFeedback::showToast(
+      "success", 
+      title = "data copied to clipboard",
+      message = 'go to Factgrid Quickstatements to import it.',
+      .options = list("hideDuration" = FALSE)
+    )
 })
 ```
 
@@ -469,5 +485,11 @@ import_in_factgrid <- reactive({
 
 observeEvent(input$button_import_to_factgrid, {
     clipr::write_clip(import_in_factgrid(), allow_non_interactive = TRUE)
+    shinyFeedback::showToast(
+      "success", 
+      title = "data copied to clipboard",
+      message = 'go to Factgrid Quickstatements to import it.',
+      .options = list("hideDuration" = FALSE)
+    )
 })
 ```
