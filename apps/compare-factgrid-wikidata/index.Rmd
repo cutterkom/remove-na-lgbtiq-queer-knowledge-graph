@@ -20,8 +20,6 @@ library(shinyFeedback)
 endpoint <- "https://database.factgrid.de/sparql"
 
 shinyFeedback::useShinyFeedback()
-rclipboard::rclipboardSetup()
-shiny::includeScript(path = system.file("lib/clipboard.min.js", package = "rclipboard"))
 ```
 
 
@@ -61,7 +59,6 @@ checkboxGroupInput("person_properties", label = "Properties available that refer
 textInput("item_filter", label = "Filter items", placeholder = "?fg_item fgt:P131 fg:Q400012")
 
 actionButton("button_start_person_properties", "Submit", class = "btn-primary")
-#shinyFeedback::loadingButton("button_start_person_properties", label = "Submit")
 ```
 
 Please be patient, it may take a few moments if a lot of data is requested... 
@@ -252,7 +249,6 @@ get_import_data <- function(data, target) {
   } else {
     stop("no valid target. Only `wikidata` or `factgrid` allowed")
   }
-  
 }
 ```
 
@@ -266,14 +262,9 @@ comparison_raw <- eventReactive(input$button_start_person_properties, {
       "You have to select at least one property"
     )
   } else {
-    # fg_items <- filter_items(input$item_filter)
-    # print(fg_items)
-    print(input$item_filter)
+
     data <- get_comparison(input$person_properties, input$item_filter)
-    # print("input$item_filter")
-    # print(input$item_filter)
-   
-    #shinyFeedback::resetLoadingButton("button_start_person_properties")
+    
     shinyFeedback::showToast(
       "success", 
       "data loaded"
@@ -352,7 +343,6 @@ in_both <- reactive({
     # add property info
     left_join(persons_properties %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property), by = "fg_property_id")
 })
-
 ```
 
 ```{r show_table_in_both}
@@ -379,8 +369,6 @@ DT::renderDataTable(
      distinct(),
   escape = FALSE) # show link as link
 )
-
-
 ```
 
 ### Only in Factgrid
