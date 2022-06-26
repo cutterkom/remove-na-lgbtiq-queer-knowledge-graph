@@ -15,10 +15,7 @@ library(SPARQL)
 library(kabrutils)
 library(here)
 library(flexdashboard)
-library(rclipboard)
-#library(clipr)
 library(shinyFeedback)
-#library(shinyalert)
 
 endpoint <- "https://database.factgrid.de/sparql"
 
@@ -61,6 +58,8 @@ persons_properties_list  <- persons_properties %>%
 
 checkboxGroupInput("person_properties", label = "Properties available that refer to persons", choices = persons_properties_list)
 
+textInput("item_filter", label = "Filter items", placeholder = "?fg_item fgt:P131 fg:Q400012")
+
 actionButton("button_start_person_properties", "Submit", class = "btn-primary")
 #shinyFeedback::loadingButton("button_start_person_properties", label = "Submit")
 ```
@@ -72,11 +71,12 @@ Please be patient, it may take a few moments if a lot of data is requested...
 #' Get comparison data based on property
 #' 
 #' This functions queries data on Factgrid looking for properties related to persons that have a corresponding Wikidata property. Utilizes federated queries.
-#' @param input chosen properties in input$person_properties
+#' @param input_properties chosen properties in input$person_properties
+#' @param input_items_filter filter items e.g. like ?fg_item fgt:P131 fg:Q400012 . (don't forget the period!)
 #' @return dataframe
-get_comparison <- function(input) {
+get_comparison <- function(input_properties, input_items_filter) {
   persons_properties %>% 
-    filter(fg_property_id %in% input) %>% 
+    filter(fg_property_id %in% input_properties) %>% 
     pmap_dfr(function(...) {
       current <- tibble(...)
       cli::cli_alert_info("Fetch data for: {current$fg_propertyLabel}")
@@ -103,7 +103,10 @@ get_comparison <- function(input) {
         # labels from Factgrid
         SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  
       
-        # starting points
+      ',
+      input_items_filter
+      ,'
+      
         # which property in focus?
         BIND(fgt:', fg_property_id, ' as ?fg_property)
         BIND(fg:', fg_property_id, ' as ?fg_property_as_item)
@@ -145,6 +148,8 @@ get_comparison <- function(input) {
       }
       
       ')
+      
+      print(query)
       
       res <- sparql_to_tibble(query, endpoint = endpoint) 
       print(res)
@@ -257,7 +262,13 @@ comparison_raw <- eventReactive(input$button_start_person_properties, {
       "You have to select at least one property"
     )
   } else {
-    data <- get_comparison(input$person_properties)
+    # fg_items <- filter_items(input$item_filter)
+    # print(fg_items)
+    print(input$item_filter)
+    data <- get_comparison(input$person_properties, input$item_filter)
+    # print("input$item_filter")
+    # print(input$item_filter)
+   
     #shinyFeedback::resetLoadingButton("button_start_person_properties")
     shinyFeedback::showToast(
       "success", 
@@ -371,7 +382,7 @@ DT::renderDataTable(
 ### Only in Factgrid
 
 ```{r filter_only_in_fg}
-only_in_fg <-  reactive({
+only_in_fg <- reactive({
   
   data <- comparison_raw() %>% 
     filter(is.na(is_same), !is.na(fg_item)) %>% 
@@ -414,32 +425,28 @@ DT::renderDataTable(
 #### Import to Wikidata
 This data can be imported to Wikidata. Click the button and paste it into [Wikidata's Quickstatements Tool](https://quickstatements.toolforge.org/#/).
 ```{r}
-actionButton("button_import_to_wikidata", "Copy Data", class = "btn-primary")
+uiOutput("download_wikidata_import_UI")
 
 import_in_wikidata <- reactive({
   data <- get_import_data(only_in_fg(), target = "wikidata") %>% 
      distinct()
+  data
 })
 
-observeEvent(input$button_import_to_wikidata, {
-    #clipr::write_clip(import_in_wikidata(), allow_non_interactive = TRUE)
-  # shinyalert(html = TRUE, text = tagList(
-  # tableInput("name", "What's your name?",import_in_wikidata()),
-  
-#))
-  # # shinyalert(title = "Hey", text = import_in_wikidata())
-  #     showModal(modalDialog(
-  #       title = "Important message",
-  #      import_in_wikidata()
-  #     ))
-
-    shinyFeedback::showToast(
-      "success", 
-      title = "data copied to clipboard",
-      message = 'go to Factgrid Quickstatements to import it.',
-      .options = list("hideDuration" = FALSE)
-    )
+# create download button
+output$download_wikidata_import_UI <- renderUI( {
+  downloadButton("download_wikidata_import", "Download data for Wikidata import")
 })
+
+# Add download handling
+output$download_wikidata_import <- downloadHandler(
+  filename = function() {
+    "import_wikidata.csv"
+  },
+  content = function(file) {
+    write.csv(import_in_wikidata(), file, row.names = FALSE)
+  }
+)
 ```
 
 ### Only in Wikidata
@@ -499,54 +506,26 @@ DT::renderDataTable(
 #### Import to Factgrid
 This data can be imported to Factgrid. Click the button and paste it into [Factgrid's Quickstatements Tool](https://database.factgrid.de/quickstatements/#/). Only those can be imported, that have a Factgrid-ID in Wikidata.
 ```{r}
-actionButton("button_import_to_factgrid", "Copy Data", class = "btn-primary")
+uiOutput("download_factgrid_import_UI")
 
-renderUI({
-      rclipButton(
-        inputId = "clipbtn",
-        label = "rclipButton Copy",
-        clipText = "nothing here yet",
-        icon = icon("clipboard")
-      )
-    })
-#   
 import_in_factgrid <- reactive({
   data <- get_import_data(only_in_wd(), target = "factgrid") %>% 
     filter(!is.na(value)) %>% 
     distinct()
 })
 
-# rclipButton(
-#         inputId = "clipbtn",
-#         label = "rclipButton Copy",
-#         clipText = import_in_factgrid(),
-#         icon = icon("clipboard")
-#       )
-
-
-observeEvent(input$button_import_to_factgrid, {
-    rclipButton(
-        inputId = "clipbtn",
-        label = "rclipButton Copy",
-        clipText = import_in_factgrid(),
-        icon = icon("clipboard")
-      )
-
-    shinyFeedback::showToast(
-      "success", 
-      title = "data copied to clipboard",
-      message = 'go to Factgrid Quickstatements to import it.',
-      .options = list("hideDuration" = FALSE)
-    )
+# create download button
+output$download_factgrid_import_UI <- renderUI( {
+  downloadButton("download_factgrid_import", "Download data for factgrid import")
 })
 
-observeEvent(input$button_import_to_factgrid, {
-    clipr::write_clip(import_in_factgrid(), allow_non_interactive = TRUE)
-    shinyFeedback::showToast(
-      "success", 
-      title = "data copied to clipboard",
-      message = 'go to Factgrid Quickstatements to import it.',
-      .options = list("hideDuration" = FALSE)
-    )
-})
+# Add download handling
+output$download_factgrid_import <- downloadHandler(
+  filename = function() {
+    "import_factgrid.csv"
+  },
+  content = function(file) {
+    write.csv(import_in_factgrid(), file, row.names = FALSE)
+  }
+)
 ```
