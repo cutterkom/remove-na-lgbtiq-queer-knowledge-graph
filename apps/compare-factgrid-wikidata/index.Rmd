@@ -56,12 +56,13 @@ persons_properties_list  <- persons_properties %>%
 
 checkboxGroupInput("person_properties", label = "Properties available that refer to persons", choices = persons_properties_list)
 
-textInput("item_filter", label = "Filter items", placeholder = "?fg_item fgt:P131 fg:Q400012")
+textInput("item_filter", label = "Filter items", placeholder = "?fg_item fgt:P131 fg:Q400012 . ")
 
 actionButton("button_start_person_properties", "Submit", class = "btn-primary")
 ```
 
-Please be patient, it may take a few moments if a lot of data is requested... 
+Please be patient, it may take a few moments if a lot of data is requested... If it takes too long, think about limiting the items that will be compared. Write a query for this in the field. [Use this query to test it](https://database.factgrid.de/query/#%23defaultView%3ATable%0A%23%20Prefixes%20%20%20%20%0A%23%20Factgrid%0APREFIX%20fg%3A%20%3Chttps%3A%2F%2Fdatabase.factgrid.de%2Fentity%2F%3E%0APREFIX%20fgt%3A%20%3Chttps%3A%2F%2Fdatabase.factgrid.de%2Fprop%2Fdirect%2F%3E%0A%20%20%20%20%20%20%0A%23%20Wikidata%0APREFIX%20wdt%3A%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2F%3E%0APREFIX%20wd%3A%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fentity%2F%3E%0A%23%20misc%0APREFIX%20wikibase%3A%20%3Chttp%3A%2F%2Fwikiba.se%2Fontology%23%3E%0A%20%20%20%20%20%20%0ASELECT%20DISTINCT%20%3Ffg_item%20%3Ffg_itemLabel%20where%20%7B%0A%20%20%20%20%20%20%0A%23%20labels%20from%20Factgrid%0A%20%20SERVICE%20wikibase%3Alabel%20%7B%20bd%3AserviceParam%20wikibase%3Alanguage%20%22%5BAUTO_LANGUAGE%5D%2Cen%22.%20%7D%20%20%0A%20%20%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%0A%20%20%23%20copy%20the%20next%20line%20in%20the%20filter%20field%3A%0A%20%20%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%0A%20%20%3Ffg_item%20fgt%3AP131%20fg%3AQ400012%20.%0A%7D). 
+
 
 ```{r get_comparison_fun}
 
@@ -145,8 +146,6 @@ get_comparison <- function(input_properties, input_items_filter) {
       }
       
       ')
-      
-      print(query)
       
       res <- sparql_to_tibble(query, endpoint = endpoint) 
       print(res)
