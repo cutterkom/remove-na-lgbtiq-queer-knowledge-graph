@@ -164,6 +164,7 @@ get_comparison <- function(input_properties, input_items_filter) {
           wd_property = NA_character_,
           fg_value = NA_character_,
           fg_valueLabel = NA_character_,
+          fg_value_from_wd = NA_character_,
           wd_value_from_fg = NA_character_,
           wd_value_from_wd = NA_character_,
           is_same = NA_character_,
@@ -172,6 +173,7 @@ get_comparison <- function(input_properties, input_items_filter) {
         )
        }
       cli::cli_alert_success("data fetched")
+      print(res)
      res
     })
 }
