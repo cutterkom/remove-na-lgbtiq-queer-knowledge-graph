@@ -15,13 +15,16 @@ library(SPARQL)
 library(kabrutils)
 library(here)
 library(flexdashboard)
-#library(WikidataR)
-library(clipr)
+library(rclipboard)
+#library(clipr)
 library(shinyFeedback)
+#library(shinyalert)
 
 endpoint <- "https://database.factgrid.de/sparql"
 
 shinyFeedback::useShinyFeedback()
+rclipboard::rclipboardSetup()
+shiny::includeScript(path = system.file("lib/clipboard.min.js", package = "rclipboard"))
 ```
 
 
@@ -43,10 +46,9 @@ get_person_properties <- function() {
 }
 ```
 
-Refering to Persons
-=====================================  
- {.sidebar}
--------------------------------------
+
+Inputs {.sidebar}
+=====================================
 
 Which property should be compared?
 
@@ -266,6 +268,9 @@ comparison_raw <- eventReactive(input$button_start_person_properties, {
   })
 ```
 
+Refering to Persons
+=====================================  
+
 Properties you asked for:  {data-height=70, data-width=70}
 -------------------------------------
 
@@ -410,13 +415,24 @@ DT::renderDataTable(
 This data can be imported to Wikidata. Click the button and paste it into [Wikidata's Quickstatements Tool](https://quickstatements.toolforge.org/#/).
 ```{r}
 actionButton("button_import_to_wikidata", "Copy Data", class = "btn-primary")
+
 import_in_wikidata <- reactive({
   data <- get_import_data(only_in_fg(), target = "wikidata") %>% 
      distinct()
 })
 
 observeEvent(input$button_import_to_wikidata, {
-    clipr::write_clip(import_in_wikidata(), allow_non_interactive = TRUE)
+    #clipr::write_clip(import_in_wikidata(), allow_non_interactive = TRUE)
+  # shinyalert(html = TRUE, text = tagList(
+  # tableInput("name", "What's your name?",import_in_wikidata()),
+  
+#))
+  # # shinyalert(title = "Hey", text = import_in_wikidata())
+  #     showModal(modalDialog(
+  #       title = "Important message",
+  #      import_in_wikidata()
+  #     ))
+
     shinyFeedback::showToast(
       "success", 
       title = "data copied to clipboard",
@@ -484,10 +500,44 @@ DT::renderDataTable(
 This data can be imported to Factgrid. Click the button and paste it into [Factgrid's Quickstatements Tool](https://database.factgrid.de/quickstatements/#/). Only those can be imported, that have a Factgrid-ID in Wikidata.
 ```{r}
 actionButton("button_import_to_factgrid", "Copy Data", class = "btn-primary")
+
+renderUI({
+      rclipButton(
+        inputId = "clipbtn",
+        label = "rclipButton Copy",
+        clipText = "nothing here yet",
+        icon = icon("clipboard")
+      )
+    })
+#   
 import_in_factgrid <- reactive({
   data <- get_import_data(only_in_wd(), target = "factgrid") %>% 
     filter(!is.na(value)) %>% 
     distinct()
+})
+
+# rclipButton(
+#         inputId = "clipbtn",
+#         label = "rclipButton Copy",
+#         clipText = import_in_factgrid(),
+#         icon = icon("clipboard")
+#       )
+
+
+observeEvent(input$button_import_to_factgrid, {
+    rclipButton(
+        inputId = "clipbtn",
+        label = "rclipButton Copy",
+        clipText = import_in_factgrid(),
+        icon = icon("clipboard")
+      )
+
+    shinyFeedback::showToast(
+      "success", 
+      title = "data copied to clipboard",
+      message = 'go to Factgrid Quickstatements to import it.',
+      .options = list("hideDuration" = FALSE)
+    )
 })
 
 observeEvent(input$button_import_to_factgrid, {
