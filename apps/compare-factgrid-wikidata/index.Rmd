@@ -200,6 +200,10 @@ create_link <- function(data, url, name, new_col) {
 ```
 
 ```{r get_import_data}
+#' Create data for Quickstatements import
+#' @param data if only_in_wd or only_in_fg
+#' @param target if import into wikidata or factgrid
+#' @return dataframe
 get_import_data <- function(data, target) {
 
   if (target == "wikidata") {
