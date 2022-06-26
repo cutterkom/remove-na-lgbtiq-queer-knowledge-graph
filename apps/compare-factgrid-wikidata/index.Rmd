@@ -427,7 +427,7 @@ import_in_wikidata <- reactive({
 
 # create download button
 output$download_wikidata_import_UI <- renderUI( {
-  downloadButton("download_wikidata_import", "Download data for Wikidata import")
+  downloadButton("download_wikidata_import", "Download data for Wikidata import", class = "btn-primary")
 })
 
 # Add download handling
@@ -508,7 +508,7 @@ import_in_factgrid <- reactive({
 
 # create download button
 output$download_factgrid_import_UI <- renderUI( {
-  downloadButton("download_factgrid_import", "Download data for factgrid import")
+  downloadButton("download_factgrid_import", "Download data for Factgrid import", class = "btn-primary")
 })
 
 # Add download handling
