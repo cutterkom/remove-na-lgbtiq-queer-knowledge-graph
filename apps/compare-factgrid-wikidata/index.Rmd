@@ -173,7 +173,7 @@ get_comparison <- function(input_properties, input_items_filter) {
         )
        }
       cli::cli_alert_success("data fetched")
-      print(res)
+      
      res
     })
 }
@@ -226,16 +226,18 @@ get_import_data <- function(data, target) {
     import_data
   } else if (target == "factgrid") {
     import_data <- comparison_raw() %>% 
-      inner_join(data %>% distinct(fg_item, wd_value_from_wd), by = c("fg_item", "wd_value_from_wd")) %>%
+      select(-fg_value, -fg_valueLabel, -wd_value_from_fg) %>% 
+      inner_join(only_in_wd %>% distinct(fg_item, wd_value_from_wd), by = c("fg_item", "wd_value_from_wd")) %>%
+      filter(str_detect(fg_itemLabel, "Klaus Mann")) %>% 
+      distinct() %>%
       mutate(
         # item: FG item
         fg_item_id = str_extract(fg_item, "Q[0-9]+"),
         # FG value derived from Wikidata
         fg_value_from_wd_id = str_extract(fg_value_from_wd, "Q[0-9]+"),
         # Wikidata value for source
-        wd_value_from_wd = str_extract(wd_value_from_fg, "Q[0-9]+")) %>% 
-    
-        #fg_value_id = #paste0('"', fg_value_id, '"')) %>% View
+        wd_value_from_wd = str_extract(wd_value_from_fg, "Q[0-9]+"),
+        wd_value_from_wd = paste0('"', wd_value_from_wd, '"')) %>% 
       # add source of Factgrid-Object
       bind_cols(tibble(source = "S771", time = "S432", timestamp = paste0("+", Sys.Date(), "T00:00:00Z/", 11))) %>% 
       select(item = fg_item_id, property = fg_property_id, value = fg_value_from_wd_id, 
@@ -428,7 +430,7 @@ import_in_wikidata <- reactive({
 
 # create download button
 output$download_wikidata_import_UI <- renderUI( {
-  downloadButton("download_wikidata_import", "Download data for Wikidata import", class = "btn-primary")
+  downloadButton("download_wikidata_import", "Download data for Wikidata import", class = "btn-primary", style = "width: 300px !important;")
 })
 
 # Add download handling
@@ -462,6 +464,7 @@ only_in_wd <- reactive({
 #### Table
 
 Labels from Wikidata are not shown (yet), because it would takes quite a time. 
+
 ```{r show_table_only_in_wd}
 DT::renderDataTable(
   DT::datatable(
@@ -497,7 +500,9 @@ DT::renderDataTable(
 ```
 
 #### Import to Factgrid
+
 This data can be imported to Factgrid. Click the button and paste it into [Factgrid's Quickstatements Tool](https://database.factgrid.de/quickstatements/#/). Only those can be imported, that have a Factgrid-ID in Wikidata.
+
 ```{r}
 uiOutput("download_factgrid_import_UI")
 
@@ -509,7 +514,7 @@ import_in_factgrid <- reactive({
 
 # create download button
 output$download_factgrid_import_UI <- renderUI( {
-  downloadButton("download_factgrid_import", "Download data for Factgrid import", class = "btn-primary")
+  downloadButton("download_factgrid_import", "Download data for Factgrid import", class = "btn-primary", style = "width: 300px !important;")
 })
 
 # Add download handling
