@@ -225,18 +225,17 @@ get_import_data <- function(data, target) {
     
     import_data
   } else if (target == "factgrid") {
-    import_data <- comparison_raw() %>% 
+    import_data <-comparison_raw() %>% 
       select(-fg_value, -fg_valueLabel, -wd_value_from_fg) %>% 
-      inner_join(only_in_wd %>% distinct(fg_item, wd_value_from_wd), by = c("fg_item", "wd_value_from_wd")) %>%
-      filter(str_detect(fg_itemLabel, "Klaus Mann")) %>% 
-      distinct() %>%
+      inner_join(only_in_wd() %>% distinct(fg_item, wd_value_from_wd), by = c("fg_item", "wd_value_from_wd")) %>%
+      distinct() %>% 
       mutate(
         # item: FG item
         fg_item_id = str_extract(fg_item, "Q[0-9]+"),
         # FG value derived from Wikidata
         fg_value_from_wd_id = str_extract(fg_value_from_wd, "Q[0-9]+"),
         # Wikidata value for source
-        wd_value_from_wd = str_extract(wd_value_from_fg, "Q[0-9]+"),
+        wd_value_from_wd = str_extract(wd_value_from_wd, "Q[0-9]+"),
         wd_value_from_wd = paste0('"', wd_value_from_wd, '"')) %>% 
       # add source of Factgrid-Object
       bind_cols(tibble(source = "S771", time = "S432", timestamp = paste0("+", Sys.Date(), "T00:00:00Z/", 11))) %>% 
@@ -247,6 +246,7 @@ get_import_data <- function(data, target) {
       filter(!is.na(value)) %>% 
       distinct()
     cli::cli_alert_success("data copied for import in factgrid")
+    
     import_data
 
   } else {
@@ -507,14 +507,15 @@ This data can be imported to Factgrid. Click the button and paste it into [Factg
 uiOutput("download_factgrid_import_UI")
 
 import_in_factgrid <- reactive({
-  data <- get_import_data(only_in_wd(), target = "factgrid") %>% 
-    filter(!is.na(value)) %>% 
-    distinct()
+  data <- get_import_data(only_in_wd(), target = "factgrid")# %>% 
+    #distinct()
+  print(data)
+  data
 })
 
 # create download button
 output$download_factgrid_import_UI <- renderUI( {
-  downloadButton("download_factgrid_import", "Download data for Factgrid import", class = "btn-primary", style = "width: 300px !important;")
+  downloadButton("download_factgrid_import", "Download data for Factgrid import", class = "btn-primary")#, style = "width: 300px !important;")
 })
 
 # Add download handling
