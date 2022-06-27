@@ -1,4 +1,4 @@
-# Prefix standard 
+# Get all Factgrid properties related to persons that have a corresponding Wikidata property
 # Factgrid
 PREFIX fg: <https://database.factgrid.de/entity/>
 PREFIX fgt: <https://database.factgrid.de/prop/direct/>

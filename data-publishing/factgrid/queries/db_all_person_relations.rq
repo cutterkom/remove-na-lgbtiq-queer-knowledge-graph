@@ -38,6 +38,12 @@ SELECT DISTINCT ?fg_itemLabel ?value ?valueLabel ?image WHERE {
         fgt:P84 # spouse
         fgt:P117 # unmarried partner
         fgt:P117 #affair
+        fgt:P203 # sibling
+        fgt:P142 # mother
+        fgt:P313 # stepmother
+        fgt:P141 # father
+        fgt:P312 # stepfather
+        fgt:P190 # student
         }
         ?fg_item ?relations_fg ?value .
         ?value fgt:P189 ?image

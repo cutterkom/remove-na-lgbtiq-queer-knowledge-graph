@@ -50,7 +50,7 @@ compare <- properties %>%
       PREFIX bd: <http://www.bigdata.com/rdf#>
       PREFIX schema: <http://schema.org/>
       
-      SELECT DISTINCT ?fg_item ?fg_itemLabel ?wd_item ?fg_property ?fg_propertyLabel ?wd_property ?fg_value ?wd_value_from_fg ?wd_value_from_wd ?is_same where {
+      SELECT DISTINCT ?fg_item ?fg_itemLabel ?wd_item ?fg_property ?fg_propertyLabel ?wd_property ?fg_value ?fg_valueLabel ?wd_value_from_fg ?wd_value_from_wd ?is_same where {
       
         # labels from Factgrid
         SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  
@@ -151,7 +151,7 @@ in_both <- compare %>%
 
 more_in_fg <- compare %>% 
   filter(is.na(is_same)) %>% 
-  distinct(fg_item, fg_itemLabel, fg_propertyLabel, wd_value_from_fg) %>% 
+  distinct(fg_item, fg_itemLabel, fg_propertyLabel, wd_property, wd_value_from_fg) %>% 
   # remove those that are present in wd
   anti_join(in_both, by = c("fg_item", "wd_value_from_fg")) 
 
@@ -172,7 +172,12 @@ more_in_fg %>% show_sample()
 
 
 
+import <- more_in_fg %>% 
+  inner_join(removena %>% distinct(item), by = c("fg_item" = "item"))
 
+
+more_in_fg %>% 
+  distinct(fg_item, wd_property, wd_value_from_fg)
 
 
 # muss entfernt werden in anderen df's
@@ -187,18 +192,6 @@ removena <- 'SELECT ?item ?itemLabel ?Ist_ein_e_ WHERE {
 
 inner_join(compare, removena %>% distinct(item), by = c("fg_item" = "item")) %>% View
 
-
-compare_distinct <- compare %>% 
-  dplyr::mutate(id_1_id_2 = purrr::map2_chr(wd_value_from_fg, wd_value_from_wd, collapse_to_distinct_rows)) %>% 
-  filter(str_detect(fg_itemLabel, "Erika Mann"), str_detect(fg_propertyLabel, "Sibl")) %>% 
-  arrange(desc(is_same))
-  #filter(is_same == "false")# %>% 
-  
-compare_distinct %>% select(wd_value_from_fg, wd_value_from_wd, is_same)
-
-compare_distinct %>% dplyr::distinct(id_1_id_2, .keep_all = TRUE) %>%
-  dplyr::select(-id_1_id_2) %>% 
-  select(wd_value_from_fg, wd_value_from_wd, is_same)
 
 
 

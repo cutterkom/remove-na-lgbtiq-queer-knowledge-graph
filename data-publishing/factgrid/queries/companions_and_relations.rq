@@ -18,7 +18,7 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX schema: <http://schema.org/>
 prefix foaf:  <http://xmlns.com/foaf/0.1/> 
     
-SELECT DISTINCT ?fg_item ?label ?image WHERE {
+SELECT DISTINCT ?fg_item ?label ?image ?relations_fg ?relations_wd ?relations_db WHERE {
 
   # labels from Factgrid
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  
@@ -38,6 +38,12 @@ SELECT DISTINCT ?fg_item ?label ?image WHERE {
         fgt:P84 # spouse
         fgt:P117 # unmarried partner
         fgt:P117 #affair
+        fgt:P203 # sibling
+        fgt:P142 # mother
+        fgt:P313 # stepmother
+        fgt:P141 # father
+        fgt:P312 # stepfather
+        fgt:P190 # student
         }
         ?fg_item ?relations_fg ?value .
         ?value fgt:P189 ?image

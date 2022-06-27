@@ -1,13 +1,10 @@
 #defaultView:Table
-
-# Prefix standard 
-# Factgrid
+# Get all Factgrid properties with a corresponding Wikidata property
+# Prefixes 
 PREFIX fg: <https://database.factgrid.de/entity/>
 PREFIX fgt: <https://database.factgrid.de/prop/direct/>
-# Wikidata
 PREFIX wdt: <http://www.wikidata.org/prop/direct/>
 PREFIX wd: <http://www.wikidata.org/entity/>
-
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 
