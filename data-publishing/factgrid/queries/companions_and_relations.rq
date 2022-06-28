@@ -1,4 +1,4 @@
-#defaultView:ImageGrid
+#defaultView:Table
 
 # Prefix standard 
 # Factgrid
@@ -18,7 +18,7 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX schema: <http://schema.org/>
 prefix foaf:  <http://xmlns.com/foaf/0.1/> 
     
-SELECT DISTINCT ?fg_item ?label ?image ?relations_fg ?relations_wd ?relations_db WHERE {
+SELECT DISTINCT ?fg_item ?label ?image ?relations_fg ?relations_wd ?relations_fg WHERE {
 
   # labels from Factgrid
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  
