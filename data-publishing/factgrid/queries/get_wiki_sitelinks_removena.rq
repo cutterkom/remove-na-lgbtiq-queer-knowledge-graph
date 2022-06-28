@@ -23,8 +23,8 @@ SELECT DISTINCT ?fg_item ?fg_itemLabel ?wd_item ?Sdewiki ?Senwiki ?Sfrwiki ?Sesw
     # labels from Factgrid
     SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  
     
-    # fiter items
-   ?fg_item fgt:P2 fg:Q7 .
+    # get all from Remove NA
+   ?fg_item fgt:P131 fg:Q400012 .
 
   OPTIONAL {
   # transform wikidata qid in factgrid to wikidata entity iri
