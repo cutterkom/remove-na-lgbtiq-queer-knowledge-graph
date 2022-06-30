@@ -17,23 +17,23 @@ PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX schema: <http://schema.org/>
 prefix foaf:  <http://xmlns.com/foaf/0.1/> 
-  
-  SELECT DISTINCT ?fg_item ?fg_itemLabel ?wd_item ?wd_fg_id where {
-    
+
+SELECT DISTINCT ?fg_item ?fg_itemLabel ?wd_item ?wd_fg_id where {
+
     # labels from Factgrid
-    SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  
-    
+    SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". } 
+
     # transform wikidata qid in factgrid to wikidata entity iri
     ?link schema:about ?fg_item .
     ?link schema:isPartOf <https://www.wikidata.org/> . 
     ?link schema:name ?qid.
     BIND(IRI(CONCAT(STR(wd:), ?qid)) AS ?wd_item)
-    
+
     # now change to wikidata as data source
     # get value from wikidata
     SERVICE <https://query.wikidata.org/sparql> {
-      OPTIONAL {
-        ?wd_item wdt:P8168 ?wd_fg_id.
-      }
+        OPTIONAL {
+            ?wd_item wdt:P8168 ?wd_fg_id.
+            }
     }
-  } 
+} 
