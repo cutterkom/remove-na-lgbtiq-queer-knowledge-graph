@@ -18,10 +18,10 @@ PREFIX bd: <http://www.bigdata.com/rdf#>
 PREFIX schema: <http://schema.org/>
 prefix foaf:  <http://xmlns.com/foaf/0.1/> 
 
-SELECT DISTINCT ?fg_item ?fg_itemLabel ?wd_item ?wd_fg_id where {
+SELECT DISTINCT ?fg_item ?fg_itemLabel ?fg_itemAltLabel ?wd_item ?wd_fg_id where {
 
     # labels from Factgrid
-    SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  
+    SERVICE wikibase:label { bd:serviceParam wikibase:language "de,[AUTO_LANGUAGE],en". }  
     
     ?fg_item fgt:P131 fg:Q400012 .
 
