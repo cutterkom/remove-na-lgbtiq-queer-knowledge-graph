@@ -174,11 +174,3 @@ write_wikibase(
 )
 
 fs::file_show(csv_file)
-
-
-# descs
-Q405359
-Q405978
-Q405325 -> P31
-
-
