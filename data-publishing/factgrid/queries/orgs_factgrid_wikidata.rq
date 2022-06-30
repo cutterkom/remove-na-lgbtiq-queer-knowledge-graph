@@ -1,0 +1,58 @@
+#defaultView:Table
+
+# Prefix standard 
+# Factgrid
+PREFIX fg: <https://database.factgrid.de/entity/>
+PREFIX fgt: <https://database.factgrid.de/prop/direct/>
+# DBpedia
+PREFIX dbo: <http://dbpedia.org/ontology/> 
+PREFIX dbr: <http://dbpedia.org/resource/> 
+# Wikidata
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+# misc
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX dct:  <http://purl.org/dc/terms/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX schema: <http://schema.org/>
+prefix foaf:  <http://xmlns.com/foaf/0.1/> 
+    
+SELECT DISTINCT ?fg_item ?fg_itemLabel ?fg_itemDescription ?fg_itemAltLabel ?wd_item ?location ?locationLabel ?wd_location ?instance ?instanceLabel ?wd_instance ?fg_forum_id ?field_of_work WHERE {
+
+  # labels from Factgrid
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "de,[AUTO_LANGUAGE],en". }  
+  
+  # starting point is a factgrid item
+  ?fg_item fgt:P131 fg:Q400012.
+  ?fg_item (fgt:P2/fgt:P3*) fg:Q12.
+
+  
+  OPTIONAL {
+    # transform wikidata qid in factgrid to wikidata entity iri
+    ?link schema:about ?fg_item .
+    ?link schema:isPartOf <https://www.wikidata.org/> . 
+    ?link schema:name ?qid.
+    BIND(IRI(CONCAT(STR(wd:), ?qid)) AS ?wd_item)
+  }
+  OPTIONAL {
+    ?fg_item fgt:P83 ?location.
+    # get wikidata id of location
+    ?link_location schema:about ?location .
+    ?link_location schema:isPartOf <https://www.wikidata.org/> . 
+    ?link_location schema:name ?location_qid.
+    BIND(IRI(CONCAT(STR(wd:), ?location_qid)) AS ?wd_location)
+  }
+  OPTIONAL {
+    ?fg_item fgt:P2 ?instance.
+    # get wikidata id of instance
+    ?link_instance schema:about ?instance .
+    ?link_instance schema:isPartOf <https://www.wikidata.org/> . 
+    ?link_instance schema:name ?instance_qid.
+    BIND(IRI(CONCAT(STR(wd:), ?instance_qid)) AS ?wd_instance)
+  }
+
+  OPTIONAL { ?fg_item fgt:P728 ?fg_forum_id. }
+  OPTIONAL { ?fg_item fgt:P452 ?field_of_work. }
+
+} 
