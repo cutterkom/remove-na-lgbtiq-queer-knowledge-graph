@@ -9,7 +9,6 @@ config_file <- "data-publishing/factgrid/config.yml"
 config <- yaml::read_yaml(config_file)
 statements <- googlesheets4::read_sheet(config$statements$gs_table, sheet = "wikidata")
 
-triple_quote <- '"""'
 
 # Get data ----------------------------------------------------------------
 
@@ -144,24 +143,28 @@ fs::file_show(csv_file)
 
 
 query <- 'SELECT ?Verein ?VereinLabel ?FactGrid_Objekt_ID WHERE {
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "de, [AUTO_LANGUAGE],en". }
   ?Verein wdt:P31 wd:Q988108.
   ?Verein wdt:P8168 ?FactGrid_Objekt_ID.
 }
 ' 
 query_res_wd <- query %>% 
   sparql_to_tibble(endpoint = config$connection_wikidata$sparql_endpoint)
-
-update <- query_res_wd %>% filter(str_detect(FactGrid_Objekt_ID, '"'))
   
-update_add <- update %>% 
-  mutate(FactGrid_Objekt_ID = str_replace_all(FactGrid_Objekt_ID, "\"\"", "")) %>% 
-  mutate(across(c(Verein, starts_with("wd_")), ~extract_id(.))) %>% 
-  select(item = Verein, P8168 = FactGrid_Objekt_ID) %>% 
+update_add <- query_res_wd %>% 
+  select(item = Verein, VereinLabel) %>% 
+  mutate(across(c(item, starts_with("wd_")), ~extract_id(.))) %>% 
   mutate(
-    across(P8168, ~paste0(config$import_helper$single_quote, .x , config$import_helper$single_quote))
-  ) %>% 
+    P31 = 
+      case_when(
+        str_detect(VereinLabel, "Queer|queer|Homo|homo|rungsprojekt|lesb|Les|Leather|LSVD|rosa|wind|Schwu") ~ "Q64606659",
+        TRUE ~ NA_character_
+      )
+  ) %>%
+  select(item, P31) %>% 
   long_for_quickstatements()
+
+update_add
 
 csv_file <- tempfile(fileext = "csv")
 
@@ -174,3 +177,42 @@ write_wikibase(
 )
 
 fs::file_show(csv_file)
+
+
+
+input_labels_new <- input_labels %>% 
+  inner_join(query_res_wd %>% select(item = Verein, fg_item = FactGrid_Objekt_ID), by = c("fg_item")) %>% 
+  mutate(item = extract_id(item), .before = "Lde") %>% 
+  mutate(Aen = Len,
+         Ade = Lde,
+         Afr = Lfr,
+         Aes = Les,
+         Abar = Lbar) %>% 
+  mutate(Lde = ifelse(str_detect(Lde, "e.V$"), paste0(Lde, "."), Lde),
+         Len = ifelse(str_detect(Len, "e.V$"), paste0(Len, "."), Len),
+         Les = ifelse(str_detect(Les, "e.V$"), paste0(Les, "."), Les),
+         Lfr = ifelse(str_detect(Lfr, "e.V$"), paste0(Lfr, "."), Lfr),
+         Lbar = ifelse(str_detect(Lbar, "e.V$"), paste0(Lbar, "."), Lbar)) %>% 
+  mutate(Aen = str_remove(Aen, " e.V."),
+         Ade = str_remove(Ade, " e.V."),
+         Afr = str_remove(Afr, " e.V."),
+         Aes = str_remove(Aes, " e.V."),
+         Abar = str_remove(Abar, " e.V."))
+
+import <- input_labels_new %>% 
+  select(item, everything()) %>% 
+  select(-fg_item) %>% 
+  long_for_quickstatements()    
+
+csv_file <- tempfile(fileext = "csv")
+
+write_wikibase(
+  items = import$item,
+  properties = import$property,
+  values = import$value,
+  format = "csv",
+  format.csv.file = csv_file
+)
+
+fs::file_show(csv_file)
+
