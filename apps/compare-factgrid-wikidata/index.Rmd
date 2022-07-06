@@ -22,22 +22,43 @@ endpoint <- "https://database.factgrid.de/sparql"
 shinyFeedback::useShinyFeedback()
 ```
 
-
-```{r fetch_available_properties}
+```{r fetch_all_available_properties}
 
 #' Get properties related to persons
 #' @return dataframe
-get_person_properties <- function() {
-  tmp <- readr::read_file("https://raw.githubusercontent.com/cutterkom/remove-na-lgbtiq-queer-knowledge-graph/main/data-publishing/factgrid/queries/get_all_properties_person_with_corresponding_prop.rq") %>% 
-  sparql_to_tibble(endpoint = endpoint) %>%
-  mutate(
-    fg_property_id = str_extract(fg_property, "P[0-9]+"),
-    wd_property_id = str_extract(wd_property, "P[0-9]+"),
-    label = paste0(fg_propertyLabel, " (FG: ", fg_property_id, ", WD: ", wd_property_id, ")"),
-    label = str_remove_all(label, '"|@en')
-    ) 
-    
+get_properties <- function() {
+  tmp <- readr::read_file("https://raw.githubusercontent.com/cutterkom/remove-na-lgbtiq-queer-knowledge-graph/main/data-publishing/factgrid/queries/get_all_properties_with_corresponding_prop.rq") %>% 
+    sparql_to_tibble(endpoint = endpoint) %>%
+    mutate(
+      fg_property_id = str_extract(fg_property, "P[0-9]+"),
+      wd_property_id = str_extract(wd_property, "P[0-9]+"),
+      label = paste0(fg_propertyLabel, " (FG: ", fg_property_id, ", WD: ", wd_property_id, ")"),
+      label = str_remove_all(label, '"|@en')
+    )
+
   return(tmp)
+}
+```
+
+```{r filter_properties}
+#' Filter properties to get a certain class 
+#' @param data dataframe
+filter_properties <- function(data, class_of_property) {
+  data %>% 
+    filter(str_detect(fg_part_of, class_of_property)) %>% 
+    select(-contains("fg_part_of")) %>% 
+    distinct() %>% 
+    arrange(fg_propertyLabel)
+}
+```
+
+```{r get_classes_of_properties}
+#' Get classes of properties
+#' @param data dataframe with properties info, incl. cols named fg_part_of and fg_part_ofLabel
+get_classes_of_properties <- function(data) {
+  data %>% 
+    select(contains("part_of")) %>% 
+    distinct()
 }
 ```
 
@@ -48,7 +69,9 @@ Inputs {.sidebar}
 Which property should be compared?
 
 ```{r get_properties}
-persons_properties <- get_person_properties() %>% arrange(fg_propertyLabel)
+all_properties <- get_properties()
+
+persons_properties <- filter_properties(all_properties, "Q100632")
 
 persons_properties_list  <- persons_properties %>% 
   select(label, fg_property_id) %>% 
