@@ -613,3 +613,38 @@ WikidataR::write_wikibase(
   api.submit = F,
   quickstatements.url = config$connection$quickstatements_url
 )
+
+
+query <- '
+SELECT ?fg_item ?fg_itemLabel WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+  ?fg_item wdt:P131 wd:Q400012.
+  ?fg_item wdt:P550 wd:Q409833.
+}
+'
+
+query_res <- query %>% 
+  sparql_to_tibble(endpoint = config$connection$sparql_endpoint) %>% 
+  mutate(across("fg_item", ~extract_id(.))) %>% 
+  mutate(across(c(fg_itemLabel), ~remove_lang(.)))
+
+
+import <- query_res %>% 
+  left_join(labels_desc, by = c("fg_itemLabel" = "Lde")) %>% 
+  select(fg_item, fg_itemLabel, id) %>% 
+  left_join(desc_better, by = "id") %>% 
+  distinct() %>% 
+  select(item = fg_item, Dde, Den, Des, Dfr) %>% 
+  long_for_quickstatements()
+
+csv_file <- tempfile(fileext = "csv")
+
+write_wikibase(
+  items = import$item,
+  properties = import$property,
+  values = import$value,
+  format = "csv",
+  format.csv.file = csv_file
+)
+
+fs::file_show(csv_file)  
