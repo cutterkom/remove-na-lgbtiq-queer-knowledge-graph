@@ -8,8 +8,9 @@ PREFIX wd: <http://www.wikidata.org/entity/>
 PREFIX wikibase: <http://wikiba.se/ontology#>
 PREFIX bd: <http://www.bigdata.com/rdf#>
 
-SELECT ?fg_property ?fg_propertyLabel ?wd_property WHERE {
+SELECT ?fg_property ?fg_propertyLabel ?wd_property ?fg_part_ofLabel WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
   ?fg_property fgt:P343 ?fg_corr_wd_value.
+  OPTIONAL {?fg_property fgt:P8 ?fg_part_of}
   BIND(IRI(CONCAT(STR(wdt:), ?fg_corr_wd_value)) AS ?wd_property)
 }
