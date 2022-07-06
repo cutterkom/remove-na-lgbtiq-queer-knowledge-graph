@@ -32,23 +32,13 @@ get_properties <- function() {
     mutate(
       fg_property_id = str_extract(fg_property, "P[0-9]+"),
       wd_property_id = str_extract(wd_property, "P[0-9]+"),
+      fg_part_of_id = str_extract(fg_part_of, "Q[0-9]+"),
       label = paste0(fg_propertyLabel, " (FG: ", fg_property_id, ", WD: ", wd_property_id, ")"),
       label = str_remove_all(label, '"|@en')
-    )
+    ) %>% 
+     mutate(across(c(fg_part_ofLabel), ~remove_lang(.)))
 
   return(tmp)
-}
-```
-
-```{r filter_properties}
-#' Filter properties to get a certain class 
-#' @param data dataframe
-filter_properties <- function(data, class_of_property) {
-  data %>% 
-    filter(str_detect(fg_part_of, class_of_property)) %>% 
-    select(-contains("fg_part_of")) %>% 
-    distinct() %>% 
-    arrange(fg_propertyLabel)
 }
 ```
 
@@ -62,23 +52,64 @@ get_classes_of_properties <- function(data) {
 }
 ```
 
+```{r get_properties_list}
+#' get a list of properties filtered by part_of
+#' @param data dataframe with properties
+#' @param input_part_of
+get_properties_list <- function(data, input_part_of) {
+  data %>% 
+    filter(fg_part_of_id %in% c(input_part_of)) %>% 
+    select(label, fg_property_id) %>% 
+    arrange(label) %>% 
+    distinct() %>% 
+    deframe()  
+}
+```
 
+```{r filter_properties}
+#' Filter properties by input
+#' @param data dataframe
+get_input_properties <- function(data, input_properties) {
+  data %>% 
+    filter(fg_property_id == input_properties) %>% 
+    select(-contains("fg_part_of")) %>% 
+    distinct() %>% 
+    arrange(fg_propertyLabel)
+}
+```
 Inputs {.sidebar}
 =====================================
 
 Which property should be compared?
 
 ```{r get_properties}
-all_properties <- get_properties()
+all_properties_raw <- get_properties()
 
-persons_properties <- filter_properties(all_properties, "Q100632")
+all_properties <- all_properties_raw %>% 
+  filter(str_detect(property_type, "WikibaseItem|String|Time|Quantity|CommonsMedia|ExternalId|Url|CommonsMedia")) 
 
-persons_properties_list  <- persons_properties %>% 
-  select(label, fg_property_id) %>% 
+all_properties_list <- all_properties %>% 
+  select(fg_part_ofLabel, fg_part_of_id) %>% 
+  distinct() %>% 
+  arrange(fg_part_ofLabel) %>% 
   deframe()
 
-checkboxGroupInput("person_properties", label = "Properties available that refer to persons", choices = persons_properties_list)
+```
 
+```{r}
+selectInput("property_parts_of", label = "Choose a topic:", all_properties_list, multiple = TRUE)
+actionButton("button_start_property_parts_of", "Query properties", class = "btn-primary")
+
+observeEvent(input$button_start_property_parts_of, {
+  # first remove properties already chosen
+  removeUI(selector = "div:has(> #input_properties-label)")
+  # then insert chosen properties
+  insertUI(
+      selector = "#button_start_property_parts_of",
+      where = "afterEnd",
+      ui = checkboxGroupInput("input_properties", label = "Available properties:", choices = get_properties_list(all_properties, input$property_parts_of))
+    )
+})
 ```
 
 **Optional**: If you don't want to query all data in Factgrid, define a property-value-combination that needs to be satisfied. [Use this query to test it](https://database.factgrid.de/query/#%23defaultView%3ATable%0A%23%20Prefixes%20%20%20%20%0A%23%20Factgrid%0APREFIX%20fg%3A%20%3Chttps%3A%2F%2Fdatabase.factgrid.de%2Fentity%2F%3E%0APREFIX%20fgt%3A%20%3Chttps%3A%2F%2Fdatabase.factgrid.de%2Fprop%2Fdirect%2F%3E%0A%20%20%20%20%20%20%0A%23%20Wikidata%0APREFIX%20wdt%3A%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2F%3E%0APREFIX%20wd%3A%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fentity%2F%3E%0A%23%20misc%0APREFIX%20wikibase%3A%20%3Chttp%3A%2F%2Fwikiba.se%2Fontology%23%3E%0A%20%20%20%20%20%20%0ASELECT%20DISTINCT%20%3Ffg_item%20%3Ffg_itemLabel%20where%20%7B%0A%20%20%20%20%20%20%0A%23%20labels%20from%20Factgrid%0A%20%20SERVICE%20wikibase%3Alabel%20%7B%20bd%3AserviceParam%20wikibase%3Alanguage%20%22%5BAUTO_LANGUAGE%5D%2Cen%22.%20%7D%20%20%0A%20%20%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%0A%20%20%23%20copy%20the%20next%20line%20in%20the%20filter%20field%3A%0A%20%20%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%0A%20%20%3Ffg_item%20fgt%3AP131%20fg%3AQ400012%20.%0A%7D). 
@@ -87,7 +118,7 @@ checkboxGroupInput("person_properties", label = "Properties available that refer
 textInput("item_filter_property", label = "Filter items: Property", placeholder = "P131")
 textInput("item_filter_value", label = "Filter items: Value", placeholder = "Q400012")
 
-actionButton("button_start_person_properties", "Submit", class = "btn-primary")
+actionButton("button_start_input_properties", "Submit", class = "btn-primary")
 ```
 
 Please be patient, it may take a few moments if a lot of data is requested... If it takes too long, think about limiting the items that will be compared. Write a query for this in the field. 
@@ -97,22 +128,31 @@ Please be patient, it may take a few moments if a lot of data is requested... If
 #' Get comparison data based on property
 #' 
 #' This functions queries data on Factgrid looking for properties related to persons that have a corresponding Wikidata property. Utilizes federated queries.
-#' @param input_properties chosen properties in input$person_properties
+#' @param input_properties chosen properties in input$input_properties
 #' @param input_items_filter filter items e.g. like ?fg_item fgt:P131 fg:Q400012 . (don't forget the period!)
 #' @return dataframe
 get_comparison <- function(input_properties, input_item_filter_property, input_item_filter_value) {
-  persons_properties %>% 
+  print(input_properties)
+  all_properties %>% 
     filter(fg_property_id %in% input_properties) %>% 
+    select(-contains("part_of")) %>% 
+    distinct() %>% 
     pmap_dfr(function(...) {
       current <- tibble(...)
       cli::cli_alert_info("Fetch data for: {current$fg_propertyLabel}")
       fg_property_id <- current$fg_property_id
+      
+      #print(fg_property_id)
       
       if (input_item_filter_property != "" & input_item_filter_value != "") {
         input_items_filter <- paste0("?fg_item fgt:", input_item_filter_property, " fg:",  input_item_filter_value, ".")
       } else {
         input_items_filter <- ""
       }
+      
+      # print("input_properties")
+      # print(input_properties())
+      
       
       query <- paste0( '
       #defaultView:Table
@@ -130,7 +170,7 @@ get_comparison <- function(input_properties, input_item_filter_property, input_i
       PREFIX bd: <http://www.bigdata.com/rdf#>
       PREFIX schema: <http://schema.org/>
       
-      SELECT DISTINCT ?fg_item ?fg_itemLabel ?wd_item ?fg_property ?fg_propertyLabel ?wd_property ?fg_value ?fg_valueLabel ?wd_value_from_fg ?wd_value_from_wd ?fg_value_from_wd ?is_same where {
+      SELECT DISTINCT ?fg_item ?fg_itemLabel ?wd_item ?fg_property ?fg_propertyLabel ?fg_property_type ?wd_property ?fg_value ?fg_valueLabel ?wd_value_from_fg ?wd_value_from_wd ?fg_value_from_wd ?is_same where {
       
         # labels from Factgrid
         SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  
@@ -144,6 +184,8 @@ get_comparison <- function(input_properties, input_item_filter_property, input_i
         BIND(fg:', fg_property_id, ' as ?fg_property_as_item)
         # set property of corresponding wikidata property; is constant
         BIND(fgt:P343 as ?fg_corr_wd)
+        
+        ?fg_property_as_item wikibase:propertyType ?fg_property_type .
       
         # transform wikidata qid in factgrid to wikidata entity iri
         ?link schema:about ?fg_item .
@@ -180,7 +222,8 @@ get_comparison <- function(input_properties, input_item_filter_property, input_i
       }
       
       ')
-      
+      #print(query)
+
       res <- sparql_to_tibble(query, endpoint = endpoint) 
       print(res)
        if(nrow(res) > 0) {
@@ -291,16 +334,17 @@ get_import_data <- function(data, target) {
 
 
 ```{r fetch_data}
-comparison_raw <- eventReactive(input$button_start_person_properties, {
+comparison_raw <- eventReactive(input$button_start_input_properties, {
   
-  if(is.null(input$person_properties)) {
+  if(is.null(input$input_properties)) {
+    print(paste("chosen properties:", input$input_properties))
         shinyFeedback::showToast(
       "error", 
       "You have to select at least one property"
     )
   } else {
 
-    data <- get_comparison(input$person_properties, input$item_filter_property, input$item_filter_value)
+    data <- get_comparison(input$input_properties, input$item_filter_property, input$item_filter_value)
     
     shinyFeedback::showToast(
       "success", 
@@ -309,6 +353,14 @@ comparison_raw <- eventReactive(input$button_start_person_properties, {
     data
   }
   })
+```
+
+```{r}
+input_properties <- eventReactive(input$button_start_input_properties, {
+  data <- get_input_properties(all_properties, input$input_properties)
+  
+  data
+})
 ```
 
 Refering to Persons
@@ -378,7 +430,7 @@ in_both <- reactive({
     filter(is_same == "true") %>% 
     distinct(fg_item, fg_itemLabel, wd_item, fg_property_id, fg_value, fg_valueLabel, wd_value_from_fg, wd_value_from_wd) %>% 
     # add property info
-    left_join(persons_properties %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property), by = "fg_property_id")
+    left_join(input_properties() %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property), by = "fg_property_id")
 })
 ```
 
@@ -419,7 +471,7 @@ only_in_fg <- reactive({
     # remove those that are present in wd
     anti_join(in_both(), by = c("fg_item", "wd_value_from_fg")) %>% 
     # add property info
-    left_join(persons_properties %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property), by = "fg_property_id")
+    left_join(input_properties() %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property), by = "fg_property_id")
   
   })
 ```
@@ -489,7 +541,7 @@ only_in_wd <- reactive({
     # remove those that are present in wd
     anti_join(in_both(), by = c("fg_item", "wd_value_from_wd")) %>%
     # add property info
-    left_join(persons_properties %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property), by = "fg_property_id")
+    left_join(input_properties() %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property), by = "fg_property_id")
   
   })
 
