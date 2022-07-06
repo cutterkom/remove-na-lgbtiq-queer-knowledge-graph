@@ -17,9 +17,9 @@ config_file <- "data-publishing/factgrid/config.yml"
 config <- yaml::read_yaml(config_file)
 
 # only remove na
-#query <- readr::read_file("data-publishing/factgrid/queries/get_factgrid_ids_from_wikidata-removena.rq")
+query <- readr::read_file("data-publishing/factgrid/queries/get_factgrid_ids_from_wikidata-removena.rq")
 # all factgrid
-query <- readr::read_file("data-publishing/factgrid/queries/get_factgrid_ids_from_wikidata.rq")
+#query <- readr::read_file("data-publishing/factgrid/queries/get_factgrid_ids_from_wikidata.rq")
 
 query_res <- query %>% 
   sparql_to_tibble(endpoint = config$connection$sparql_endpoint)
@@ -27,13 +27,6 @@ query_res <- query %>%
 query_res <- query_res %>% mutate(has_fg_id = ifelse(!is.na(wd_fg_id), 1, 0))
 
 query_res %>% count(has_fg_id)
-
-# result:
-# has_fg_id     n
-# <dbl> <int>
-# 1         0  1573
-# 2         1    28
-
 
 # Prepare import ----------------------------------------------------------
 
@@ -47,7 +40,7 @@ input_statements <- query_res %>%
     fg_item =  str_extract(fg_item, "Q[0-9]+")) %>% 
   select(item = wd_item, P8168 = fg_item) %>% 
   mutate(
-    across(P8168, ~paste0(triple_quote, .x , triple_quote))
+    across(P8168, ~paste0(config$import_helper$single_quote, .x , config$import_helper$single_quote))
   )
 
 import <- input_statements %>% long_for_quickstatements()
@@ -63,4 +56,4 @@ write_wikibase( # also write_wikidata possible
 )
 
 # copy it to clipboard
-read_delim(file = csv_file, delim = "\t") %>% clipr::write_clip()
+fs::file_show(csv_file)
