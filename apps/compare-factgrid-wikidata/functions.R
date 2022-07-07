@@ -60,7 +60,8 @@ get_input_properties <- function(data, input_properties) {
 #' @return dataframe
 get_comparison <- function(input_properties, input_item_filter_property, input_item_filter_value) {
   all_properties %>%
-    filter(fg_property_id %in% input_properties) %>%
+    #filter(fg_property_id %in% input_properties) %>%
+    inner_join(input_properties) %>% 
     select(-contains("part_of")) %>%
     distinct() %>%
     pmap_dfr(function(...) {
@@ -125,11 +126,22 @@ get_comparison <- function(input_properties, input_item_filter_property, input_i
 #' @param url href for link
 #' @param name string for inside <a href>name</a>
 #' @param new_col name of new col
-create_link <- function(data, url, name, new_col) {
+#' @param property_type colum with property type: different ways needed to create link
+create_link <- function(data, url, name, new_col, property_type = fg_property_type) {
   data %>%
     mutate(
-      {{ new_col }} := str_replace({{ url }}, "<", "<a href='"),
-      {{ new_col }} := str_replace({{ new_col }}, ">", "' target='_blank'>"),
+      {{ new_col }} := 
+        case_when(
+          fg_property_type %in% c("WikibaseItem", "Url") ~ str_replace({{ url }}, "<", "<a href='"),
+          fg_property_type != "Time" ~ str_replace({{ url }}, "<", "<a href='"),
+          
+          TRUE ~ "LINK"),
+      {{ new_col }} := 
+        case_when(
+          
+          fg_property_type %in% c("WikibaseItem", "Url") ~ str_replace({{ new_col }}, ">", "' target='_blank'>"), 
+          fg_property_type != "Time" ~ str_replace({{ new_col }}, ">", "' target='_blank'>"), 
+          TRUE ~ "NOT IMPLEMENTED"),
       {{ new_col }} := paste0({{ new_col }}, {{ name }}, "</a>")
     )
 }
