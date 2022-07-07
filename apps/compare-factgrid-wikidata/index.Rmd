@@ -42,10 +42,10 @@ get_properties <- function() {
 }
 ```
 
-```{r get_classes_of_properties}
+```{r get_parts_of_properties}
 #' Get classes of properties
 #' @param data dataframe with properties info, incl. cols named fg_part_of and fg_part_ofLabel
-get_classes_of_properties <- function(data) {
+get_parts_of_properties <- function(data) {
   data %>% 
     select(contains("part_of")) %>% 
     distinct()
@@ -142,7 +142,7 @@ get_comparison <- function(input_properties, input_item_filter_property, input_i
       cli::cli_alert_info("Fetch data for: {current$fg_propertyLabel}")
       fg_property_id <- current$fg_property_id
       
-      #print(fg_property_id)
+      cli::cli_alert_info("Property data type: {current$fg_propertyLabel}")
       
       if (input_item_filter_property != "" & input_item_filter_value != "") {
         input_items_filter <- paste0("?fg_item fgt:", input_item_filter_property, " fg:",  input_item_filter_value, ".")
