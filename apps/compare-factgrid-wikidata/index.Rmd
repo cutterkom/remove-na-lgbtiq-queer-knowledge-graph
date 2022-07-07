@@ -223,7 +223,12 @@ DT::renderDataTable(
     # links for values
     create_link(url = fg_value, name = "Factgrid", new_col = fg_value_link) %>% 
     create_link(url = wd_value_from_wd, name = "Wikidata", new_col = wd_value_link) %>% 
-    mutate(value = paste0(fg_valueLabel, " (", fg_value_link, ", ", wd_value_link, ")")) %>% 
+    mutate(value = 
+         case_when(
+           fg_property_type == "WikibaseItem" ~ paste0(fg_valueLabel, " (", fg_value_link, ", ", wd_value_link, ")"),
+           TRUE ~ fg_valueLabel
+           )
+       ) %>% 
     
     # get relevant columns
     select(item, property, value) %>% 
@@ -266,7 +271,12 @@ DT::renderDataTable(
     # links for values
     create_link(url = fg_value, name = "Factgrid", new_col = fg_value_link) %>% 
     create_link(url = wd_value_from_fg, name = "Wikidata", new_col = wd_value_link) %>% 
-    mutate(value = paste0(fg_valueLabel, " (", fg_value_link, ", ", wd_value_link, ")")) %>% 
+    mutate(value = 
+     case_when(
+       fg_property_type == "WikibaseItem" ~ paste0(fg_valueLabel, " (", fg_value_link, ", ", wd_value_link, ")"),
+       TRUE ~ fg_valueLabel
+       )
+   ) %>% 
     
     # get relevant columns
     select(item, property, value) %>% 
@@ -345,11 +355,13 @@ DT::renderDataTable(
       mutate(
         fg_value_from_wd_link = paste0('<a href="https://database.factgrid.de/wiki/Item:', fg_value_from_wd, '">Factgrid</a>'),
         value = 
-               case_when(
-                 !is.na(fg_value_from_wd) ~ paste0(" (", fg_value_from_wd_link, ", ", wd_value_link, ")"),
-                 TRUE ~ paste0(wd_value_link)
-                 )
-        ) %>% 
+          case_when(
+            !is.na(fg_value_from_wd) ~ paste0(" (", fg_value_from_wd_link, ", ", wd_value_link, ")"),
+            fg_property_type == "WikibaseItem" & !is.na(fg_value_from_wd) ~ paste0(" (", fg_value_from_wd_link, ", ", wd_value_link, ")"),
+            fg_property_type == "WikibaseItem" & is.na(fg_value_from_wd) ~ paste0(wd_value_link),
+            TRUE ~ wd_value_from_wd
+         )
+    ) %>% 
       
       # get relevant columns
       select(item, property, value) %>% 
