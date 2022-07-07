@@ -81,7 +81,7 @@ comparison_raw <- eventReactive(input$button_start_input_properties, {
     )
   } else {
     
-    data <- get_comparison(input_properties() %>% distinct(fg_property), input$item_filter_property, input$item_filter_value)
+    data <- get_comparison(input_properties() %>% select(fg_property), input$item_filter_property, input$item_filter_value)
     
     shinyFeedback::showToast(
       "success", 
@@ -95,7 +95,8 @@ comparison_raw <- eventReactive(input$button_start_input_properties, {
 ```{r get_chosen_properties}
 input_properties <- eventReactive(input$button_start_input_properties, {
   data <- get_input_properties(all_properties, input$input_properties)
-  
+  cli::cli_alert_info("Input Properties dataframe:")
+  print(data)
   data
 })
 ```
@@ -176,7 +177,7 @@ DT::renderDataTable(
   DT::datatable(
 
   in_both() %>% 
-    left_join(input_properties() %>% distinct(fg_property_id, fg_property_type)) %>% 
+    left_join(input_properties() %>% distinct(fg_property_id, fg_property_type), by = "fg_property_id") %>% 
     # link for items
     create_link(url = fg_item, name = "Factgrid", new_col = fg_item_link) %>% 
     create_link(url = wd_item, name = "Wikidata", new_col = wd_item_link) %>% 
@@ -219,7 +220,7 @@ only_in_fg <- reactive({
 DT::renderDataTable(
   DT::datatable(
   only_in_fg() %>% 
-    left_join(input_properties() %>% distinct(fg_property_id, fg_property_type)) %>% 
+    left_join(input_properties() %>% distinct(fg_property_id, fg_property_type), by = "fg_property_id") %>% 
     # link for items
     create_link(url = fg_item, name = "Factgrid", new_col = fg_item_link) %>% 
     create_link(url = wd_item, name = "Wikidata", new_col = wd_item_link) %>% 
@@ -294,7 +295,7 @@ Labels from Wikidata are not shown (yet), because it would takes quite a time.
 DT::renderDataTable(
   DT::datatable(
     only_in_wd() %>% 
-      left_join(input_properties() %>% distinct(fg_property_id, fg_property_type)) %>% 
+      left_join(input_properties() %>% distinct(fg_property_id, fg_property_type), by = "fg_property_id") %>% 
      # link for items
       create_link(url = fg_item, name = "Factgrid", new_col = fg_item_link) %>% 
       create_link(url = wd_item, name = "Wikidata", new_col = wd_item_link) %>% 

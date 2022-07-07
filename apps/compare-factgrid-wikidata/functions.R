@@ -60,8 +60,7 @@ get_input_properties <- function(data, input_properties) {
 #' @return dataframe
 get_comparison <- function(input_properties, input_item_filter_property, input_item_filter_value) {
   all_properties %>%
-    #filter(fg_property_id %in% input_properties) %>%
-    inner_join(input_properties) %>% 
+    inner_join(input_properties, by = "fg_property") %>% 
     select(-contains("part_of")) %>%
     distinct() %>%
     pmap_dfr(function(...) {
@@ -208,3 +207,4 @@ get_import_data <- function(data, target) {
     stop("no valid target. Only `wikidata` or `factgrid` allowed")
   }
 }
+
