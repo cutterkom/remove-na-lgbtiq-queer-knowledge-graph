@@ -34,7 +34,8 @@ get_properties <- function() {
       wd_property_id = str_extract(wd_property, "P[0-9]+"),
       fg_part_of_id = str_extract(fg_part_of, "Q[0-9]+"),
       label = paste0(fg_propertyLabel, " (FG: ", fg_property_id, ", WD: ", wd_property_id, ")"),
-      label = str_remove_all(label, '"|@en')
+      label = str_remove_all(label, '"|@en'),
+      property_type = str_extract(property_type, "(?<=#).+(?=>)")
     ) %>% 
      mutate(across(c(fg_part_ofLabel), ~remove_lang(.)))
 
@@ -142,7 +143,7 @@ get_comparison <- function(input_properties, input_item_filter_property, input_i
       cli::cli_alert_info("Fetch data for: {current$fg_propertyLabel}")
       fg_property_id <- current$fg_property_id
       
-      cli::cli_alert_info("Property data type: {current$fg_propertyLabel}")
+      cli::cli_alert_info("Property data type: {current$fg_property_type}")
       
       if (input_item_filter_property != "" & input_item_filter_value != "") {
         input_items_filter <- paste0("?fg_item fgt:", input_item_filter_property, " fg:",  input_item_filter_value, ".")
