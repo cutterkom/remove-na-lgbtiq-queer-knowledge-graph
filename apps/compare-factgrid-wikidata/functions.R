@@ -79,6 +79,7 @@ get_comparison <- function(input_properties, input_item_filter_property, input_i
       if(current$fg_property_type == "WikibaseItem") {
         query <- query_items(input_items_filter = input_items_filter, fg_property_id = fg_property_id)
       } else {
+        # everything thats not an item: strings, dates
         query <- query_non_items(input_items_filter = input_items_filter, fg_property_id = fg_property_id)
       }
       
