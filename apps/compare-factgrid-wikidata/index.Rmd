@@ -85,7 +85,8 @@ observeEvent(input$button_start_property_by_type, {
   insertUI(
       selector = "#button_start_property_by_type",
       where = "afterEnd",
-      ui = checkboxGroupInput("input_properties", label = "Available properties:", choices = get_properties_list_by_type(all_properties, input$property_by_type))
+      ui = selectInput("input_properties", label = "Available properties:", choices = get_properties_list_by_type(all_properties, input$property_by_type))
+        #checkboxGroupInput("input_properties", label = "Available properties:", choices = get_properties_list_by_type(all_properties, input$property_by_type))
     )
 })
 ```
@@ -225,7 +226,8 @@ DT::renderDataTable(
     create_link(url = wd_value_from_wd, name = "Wikidata", new_col = wd_value_link) %>% 
     mutate(value = 
          case_when(
-           fg_property_type == "WikibaseItem" ~ paste0(fg_valueLabel, " (", fg_value_link, ", ", wd_value_link, ")"),
+          fg_property_type == "WikibaseItem" ~ paste0(fg_valueLabel, " (", fg_value_link, ", ", wd_value_link, ")"),
+          fg_property_type %in% c("Url", "CommonsMedia") ~ paste0('<a href = "', str_remove_all(wd_value_from_wd, "<|>"), '">', str_remove_all(wd_value_from_wd, "<|>"), '</a>'),
            TRUE ~ fg_valueLabel
            )
        ) %>% 
@@ -255,6 +257,10 @@ only_in_fg <- reactive({
 
 #### Table
 ```{r show_table_only_in_fg}
+
+# item var: fg_itemLabel
+# value var: fg_valueLabel
+
 DT::renderDataTable(
   DT::datatable(
   only_in_fg() %>% 
@@ -274,6 +280,7 @@ DT::renderDataTable(
     mutate(value = 
      case_when(
        fg_property_type == "WikibaseItem" ~ paste0(fg_valueLabel, " (", fg_value_link, ", ", wd_value_link, ")"),
+       fg_property_type %in% c("Url", "CommonsMedia") ~ paste0('<a href = "', str_remove_all(fg_valueLabel, "<|>"), '">', str_remove_all(fg_valueLabel, "<|>"), '</a>'),
        TRUE ~ fg_valueLabel
        )
    ) %>% 
@@ -356,10 +363,14 @@ DT::renderDataTable(
         fg_value_from_wd_link = paste0('<a href="https://database.factgrid.de/wiki/Item:', fg_value_from_wd, '">Factgrid</a>'),
         value = 
           case_when(
+            # for Wikibase Items
             !is.na(fg_value_from_wd) ~ paste0(" (", fg_value_from_wd_link, ", ", wd_value_link, ")"),
             fg_property_type == "WikibaseItem" & !is.na(fg_value_from_wd) ~ paste0(" (", fg_value_from_wd_link, ", ", wd_value_link, ")"),
             fg_property_type == "WikibaseItem" & is.na(fg_value_from_wd) ~ paste0(wd_value_link),
-            TRUE ~ wd_value_from_wd
+            # for Links
+            fg_property_type %in% c("Url", "CommonsMedia") ~ paste0('<a href = "', str_remove_all(wd_value_from_wd, "<|>"), '">', str_remove_all(wd_value_from_wd, "<|>"), '</a>'),
+            
+            TRUE ~ as.character(wd_value_from_wd)
          )
     ) %>% 
       

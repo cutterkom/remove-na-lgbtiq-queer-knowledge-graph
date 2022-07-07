@@ -150,22 +150,12 @@ get_comparison <- function(input_properties, input_item_filter_property, input_i
 #' @param new_col name of new col
 #' @param property_type colum with property type: different ways needed to create link
 create_link <- function(data, url, name, new_col, property_type = fg_property_type) {
-  data %>%
+  data %>% 
     mutate(
-      {{ new_col }} := 
-        case_when(
-          fg_property_type %in% c("WikibaseItem", "Url") ~ str_replace({{ url }}, "<", "<a href='"),
-          fg_property_type != "Time" ~ str_replace({{ url }}, "<", "<a href='"),
-          
-          TRUE ~ "LINK"),
-      {{ new_col }} := 
-        case_when(
-          
-          fg_property_type %in% c("WikibaseItem", "Url") ~ str_replace({{ new_col }}, ">", "' target='_blank'>"), 
-          fg_property_type != "Time" ~ str_replace({{ new_col }}, ">", "' target='_blank'>"), 
-          TRUE ~ "NOT IMPLEMENTED"),
-      {{ new_col }} := paste0({{ new_col }}, {{ name }}, "</a>")
-    )
+      {{new_col}} := str_replace({{url}}, "<", "<a href='"),
+      {{new_col}} := str_replace({{new_col}}, ">", "' target='_blank'>"),
+      {{new_col}} := paste0({{new_col}}, {{name}}, "</a>")
+    )  
 }
 
 
