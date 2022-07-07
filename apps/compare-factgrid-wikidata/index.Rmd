@@ -17,14 +17,10 @@ library(here)
 library(flexdashboard)
 library(shinyFeedback)
 
-endpoint <- "https://database.factgrid.de/sparql"
-
 source("functions.R", local = TRUE)
-
-
+source("queries.R", local = TRUE)
 
 shinyFeedback::useShinyFeedback()
-
 
 ```
 
