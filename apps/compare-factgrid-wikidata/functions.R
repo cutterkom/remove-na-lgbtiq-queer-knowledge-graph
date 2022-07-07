@@ -33,7 +33,7 @@ get_parts_of_properties <- function(data) {
 #' @param data dataframe with properties
 #' @param input_part_of
 #' @returns list, input for checkbox input `input_properties`
-get_properties_list <- function(data, input_part_of) {
+get_properties_list_part_of <- function(data, input_part_of) {
   data %>%
     filter(fg_part_of_id %in% c(input_part_of)) %>%
     select(label, fg_property_id) %>%
@@ -41,6 +41,21 @@ get_properties_list <- function(data, input_part_of) {
     distinct() %>%
     deframe()
 }
+
+#' get a list of properties filtered by property type
+#' @param data dataframe with properties
+#' @param input_property_by_type
+#' @returns list, input for checkbox input `input_properties`
+get_properties_list_by_type <- function(data, input_property_by_type) {
+  data %>%
+    filter(fg_property_type %in% c(input_property_by_type)) %>%
+    select(label, fg_property_id) %>%
+    arrange(label) %>%
+    distinct() %>%
+    deframe()
+}
+
+
 
 #' Filter properties by input
 #' @param data dataframe
@@ -52,6 +67,13 @@ get_input_properties <- function(data, input_properties) {
     arrange(fg_propertyLabel)
 }
 
+#' Get available propery types
+#' @param data dataframe
+get_property_types <- function(data) {
+  data %>% 
+    count(fg_property_type, sort = T)
+}
+
 #' Get comparison data based on property
 #'
 #' Main function of the app. This functions queries data on Factgrid looking for properties related to persons that have a corresponding Wikidata property. Utilizes federated queries.
@@ -60,7 +82,8 @@ get_input_properties <- function(data, input_properties) {
 #' @return dataframe
 get_comparison <- function(input_properties, input_item_filter_property, input_item_filter_value) {
   all_properties %>%
-    inner_join(input_properties, by = "fg_property") %>% 
+    #inner_join(input_properties, by = "fg_property") %>% 
+    filter(fg_property_id %in% input_properties) %>% 
     select(-contains("part_of")) %>%
     distinct() %>%
     pmap_dfr(function(...) {

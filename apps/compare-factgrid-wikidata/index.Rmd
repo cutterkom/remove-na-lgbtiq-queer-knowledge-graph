@@ -35,7 +35,9 @@ all_properties_raw <- get_properties()
 all_properties <- all_properties_raw %>% 
   filter(str_detect(fg_property_type, "WikibaseItem|String|Time|Quantity|CommonsMedia|ExternalId|Url|CommonsMedia")) 
 
-all_properties_list <- all_properties %>% 
+
+
+property_types_list <- all_properties %>% 
   select(fg_part_ofLabel, fg_part_of_id) %>% 
   distinct() %>% 
   arrange(fg_part_ofLabel) %>% 
@@ -43,18 +45,47 @@ all_properties_list <- all_properties %>%
 
 ```
 
-```{r input_choose_properties}
-selectInput("property_parts_of", label = "Choose a topic:", all_properties_list, multiple = TRUE)
-actionButton("button_start_property_parts_of", "Query properties", class = "btn-primary")
+```{r input_choose_properties_part_of, eval=FALSE}
+# all_properties_list <- all_properties %>% 
+#   select(fg_part_ofLabel, fg_part_of_id) %>% 
+#   distinct() %>% 
+#   arrange(fg_part_ofLabel) %>% 
+#   deframe()
+# 
+# selectInput("property_parts_of", label = "Choose a topic:", all_properties_list, multiple = TRUE)
+# actionButton("button_start_property_parts_of", "Query properties", class = "btn-primary")
+# 
+# observeEvent(input$button_start_property_parts_of, {
+#   # first remove properties already chosen
+#   removeUI(selector = "div:has(> #input_properties-label)")
+#   # then insert chosen properties
+#   insertUI(
+#       selector = "#button_start_property_parts_of",
+#       where = "afterEnd",
+#       ui = checkboxGroupInput("input_properties", label = "Available properties:", choices = get_properties_list_part_of(all_properties, input$property_parts_of))
+#     )
+# })
+```
 
-observeEvent(input$button_start_property_parts_of, {
+```{r input_choose_properties_by_type}
+all_properties_list <- all_properties %>% 
+  count(fg_property_type, sort = T) %>%
+  distinct(fg_property_type) %>% 
+  arrange(fg_property_type) %>% 
+  deframe()
+names(all_properties_list) <- all_properties_list
+
+selectInput("property_by_type", label = "Choose a property type:", all_properties_list, multiple = FALSE)
+actionButton("button_start_property_by_type", "Query properties", class = "btn-primary")
+
+observeEvent(input$button_start_property_by_type, {
   # first remove properties already chosen
   removeUI(selector = "div:has(> #input_properties-label)")
   # then insert chosen properties
   insertUI(
-      selector = "#button_start_property_parts_of",
+      selector = "#button_start_property_by_type",
       where = "afterEnd",
-      ui = checkboxGroupInput("input_properties", label = "Available properties:", choices = get_properties_list(all_properties, input$property_parts_of))
+      ui = checkboxGroupInput("input_properties", label = "Available properties:", choices = get_properties_list_by_type(all_properties, input$property_by_type))
     )
 })
 ```
@@ -81,15 +112,17 @@ comparison_raw <- eventReactive(input$button_start_input_properties, {
     )
   } else {
     
-    data <- get_comparison(input_properties() %>% select(fg_property), input$item_filter_property, input$item_filter_value)
+    #data <- get_comparison(input_properties() %>% select(fg_property), input$item_filter_property, input$item_filter_value)
+     data <- get_comparison(input$input_properties, input$item_filter_property, input$item_filter_value)
     
     shinyFeedback::showToast(
       "success", 
       "data loaded"
     )
+    
     data
   }
-  })
+})
 ```
 
 ```{r get_chosen_properties}
