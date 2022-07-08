@@ -188,8 +188,8 @@ get_import_data <- function(data, target, input_property_by_type = NULL) {
         value =
           case_when(
             fg_property_type == "WikibaseItem" ~ wd_value_from_fg_id,
-            fg_property_type == "Quantity" ~ as.character(fg_value),
-            TRUE ~ paste0('"', fg_value, '"')
+            fg_property_type == "Quantity" ~ as.character(fg_valueLabel),
+            TRUE ~ paste0('"', fg_valueLabel, '"')
           ),
         # source_value: Source information: Wikidata Item the value is taken from (as string)
         source_value =
@@ -225,8 +225,8 @@ get_import_data <- function(data, target, input_property_by_type = NULL) {
         value = 
           case_when(
             fg_property_type == "WikibaseItem" ~ fg_value_from_wd_id,
-            fg_property_type == "Quantity" ~ as.character(wd_value_from_wd),
-            TRUE ~ paste0('"', wd_value_from_wd, '"')
+            fg_property_type == "Quantity" ~ as.character(wd_value_from_wdLabel),
+            TRUE ~ paste0('"', wd_value_from_wdLabel, '"')
           ),
         # Source information: Wikidata Item the value is taken from (as string)
         source_value =

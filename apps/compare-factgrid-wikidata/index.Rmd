@@ -327,7 +327,7 @@ only_in_wd <- reactive({
   
   data <- comparison_raw() %>% 
     filter(is_same == "false") %>% 
-    distinct(fg_item, fg_itemLabel, wd_item, fg_property_id, wd_value_from_wd, fg_value_from_wd) %>% 
+    distinct(fg_item, fg_itemLabel, wd_item, fg_property_id, wd_value_from_wd, wd_value_from_wdLabel, fg_value_from_wd) %>% 
     # remove those that are present in wd
     anti_join(in_both(), by = c("fg_item", "wd_value_from_wd")) %>%
     # add property info
@@ -370,7 +370,7 @@ DT::renderDataTable(
             # for Links
             fg_property_type %in% c("Url", "CommonsMedia") ~ paste0('<a href = "', str_remove_all(wd_value_from_wd, "<|>"), '">', str_remove_all(wd_value_from_wd, "<|>"), '</a>'),
             
-            TRUE ~ as.character(wd_value_from_wd)
+            TRUE ~ as.character(wd_value_from_wdLabel)
          )
     ) %>% 
       

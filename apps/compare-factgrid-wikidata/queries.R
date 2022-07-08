@@ -84,7 +84,7 @@ query_non_items <- function(input_items_filter = NULL, fg_property_id = NULL) {
     PREFIX bd: <http://www.bigdata.com/rdf#>
     PREFIX schema: <http://schema.org/>
     
-    SELECT DISTINCT ?fg_item ?fg_itemLabel ?wd_item ?fg_property ?fg_propertyLabel ?fg_property_type ?wd_property ?fg_value ?fg_valueLabel ?wd_value_from_fg ?wd_value_from_wd ?fg_value_from_wd ?is_same where {
+    SELECT DISTINCT ?fg_item ?fg_itemLabel ?wd_item ?fg_property ?fg_propertyLabel ?fg_property_type ?wd_property ?fg_value ?fg_valueLabel ?wd_value_from_fg ?wd_value_from_wd ?wd_value_from_wdLabel ?fg_value_from_wd ?is_same where {
     
       # labels from Factgrid
       SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
@@ -116,10 +116,13 @@ query_non_items <- function(input_items_filter = NULL, fg_property_id = NULL) {
       # now change to wikidata as data source
       # get value from wikidata
       SERVICE <https://query.wikidata.org/sparql> {
+         SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
           OPTIONAL {
               ?wd_item ?wd_property ?wd_value_from_wd.
+              # ?wd_item rdfs:label ?wd_itemLabel.
             OPTIONAL {
               ?wd_value_from_wd wdt:P8168 ?fg_value_from_wd.
+              ?wd_value_from_wd rdfs:label ?wd_value_from_wdLabel.
             }
           }
     
