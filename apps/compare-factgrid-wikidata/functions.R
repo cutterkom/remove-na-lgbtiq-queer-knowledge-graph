@@ -170,26 +170,40 @@ get_import_data <- function(data, target, input_property_by_type = NULL) {
   cli::cli_alert_info("Import for property type: {input_property_by_type} in {target}")
   if (target == "wikidata") {
     import_data <- comparison_raw() %>%
-      inner_join(data %>% distinct(fg_item, wd_value_from_fg), by = c("fg_item", "wd_value_from_fg")) %>%
+      inner_join(only_in_fg() %>% distinct(fg_item, wd_value_from_fg), by = c("fg_item", "wd_value_from_fg")) %>%
       mutate(
+        # item: Wikidata Item to import to
+        item = str_extract(wd_item, "Q[0-9]+"),
         fg_item_id = str_extract(fg_item, "Q[0-9]+"),
         fg_value_id = str_extract(fg_value, "Q[0-9]+"),
-        wd_item_id = str_extract(wd_item, "Q[0-9]+"),
-        wd_value_from_fg_id = str_extract(wd_value_from_fg, "Q[0-9]+"),
-        fg_value_from_wd_id = str_extract(fg_value_from_wd, "Q[0-9]+"),
-        fg_value_id = paste0('"', fg_value_id, '"')
+        # value: Wikidata value derived from Factgrid, either QID of WikibaseItem, or plain string
+        value =
+          case_when(
+            fg_property_type == "WikibaseItem" ~ str_extract(wd_value_from_fg, "Q[0-9]+"),
+            fg_property_type == "Quantity" ~ as.character(fg_value),
+            TRUE ~ paste0('"', fg_value, '"')
+          ),
+        # source_value: Source information: Wikidata Item the value is taken from (as string)
+        source_value =
+          case_when(
+            fg_property_type == "WikibaseItem" ~ fg_value_id,
+            TRUE ~ fg_item_id
+          ),
+        source_value = paste0('"', source_value, '"')
       ) %>%
-      # add source of Factgrid-Object
-      bind_cols(tibble(source = "S8168", time = "S813", timestamp = paste0("+", Sys.Date(), "T00:00:00Z/", 11)))
-    
-    
+      # add source and timestamp of Factgrid-Object
+      bind_cols(tibble(source = "S8168", time = "S813", timestamp = paste0("+", Sys.Date(), "T00:00:00Z/", 11))) %>%
       select(
-        item = wd_item_id, property = wd_property_id, value = wd_value_from_fg_id,
-        source, source_value = fg_value_id,
-        time, timestamp
+        item,
+        property = wd_property_id,
+        value,
+        source,
+        source_value,
+        time,
+        timestamp
       ) %>%
       distinct()
-
+    
     cli::cli_alert_success("data copied for import in wikidata")
 
     import_data
@@ -200,30 +214,30 @@ get_import_data <- function(data, target, input_property_by_type = NULL) {
       distinct() %>%
       mutate(
         # item: FG item
-        fg_item_id = str_extract(fg_item, "Q[0-9]+"),
-        # FG value derived from Wikidata, either QID if WikibaseItem, or plain string
-        fg_value_from_wd_id = 
+        item = str_extract(fg_item, "Q[0-9]+"),
+        # value: FG value derived from Wikidata, either QID if WikibaseItem, or plain string
+        value = 
           case_when(
-            fg_property_type == "WikibaseItem" ~ str_extract(wd_value_from_wd, "Q[0-9]+"),
+            fg_property_type == "WikibaseItem" ~ str_extract(fg_value_from_wd, "Q[0-9]+"),
+            fg_property_type == "Quantity" ~ as.character(wd_value_from_wd),
             TRUE ~ paste0('"', wd_value_from_wd, '"')
           ),
-        # source values Wikidata value for source
-        # Wikidata Item the value is taken from (as)
-        wd_value_from_wd =
+        # Source information: Wikidata Item the value is taken from (as string)
+        source_value =
           case_when(
             fg_property_type == "WikibaseItem" ~ str_extract(wd_value_from_wd, "Q[0-9]+"),
-            TRUE ~ str_extract(wd_item, "Q[0-9]+")
+            TRUE ~ str_extract(wd_item, "Q[0-9]+"),
           ),
-        wd_value_from_wd = paste0('"', wd_value_from_wd, '"')
+        source_value = paste0('"', source_value, '"')
       ) %>%
       # add source of Factgrid-Object
       bind_cols(tibble(source = "S771", time = "S432", timestamp = paste0("+", Sys.Date(), "T00:00:00Z/", 11))) %>% 
       select(
-        item = fg_item_id, 
+        item, 
         property = fg_property_id, 
-        value = fg_value_from_wd_id,
+        value,
         source, 
-        source_value = wd_value_from_wd,
+        source_value,
         time, timestamp
       ) %>%
       # can only import those with a Factgrid ID in Wikidata

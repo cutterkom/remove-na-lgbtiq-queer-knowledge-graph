@@ -33,9 +33,9 @@ Which property should be compared?
 all_properties_raw <- get_properties()
 
 all_properties <- all_properties_raw %>% 
-  filter(str_detect(fg_property_type, "WikibaseItem|String|Time|Quantity|CommonsMedia|ExternalId|Url|CommonsMedia")) 
-
-
+  filter(str_detect(fg_property_type, "WikibaseItem|String|Time|Quantity|ExternalId|Url")) 
+# not implemented: 
+## CommonsMedia: URL must be cleaned
 
 property_types_list <- all_properties %>% 
   select(fg_part_ofLabel, fg_part_of_id) %>% 
@@ -299,7 +299,7 @@ This data can be imported to Wikidata. Click the button and paste it into [Wikid
 uiOutput("download_wikidata_import_UI")
 
 import_in_wikidata <- reactive({
-  data <- get_import_data(only_in_fg(), target = "wikidata") %>% 
+  data <- get_import_data(only_in_fg(), target = "wikidata", input_property_by_type = input$property_by_type) %>% 
      distinct()
   data
 })
@@ -315,7 +315,7 @@ output$download_wikidata_import <- downloadHandler(
     "import_wikidata.csv"
   },
   content = function(file) {
-    write.csv(import_in_wikidata(), file, row.names = FALSE)
+    write.table(import_in_wikidata(), file, row.names = FALSE, quote = FALSE, sep = "\t")
   }
 )
 ```
