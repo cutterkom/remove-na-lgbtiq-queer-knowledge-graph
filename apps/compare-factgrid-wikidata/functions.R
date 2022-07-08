@@ -113,7 +113,8 @@ get_comparison <- function(input_properties, input_item_filter_property, input_i
         res <- res %>%
           mutate(
             fg_property_id = str_extract(fg_property, "P[0-9]+"),
-            wd_property_id = str_extract(wd_property, "P[0-9]+")
+            wd_property_id = str_extract(wd_property, "P[0-9]+"),
+            fg_property_type = str_extract(fg_property_type, "(?<=#).+(?=>)")
           )
       } else {
         res <- tibble(
@@ -165,7 +166,8 @@ create_link <- function(data, url, name, new_col, property_type = fg_property_ty
 #' @param data if only_in_wd or only_in_fg
 #' @param target if import into wikidata or factgrid
 #' @return dataframe
-get_import_data <- function(data, target) {
+get_import_data <- function(data, target, input_property_by_type = NULL) {
+  cli::cli_alert_info("Import for property type: {input_property_by_type} in {target}")
   if (target == "wikidata") {
     import_data <- comparison_raw() %>%
       inner_join(data %>% distinct(fg_item, wd_value_from_fg), by = c("fg_item", "wd_value_from_fg")) %>%
@@ -178,7 +180,9 @@ get_import_data <- function(data, target) {
         fg_value_id = paste0('"', fg_value_id, '"')
       ) %>%
       # add source of Factgrid-Object
-      bind_cols(tibble(source = "S8168", time = "S813", timestamp = paste0("+", Sys.Date(), "T00:00:00Z/", 11))) %>%
+      bind_cols(tibble(source = "S8168", time = "S813", timestamp = paste0("+", Sys.Date(), "T00:00:00Z/", 11)))
+    
+    
       select(
         item = wd_item_id, property = wd_property_id, value = wd_value_from_fg_id,
         source, source_value = fg_value_id,
@@ -197,22 +201,35 @@ get_import_data <- function(data, target) {
       mutate(
         # item: FG item
         fg_item_id = str_extract(fg_item, "Q[0-9]+"),
-        # FG value derived from Wikidata
-        fg_value_from_wd_id = str_extract(fg_value_from_wd, "Q[0-9]+"),
-        # Wikidata value for source
-        wd_value_from_wd = str_extract(wd_value_from_wd, "Q[0-9]+"),
+        # FG value derived from Wikidata, either QID if WikibaseItem, or plain string
+        fg_value_from_wd_id = 
+          case_when(
+            fg_property_type == "WikibaseItem" ~ str_extract(wd_value_from_wd, "Q[0-9]+"),
+            TRUE ~ paste0('"', wd_value_from_wd, '"')
+          ),
+        # source values Wikidata value for source
+        # Wikidata Item the value is taken from (as)
+        wd_value_from_wd =
+          case_when(
+            fg_property_type == "WikibaseItem" ~ str_extract(wd_value_from_wd, "Q[0-9]+"),
+            TRUE ~ str_extract(wd_item, "Q[0-9]+")
+          ),
         wd_value_from_wd = paste0('"', wd_value_from_wd, '"')
       ) %>%
       # add source of Factgrid-Object
-      bind_cols(tibble(source = "S771", time = "S432", timestamp = paste0("+", Sys.Date(), "T00:00:00Z/", 11))) %>%
+      bind_cols(tibble(source = "S771", time = "S432", timestamp = paste0("+", Sys.Date(), "T00:00:00Z/", 11))) %>% 
       select(
-        item = fg_item_id, property = fg_property_id, value = fg_value_from_wd_id,
-        source, source_value = wd_value_from_wd,
+        item = fg_item_id, 
+        property = fg_property_id, 
+        value = fg_value_from_wd_id,
+        source, 
+        source_value = wd_value_from_wd,
         time, timestamp
       ) %>%
       # can only import those with a Factgrid ID in Wikidata
       filter(!is.na(value)) %>%
       distinct()
+   
     cli::cli_alert_success("data copied for import in factgrid")
 
     import_data

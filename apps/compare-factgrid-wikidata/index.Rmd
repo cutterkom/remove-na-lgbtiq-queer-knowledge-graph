@@ -135,7 +135,7 @@ input_properties <- eventReactive(input$button_start_input_properties, {
 })
 ```
 
-Refering to Persons
+Properties by Type
 =====================================  
 
 Properties you asked for:  {data-height=70, data-width=70}
@@ -386,11 +386,11 @@ DT::renderDataTable(
 
 This data can be imported to Factgrid. Click the button and paste it into [Factgrid's Quickstatements Tool](https://database.factgrid.de/quickstatements/#/). Only those can be imported, that have a Factgrid-ID in Wikidata.
 
-```{r}
+```{r import_to_factgrid}
 uiOutput("download_factgrid_import_UI")
 
 import_in_factgrid <- reactive({
-  data <- get_import_data(only_in_wd(), target = "factgrid")# %>% 
+  data <- get_import_data(only_in_wd(), target = "factgrid", input_property_by_type = input$property_by_type)# %>% 
     #distinct()
   print(data)
   data
@@ -407,7 +407,7 @@ output$download_factgrid_import <- downloadHandler(
     "import_factgrid.csv"
   },
   content = function(file) {
-    write.csv(import_in_factgrid(), file, row.names = FALSE)
+    write.table(import_in_factgrid(), file, row.names = FALSE, quote = FALSE, sep = "\t")
   }
 )
 ```
