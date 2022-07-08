@@ -201,9 +201,9 @@ Row {.tabset .tabset-fade}
 in_both <- reactive({
   data <- comparison_raw() %>% 
     filter(is_same == "true") %>% 
-    distinct(fg_item, fg_itemLabel, wd_item, fg_property_id, fg_value, fg_valueLabel, wd_value_from_fg, wd_value_from_wd) %>% 
+    distinct(fg_item, fg_itemLabel, wd_item, fg_property_id, fg_value, fg_valueLabel, wd_value_from_fg, wd_value_from_wd, meta_property_id) %>% 
     # add property info
-    left_join(input_properties() %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property), by = "fg_property_id")
+    left_join(input_properties() %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property, meta_property_id), by = c("meta_property_id", "fg_property_id"))
 })
 ```
 
@@ -212,7 +212,7 @@ DT::renderDataTable(
   DT::datatable(
 
   in_both() %>% 
-    left_join(input_properties() %>% distinct(fg_property_id, fg_property_type), by = "fg_property_id") %>% 
+    left_join(input_properties() %>% distinct(meta_property_id, fg_property_type), by = "meta_property_id") %>% 
     # link for items
     create_link(url = fg_item, name = "Factgrid", new_col = fg_item_link) %>% 
     create_link(url = wd_item, name = "Wikidata", new_col = wd_item_link) %>% 
@@ -228,7 +228,7 @@ DT::renderDataTable(
     mutate(value = 
          case_when(
           fg_property_type == "WikibaseItem" ~ paste0(fg_valueLabel, " (", fg_value_link, ", ", wd_value_link, ")"),
-          fg_property_type %in% c("Url", "CommonsMedia") ~ paste0('<a href = "', str_remove_all(wd_value_from_wd, "<|>"), '">', str_remove_all(wd_value_from_wd, "<|>"), '</a>'),
+          fg_property_type %in% c("Url", "CommonsMedia") ~ paste0('<a href = "', str_remove_all(wd_value_from_wd, "<|>"), '">', str_remove_all(fg_valueLabel, "<|>"), '</a>'),
            TRUE ~ fg_valueLabel
            )
        ) %>% 
@@ -247,11 +247,11 @@ only_in_fg <- reactive({
   
   data <- comparison_raw() %>% 
     filter(is.na(is_same), !is.na(fg_item)) %>% 
-    distinct(fg_item, fg_itemLabel, wd_item, fg_property_id, fg_value, fg_valueLabel, wd_value_from_fg, wd_value_from_wd) %>% 
+    distinct(fg_item, fg_itemLabel, wd_item, fg_property_id, fg_value, fg_valueLabel, wd_value_from_fg, wd_value_from_wd, meta_property_id) %>% 
     # remove those that are present in wd
     anti_join(in_both(), by = c("fg_item", "wd_value_from_fg")) %>% 
     # add property info
-    left_join(input_properties() %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property), by = "fg_property_id")
+    left_join(input_properties() %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property, meta_property_id), by =  c("meta_property_id", "fg_property_id"))
   
   })
 ```
@@ -265,7 +265,7 @@ only_in_fg <- reactive({
 DT::renderDataTable(
   DT::datatable(
   only_in_fg() %>% 
-    left_join(input_properties() %>% distinct(fg_property_id, fg_property_type), by = "fg_property_id") %>% 
+    left_join(input_properties() %>% distinct(meta_property_id, fg_property_type), by = "meta_property_id") %>% 
     # link for items
     create_link(url = fg_item, name = "Factgrid", new_col = fg_item_link) %>% 
     create_link(url = wd_item, name = "Wikidata", new_col = wd_item_link) %>% 
@@ -327,12 +327,12 @@ output$download_wikidata_import <- downloadHandler(
 only_in_wd <- reactive({
   
   data <- comparison_raw() %>% 
-  filter(is_same == "false") %>% 
-  distinct(fg_item, fg_itemLabel, wd_item, fg_property_id, wd_property_id, wd_value_from_wd, wd_value_from_wdLabel, fg_value_from_wd) %>% 
-  # remove those that are present in wd
-  anti_join(in_both(), by = c("fg_item", "wd_value_from_wd")) %>%
-  # add property info
-  left_join(input_properties() %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property, wd_property_id), by = c("fg_property_id", "wd_property_id"))
+    filter(is_same == "false") %>% 
+    distinct(fg_item, fg_itemLabel, wd_item, fg_property_id, wd_property_id, wd_value_from_wd, wd_value_from_wdLabel, fg_value_from_wd, meta_property_id) %>% 
+    # remove those that are present in wd
+    anti_join(in_both(), by = c("fg_item", "wd_value_from_wd")) %>%
+    # add property info
+    left_join(input_properties() %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property, wd_property_id, meta_property_id), by = c("meta_property_id"))
   
   })
 
@@ -346,7 +346,7 @@ Labels from Wikidata are not shown (yet), because it would takes quite a time.
 DT::renderDataTable(
   DT::datatable(
     only_in_wd() %>% 
-      left_join(input_properties() %>% distinct(fg_property_id, fg_property_type), by = "fg_property_id") %>% 
+      left_join(input_properties() %>% distinct(meta_property_id, fg_property_type), by = "meta_property_id") %>% 
      # link for items
       create_link(url = fg_item, name = "Factgrid", new_col = fg_item_link) %>% 
       create_link(url = wd_item, name = "Wikidata", new_col = wd_item_link) %>% 

@@ -128,7 +128,23 @@ get_comparison <- function(input_properties, input_item_filter_property, input_i
             wd_value_from_fg_id = str_extract(wd_value_from_fg, "Q[0-9]+"),
             wd_value_from_wd_id = str_extract(wd_value_from_wd, "Q[0-9]+")
           ) %>% 
-          filter(meta_property_id %in% input_properties)
+          filter(meta_property_id %in% input_properties) %>% 
+          # URL Cleaning
+          mutate(
+            wd_value_from_wdLabel = case_when(
+              fg_property_type == "Url" ~ str_remove_all(wd_value_from_wdLabel, "http://|https://|www.|/$"),
+              TRUE ~ wd_value_from_wdLabel
+            ),
+            fg_valueLabel = case_when(
+              fg_property_type == "Url" ~ str_remove_all(fg_valueLabel, "http://|https://|www.|/$"),
+              TRUE ~ fg_valueLabel
+            ),
+            is_same = case_when(
+              fg_property_type == "Url" & wd_value_from_wdLabel == fg_valueLabel ~ "true",
+              fg_property_type == "Url" & wd_value_from_wdLabel != fg_valueLabel ~ "else",
+              TRUE ~ is_same
+            )
+          )
       } else {
         res <- tibble(
           fg_item = NA_character_,
