@@ -73,6 +73,7 @@ all_properties_list <- all_properties %>%
   distinct(fg_property_type) %>% 
   arrange(fg_property_type) %>% 
   deframe()
+
 names(all_properties_list) <- all_properties_list
 
 selectInput("property_by_type", label = "Choose a property type:", all_properties_list, multiple = FALSE)
@@ -326,12 +327,12 @@ output$download_wikidata_import <- downloadHandler(
 only_in_wd <- reactive({
   
   data <- comparison_raw() %>% 
-    filter(is_same == "false") %>% 
-    distinct(fg_item, fg_itemLabel, wd_item, fg_property_id, wd_value_from_wd, wd_value_from_wdLabel, fg_value_from_wd) %>% 
-    # remove those that are present in wd
-    anti_join(in_both(), by = c("fg_item", "wd_value_from_wd")) %>%
-    # add property info
-    left_join(input_properties() %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property), by = "fg_property_id")
+  filter(is_same == "false") %>% 
+  distinct(fg_item, fg_itemLabel, wd_item, fg_property_id, wd_property_id, wd_value_from_wd, wd_value_from_wdLabel, fg_value_from_wd) %>% 
+  # remove those that are present in wd
+  anti_join(in_both(), by = c("fg_item", "wd_value_from_wd")) %>%
+  # add property info
+  left_join(input_properties() %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property, wd_property_id), by = c("fg_property_id", "wd_property_id"))
   
   })
 

@@ -11,6 +11,7 @@ get_properties <- function() {
     mutate(
       fg_property_id = str_extract(fg_property, "P[0-9]+"),
       wd_property_id = str_extract(wd_property, "P[0-9]+"),
+      meta_property_id = paste0(fg_property_id, "_", wd_property_id),
       fg_part_of_id = str_extract(fg_part_of, "Q[0-9]+"),
       label = paste0(fg_propertyLabel, " (FG: ", fg_property_id, ", WD: ", wd_property_id, ")"),
       label = str_remove_all(label, '"|@en'),
@@ -49,7 +50,7 @@ get_properties_list_part_of <- function(data, input_part_of) {
 get_properties_list_by_type <- function(data, input_property_by_type) {
   data %>%
     filter(fg_property_type %in% c(input_property_by_type)) %>%
-    select(label, fg_property_id) %>%
+    select(label, meta_property_id) %>%
     arrange(label) %>%
     distinct() %>%
     deframe()
@@ -61,7 +62,7 @@ get_properties_list_by_type <- function(data, input_property_by_type) {
 #' @param data dataframe
 get_input_properties <- function(data, input_properties) {
   data %>%
-    filter(fg_property_id == input_properties) %>%
+    filter(meta_property_id == input_properties) %>%
     select(-contains("fg_part_of")) %>%
     distinct() %>%
     arrange(fg_propertyLabel)
@@ -83,7 +84,7 @@ get_property_types <- function(data) {
 get_comparison <- function(input_properties, input_item_filter_property, input_item_filter_value) {
   all_properties %>%
     #inner_join(input_properties, by = "fg_property") %>% 
-    filter(fg_property_id %in% input_properties) %>% 
+    filter(meta_property_id %in% input_properties) %>% 
     select(-contains("part_of")) %>%
     distinct() %>%
     pmap_dfr(function(...) {
@@ -91,7 +92,7 @@ get_comparison <- function(input_properties, input_item_filter_property, input_i
       cli::cli_alert_info("Fetch data for: {current$fg_propertyLabel}")
       fg_property_id <- current$fg_property_id
 
-      cli::cli_alert_info("Property data type: {current$fg_property_type}")
+      cli::cli_alert_info("Property data type: {current$meta_property_id}")
 
       if (input_item_filter_property != "" & input_item_filter_value != "") {
         input_items_filter <- paste0("?fg_item fgt:", input_item_filter_property, " fg:", input_item_filter_value, ".")
@@ -116,6 +117,7 @@ get_comparison <- function(input_properties, input_item_filter_property, input_i
             fg_property_id = str_extract(fg_property, "P[0-9]+"),
             wd_property_id = str_extract(wd_property, "P[0-9]+"),
             fg_property_type = str_extract(fg_property_type, "(?<=#).+(?=>)"),
+            meta_property_id = paste0(fg_property_id, "_", wd_property_id),
             # items
             fg_item_id = str_extract(fg_item, "Q[0-9]+"),
             wd_item_id = str_extract(wd_item, "Q[0-9]+"),
@@ -125,9 +127,8 @@ get_comparison <- function(input_properties, input_item_filter_property, input_i
             fg_value_from_wd_id = str_extract(fg_value_from_wd, "Q[0-9]+"),
             wd_value_from_fg_id = str_extract(wd_value_from_fg, "Q[0-9]+"),
             wd_value_from_wd_id = str_extract(wd_value_from_wd, "Q[0-9]+")
-            
-            
-          )
+          ) %>% 
+          filter(meta_property_id %in% input_properties)
       } else {
         res <- tibble(
           fg_item = NA_character_,
