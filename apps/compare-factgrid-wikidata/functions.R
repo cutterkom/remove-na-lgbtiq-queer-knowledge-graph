@@ -133,7 +133,9 @@ get_comparison <- function(input_properties, input_item_filter_property, input_i
           mutate(
             wd_value_from_wdLabel = case_when(
               fg_property_type == "Url" ~ str_remove_all(wd_value_from_wdLabel, "http://|https://|www.|/$"),
-              TRUE ~ wd_value_from_wdLabel
+              #fg_property_type == "WikibaseItem" ~ wd_value_from_fg_id,
+              #TRUE ~ wd_value_from_wdLabel
+              TRUE ~ wd_value_from_fg_id
             ),
             fg_valueLabel = case_when(
               fg_property_type == "Url" ~ str_remove_all(fg_valueLabel, "http://|https://|www.|/$"),
@@ -160,7 +162,9 @@ get_comparison <- function(input_properties, input_item_filter_property, input_i
           wd_value_from_wd = NA_character_,
           is_same = NA_character_,
           fg_property_id = NA_character_,
-          wd_property_id = NA_character_
+          wd_property_id = NA_character_,
+          meta_property_id = NA_character_,
+          wd_value_from_wdLabel = NA_character_
         )
       }
       cli::cli_alert_success("data fetched")
@@ -207,6 +211,7 @@ get_import_data <- function(data, target, input_property_by_type = NULL) {
             fg_property_type == "WikibaseItem" ~ wd_value_from_fg_id,
             fg_property_type == "Quantity" ~ as.character(fg_valueLabel),
             fg_property_type == "Time" ~ paste0("+", fg_valueLabel),
+            fg_property_type == "Url" ~ paste0('"https://', fg_valueLabel, '"'),
             TRUE ~ paste0('"', fg_valueLabel, '"')
           ),
         # source_value: Source information: Wikidata Item the value is taken from (as string)
