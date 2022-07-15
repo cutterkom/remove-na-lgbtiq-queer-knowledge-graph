@@ -20,7 +20,7 @@ prefix foaf:  <http://xmlns.com/foaf/0.1/>
 
 
     
-SELECT DISTINCT ?fg_item ?fg_itemLabel ?fg_property ?wd_property ?fg_value ?wd_value_from_fg ?wd_value_from_wd ?a where {
+SELECT DISTINCT ?fg_item ?fg_itemLabel ?fg_property ?wd_property ?fg_value ?wd_value_from_fg ?wd_value_from_wd where {
 
   # labels from Factgrid
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  
@@ -43,26 +43,23 @@ SELECT DISTINCT ?fg_item ?fg_itemLabel ?fg_property ?wd_property ?fg_value ?wd_v
 
   # get corresponding wikidata property
   # and store as IRI
-?fg_property_as_item ?fg_corr_wd ?fg_corr_wd_value .
-BIND(IRI(CONCAT(STR(wdt:), ?fg_corr_wd_value)) AS ?wd_property)
+  ?fg_property_as_item ?fg_corr_wd ?fg_corr_wd_value .
+  BIND(IRI(CONCAT(STR(wdt:), ?fg_corr_wd_value)) AS ?wd_property)
 
- # get factgrid statement
+  # get factgrid statement
   ?fg_item ?fg_property ?fg_value .
   # get wikidata qid of fg_value
   # used later for comparison
- ?link_value schema:about ?fg_value .
+  ?link_value schema:about ?fg_value .
   ?link_value schema:isPartOf <https://www.wikidata.org/> . 
   ?link_value schema:name ?qid_value.
   BIND(IRI(CONCAT(STR(wd:), ?qid_value)) AS ?wd_value_from_fg)
 
 # now change to wikidata as data source
 # get value from wikidata
-SERVICE <https://query.wikidata.org/sparql> {
-   OPTIONAL {
-    ?wd_item ?wd_property ?wd_value_from_wd.
+  SERVICE <https://query.wikidata.org/sparql> {
+    OPTIONAL {
+      ?wd_item ?wd_property ?wd_value_from_wd.
    }
-   }
-   # only return those that have different values
-  # filter (?wd_value_from_fg != ?wd_value_from_wd) 
-
- }
+  }
+}

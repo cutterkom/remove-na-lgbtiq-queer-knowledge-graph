@@ -17,66 +17,13 @@ library(here)
 library(flexdashboard)
 library(shinyFeedback)
 
-endpoint <- "https://database.factgrid.de/sparql"
+source("functions.R", local = TRUE)
+source("queries.R", local = TRUE)
 
 shinyFeedback::useShinyFeedback()
+
 ```
 
-```{r fetch_all_available_properties}
-
-#' Get properties related to persons
-#' @return dataframe
-get_properties <- function() {
-  tmp <- readr::read_file("https://raw.githubusercontent.com/cutterkom/remove-na-lgbtiq-queer-knowledge-graph/main/data-publishing/factgrid/queries/get_all_properties_with_corresponding_prop.rq") %>% 
-    sparql_to_tibble(endpoint = endpoint) %>%
-    mutate(
-      fg_property_id = str_extract(fg_property, "P[0-9]+"),
-      wd_property_id = str_extract(wd_property, "P[0-9]+"),
-      fg_part_of_id = str_extract(fg_part_of, "Q[0-9]+"),
-      label = paste0(fg_propertyLabel, " (FG: ", fg_property_id, ", WD: ", wd_property_id, ")"),
-      label = str_remove_all(label, '"|@en')
-    ) %>% 
-     mutate(across(c(fg_part_ofLabel), ~remove_lang(.)))
-
-  return(tmp)
-}
-```
-
-```{r get_classes_of_properties}
-#' Get classes of properties
-#' @param data dataframe with properties info, incl. cols named fg_part_of and fg_part_ofLabel
-get_classes_of_properties <- function(data) {
-  data %>% 
-    select(contains("part_of")) %>% 
-    distinct()
-}
-```
-
-```{r get_properties_list}
-#' get a list of properties filtered by part_of
-#' @param data dataframe with properties
-#' @param input_part_of
-get_properties_list <- function(data, input_part_of) {
-  data %>% 
-    filter(fg_part_of_id %in% c(input_part_of)) %>% 
-    select(label, fg_property_id) %>% 
-    arrange(label) %>% 
-    distinct() %>% 
-    deframe()  
-}
-```
-
-```{r filter_properties}
-#' Filter properties by input
-#' @param data dataframe
-get_input_properties <- function(data, input_properties) {
-  data %>% 
-    filter(fg_property_id == input_properties) %>% 
-    select(-contains("fg_part_of")) %>% 
-    distinct() %>% 
-    arrange(fg_propertyLabel)
-}
-```
 Inputs {.sidebar}
 =====================================
 
@@ -86,9 +33,11 @@ Which property should be compared?
 all_properties_raw <- get_properties()
 
 all_properties <- all_properties_raw %>% 
-  filter(str_detect(property_type, "WikibaseItem|String|Time|Quantity|CommonsMedia|ExternalId|Url|CommonsMedia")) 
+  filter(str_detect(fg_property_type, "WikibaseItem|String|Time|Quantity|ExternalId|Url")) 
+# not implemented: 
+## CommonsMedia: URL must be cleaned
 
-all_properties_list <- all_properties %>% 
+property_types_list <- all_properties %>% 
   select(fg_part_ofLabel, fg_part_of_id) %>% 
   distinct() %>% 
   arrange(fg_part_ofLabel) %>% 
@@ -96,25 +45,56 @@ all_properties_list <- all_properties %>%
 
 ```
 
-```{r}
-selectInput("property_parts_of", label = "Choose a topic:", all_properties_list, multiple = TRUE)
-actionButton("button_start_property_parts_of", "Query properties", class = "btn-primary")
+```{r input_choose_properties_part_of, eval=FALSE}
+# all_properties_list <- all_properties %>% 
+#   select(fg_part_ofLabel, fg_part_of_id) %>% 
+#   distinct() %>% 
+#   arrange(fg_part_ofLabel) %>% 
+#   deframe()
+# 
+# selectInput("property_parts_of", label = "Choose a topic:", all_properties_list, multiple = TRUE)
+# actionButton("button_start_property_parts_of", "Query properties", class = "btn-primary")
+# 
+# observeEvent(input$button_start_property_parts_of, {
+#   # first remove properties already chosen
+#   removeUI(selector = "div:has(> #input_properties-label)")
+#   # then insert chosen properties
+#   insertUI(
+#       selector = "#button_start_property_parts_of",
+#       where = "afterEnd",
+#       ui = checkboxGroupInput("input_properties", label = "Available properties:", choices = get_properties_list_part_of(all_properties, input$property_parts_of))
+#     )
+# })
+```
 
-observeEvent(input$button_start_property_parts_of, {
+```{r input_choose_properties_by_type}
+all_properties_list <- all_properties %>% 
+  count(fg_property_type, sort = T) %>%
+  distinct(fg_property_type) %>% 
+  arrange(fg_property_type) %>% 
+  deframe()
+
+names(all_properties_list) <- all_properties_list
+
+selectInput("property_by_type", label = "Choose a property type:", all_properties_list, multiple = FALSE)
+actionButton("button_start_property_by_type", "Query properties", class = "btn-primary")
+
+observeEvent(input$button_start_property_by_type, {
   # first remove properties already chosen
   removeUI(selector = "div:has(> #input_properties-label)")
   # then insert chosen properties
   insertUI(
-      selector = "#button_start_property_parts_of",
+      selector = "#button_start_property_by_type",
       where = "afterEnd",
-      ui = checkboxGroupInput("input_properties", label = "Available properties:", choices = get_properties_list(all_properties, input$property_parts_of))
+      ui = selectInput("input_properties", label = "Available properties:", choices = get_properties_list_by_type(all_properties, input$property_by_type))
+        #checkboxGroupInput("input_properties", label = "Available properties:", choices = get_properties_list_by_type(all_properties, input$property_by_type))
     )
 })
 ```
 
 **Optional**: If you don't want to query all data in Factgrid, define a property-value-combination that needs to be satisfied. [Use this query to test it](https://database.factgrid.de/query/#%23defaultView%3ATable%0A%23%20Prefixes%20%20%20%20%0A%23%20Factgrid%0APREFIX%20fg%3A%20%3Chttps%3A%2F%2Fdatabase.factgrid.de%2Fentity%2F%3E%0APREFIX%20fgt%3A%20%3Chttps%3A%2F%2Fdatabase.factgrid.de%2Fprop%2Fdirect%2F%3E%0A%20%20%20%20%20%20%0A%23%20Wikidata%0APREFIX%20wdt%3A%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fprop%2Fdirect%2F%3E%0APREFIX%20wd%3A%20%3Chttp%3A%2F%2Fwww.wikidata.org%2Fentity%2F%3E%0A%23%20misc%0APREFIX%20wikibase%3A%20%3Chttp%3A%2F%2Fwikiba.se%2Fontology%23%3E%0A%20%20%20%20%20%20%0ASELECT%20DISTINCT%20%3Ffg_item%20%3Ffg_itemLabel%20where%20%7B%0A%20%20%20%20%20%20%0A%23%20labels%20from%20Factgrid%0A%20%20SERVICE%20wikibase%3Alabel%20%7B%20bd%3AserviceParam%20wikibase%3Alanguage%20%22%5BAUTO_LANGUAGE%5D%2Cen%22.%20%7D%20%20%0A%20%20%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%0A%20%20%23%20copy%20the%20next%20line%20in%20the%20filter%20field%3A%0A%20%20%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%23%0A%20%20%3Ffg_item%20fgt%3AP131%20fg%3AQ400012%20.%0A%7D). 
 
-```{r}
+```{r input_filter_items}
 textInput("item_filter_property", label = "Filter items: Property", placeholder = "P131")
 textInput("item_filter_value", label = "Filter items: Value", placeholder = "Q400012")
 
@@ -122,216 +102,6 @@ actionButton("button_start_input_properties", "Submit", class = "btn-primary")
 ```
 
 Please be patient, it may take a few moments if a lot of data is requested... If it takes too long, think about limiting the items that will be compared. Write a query for this in the field. 
-
-```{r get_comparison_fun}
-
-#' Get comparison data based on property
-#' 
-#' This functions queries data on Factgrid looking for properties related to persons that have a corresponding Wikidata property. Utilizes federated queries.
-#' @param input_properties chosen properties in input$input_properties
-#' @param input_items_filter filter items e.g. like ?fg_item fgt:P131 fg:Q400012 . (don't forget the period!)
-#' @return dataframe
-get_comparison <- function(input_properties, input_item_filter_property, input_item_filter_value) {
-  print(input_properties)
-  all_properties %>% 
-    filter(fg_property_id %in% input_properties) %>% 
-    select(-contains("part_of")) %>% 
-    distinct() %>% 
-    pmap_dfr(function(...) {
-      current <- tibble(...)
-      cli::cli_alert_info("Fetch data for: {current$fg_propertyLabel}")
-      fg_property_id <- current$fg_property_id
-      
-      #print(fg_property_id)
-      
-      if (input_item_filter_property != "" & input_item_filter_value != "") {
-        input_items_filter <- paste0("?fg_item fgt:", input_item_filter_property, " fg:",  input_item_filter_value, ".")
-      } else {
-        input_items_filter <- ""
-      }
-      
-      # print("input_properties")
-      # print(input_properties())
-      
-      
-      query <- paste0( '
-      #defaultView:Table
-      
-      # Prefix standard 
-      # Factgrid
-      PREFIX fg: <https://database.factgrid.de/entity/>
-      PREFIX fgt: <https://database.factgrid.de/prop/direct/>
-      
-      # Wikidata
-      PREFIX wdt: <http://www.wikidata.org/prop/direct/>
-      PREFIX wd: <http://www.wikidata.org/entity/>
-      # misc
-      PREFIX wikibase: <http://wikiba.se/ontology#>
-      PREFIX bd: <http://www.bigdata.com/rdf#>
-      PREFIX schema: <http://schema.org/>
-      
-      SELECT DISTINCT ?fg_item ?fg_itemLabel ?wd_item ?fg_property ?fg_propertyLabel ?fg_property_type ?wd_property ?fg_value ?fg_valueLabel ?wd_value_from_fg ?wd_value_from_wd ?fg_value_from_wd ?is_same where {
-      
-        # labels from Factgrid
-        SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  
-      
-      ',
-      input_items_filter
-      ,'
-      
-        # which property in focus?
-        BIND(fgt:', fg_property_id, ' as ?fg_property)
-        BIND(fg:', fg_property_id, ' as ?fg_property_as_item)
-        # set property of corresponding wikidata property; is constant
-        BIND(fgt:P343 as ?fg_corr_wd)
-        
-        ?fg_property_as_item wikibase:propertyType ?fg_property_type .
-      
-        # transform wikidata qid in factgrid to wikidata entity iri
-        ?link schema:about ?fg_item .
-        ?link schema:isPartOf <https://www.wikidata.org/> . 
-        ?link schema:name ?qid.
-        BIND(IRI(CONCAT(STR(wd:), ?qid)) AS ?wd_item)
-      
-        # get corresponding wikidata property
-        # and store as IRI
-        ?fg_property_as_item ?fg_corr_wd ?fg_corr_wd_value .
-        BIND(IRI(CONCAT(STR(wdt:), ?fg_corr_wd_value)) AS ?wd_property)
-      
-        # get factgrid statement
-        ?fg_item ?fg_property ?fg_value .
-        # get wikidata qid of fg_value
-        # used later for comparison
-        ?link_value schema:about ?fg_value .
-        ?link_value schema:isPartOf <https://www.wikidata.org/> . 
-        ?link_value schema:name ?qid_value.
-        BIND(IRI(CONCAT(STR(wd:), ?qid_value)) AS ?wd_value_from_fg)
-      
-        # now change to wikidata as data source
-        # get value from wikidata
-        SERVICE <https://query.wikidata.org/sparql> {
-            OPTIONAL {
-                ?wd_item ?wd_property ?wd_value_from_wd.
-              OPTIONAL {
-                ?wd_value_from_wd wdt:P8168 ?fg_value_from_wd.
-              }
-            }
-
-        }
-        BIND (IF(?wd_value_from_fg = ?wd_value_from_wd, "true", "false") AS ?is_same)
-      }
-      
-      ')
-      #print(query)
-
-      res <- sparql_to_tibble(query, endpoint = endpoint) 
-      print(res)
-       if(nrow(res) > 0) {
-        res <- res %>% 
-          mutate(
-            fg_property_id = str_extract(fg_property, "P[0-9]+"),
-            wd_property_id = str_extract(wd_property, "P[0-9]+"))
-       } else {
-        res <- tibble(
-          fg_item = NA_character_,
-          fg_itemLabel = NA_character_,
-          wd_item = NA_character_,
-          fg_property = NA_character_,
-          fg_propertyLabel = NA_character_,
-          wd_property = NA_character_,
-          fg_value = NA_character_,
-          fg_valueLabel = NA_character_,
-          fg_value_from_wd = NA_character_,
-          wd_value_from_fg = NA_character_,
-          wd_value_from_wd = NA_character_,
-          is_same = NA_character_,
-          fg_property_id = NA_character_,
-          wd_property_id = NA_character_
-        )
-       }
-      cli::cli_alert_success("data fetched")
-      
-     res
-    })
-}
-
-```
-
-```{r create_link_fun}
-
-#' Function that creates a link from href and string
-#' @param data dataframe with cols
-#' @param url href for link
-#' @param name string for inside <a href>name</a>
-#' @param new_col name of new col
-create_link <- function(data, url, name, new_col) {
-  data %>% 
-    mutate(
-      {{new_col}} := str_replace({{url}}, "<", "<a href='"),
-      {{new_col}} := str_replace({{new_col}}, ">", "' target='_blank'>"),
-      {{new_col}} := paste0({{new_col}}, {{name}}, "</a>")
-    )
-}
-```
-
-```{r get_import_data}
-#' Create data for Quickstatements import
-#' @param data if only_in_wd or only_in_fg
-#' @param target if import into wikidata or factgrid
-#' @return dataframe
-get_import_data <- function(data, target) {
-
-  if (target == "wikidata") {
-    import_data <- comparison_raw() %>% 
-      inner_join(data %>% distinct(fg_item, wd_value_from_fg), by = c("fg_item", "wd_value_from_fg")) %>% 
-      mutate(
-        fg_item_id = str_extract(fg_item, "Q[0-9]+"),
-        fg_value_id = str_extract(fg_value, "Q[0-9]+"),
-        wd_item_id = str_extract(wd_item, "Q[0-9]+"),
-        wd_value_from_fg_id = str_extract(wd_value_from_fg, "Q[0-9]+"),
-        fg_value_from_wd_id = str_extract(fg_value_from_wd, "Q[0-9]+"),
-        fg_value_id = paste0('"', fg_value_id, '"')) %>% 
-        # add source of Factgrid-Object
-        bind_cols(tibble(source = "S8168", time = "S813", timestamp = paste0("+", Sys.Date(), "T00:00:00Z/", 11))) %>% 
-        select(item = wd_item_id, property = wd_property_id, value = wd_value_from_fg_id, 
-               source, source_value = fg_value_id, 
-               time, timestamp) %>% 
-        distinct()
-    
-    cli::cli_alert_success("data copied for import in wikidata")
-    
-    import_data
-  } else if (target == "factgrid") {
-    import_data <-comparison_raw() %>% 
-      select(-fg_value, -fg_valueLabel, -wd_value_from_fg) %>% 
-      inner_join(only_in_wd() %>% distinct(fg_item, wd_value_from_wd), by = c("fg_item", "wd_value_from_wd")) %>%
-      distinct() %>% 
-      mutate(
-        # item: FG item
-        fg_item_id = str_extract(fg_item, "Q[0-9]+"),
-        # FG value derived from Wikidata
-        fg_value_from_wd_id = str_extract(fg_value_from_wd, "Q[0-9]+"),
-        # Wikidata value for source
-        wd_value_from_wd = str_extract(wd_value_from_wd, "Q[0-9]+"),
-        wd_value_from_wd = paste0('"', wd_value_from_wd, '"')) %>% 
-      # add source of Factgrid-Object
-      bind_cols(tibble(source = "S771", time = "S432", timestamp = paste0("+", Sys.Date(), "T00:00:00Z/", 11))) %>% 
-      select(item = fg_item_id, property = fg_property_id, value = fg_value_from_wd_id, 
-             source, source_value = wd_value_from_wd, 
-             time, timestamp) %>% 
-      # can only import those with a Factgrid ID in Wikidata
-      filter(!is.na(value)) %>% 
-      distinct()
-    cli::cli_alert_success("data copied for import in factgrid")
-    
-    import_data
-
-  } else {
-    stop("no valid target. Only `wikidata` or `factgrid` allowed")
-  }
-}
-```
-
 
 ```{r fetch_data}
 comparison_raw <- eventReactive(input$button_start_input_properties, {
@@ -343,27 +113,30 @@ comparison_raw <- eventReactive(input$button_start_input_properties, {
       "You have to select at least one property"
     )
   } else {
-
-    data <- get_comparison(input$input_properties, input$item_filter_property, input$item_filter_value)
+    
+    #data <- get_comparison(input_properties() %>% select(fg_property), input$item_filter_property, input$item_filter_value)
+     data <- get_comparison(input$input_properties, input$item_filter_property, input$item_filter_value)
     
     shinyFeedback::showToast(
       "success", 
       "data loaded"
     )
+    
     data
   }
-  })
+})
 ```
 
-```{r}
+```{r get_chosen_properties}
 input_properties <- eventReactive(input$button_start_input_properties, {
   data <- get_input_properties(all_properties, input$input_properties)
-  
+  cli::cli_alert_info("Input Properties dataframe:")
+  print(data)
   data
 })
 ```
 
-Refering to Persons
+Properties by Type
 =====================================  
 
 Properties you asked for:  {data-height=70, data-width=70}
@@ -428,9 +201,9 @@ Row {.tabset .tabset-fade}
 in_both <- reactive({
   data <- comparison_raw() %>% 
     filter(is_same == "true") %>% 
-    distinct(fg_item, fg_itemLabel, wd_item, fg_property_id, fg_value, fg_valueLabel, wd_value_from_fg, wd_value_from_wd) %>% 
+    distinct(fg_item, fg_itemLabel, wd_item, fg_property_id, fg_value, fg_valueLabel, wd_value_from_fg, wd_value_from_wd, meta_property_id) %>% 
     # add property info
-    left_join(input_properties() %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property), by = "fg_property_id")
+    left_join(input_properties() %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property, meta_property_id), by = c("meta_property_id", "fg_property_id"))
 })
 ```
 
@@ -439,6 +212,7 @@ DT::renderDataTable(
   DT::datatable(
 
   in_both() %>% 
+    left_join(input_properties() %>% distinct(meta_property_id, fg_property_type), by = "meta_property_id") %>% 
     # link for items
     create_link(url = fg_item, name = "Factgrid", new_col = fg_item_link) %>% 
     create_link(url = wd_item, name = "Wikidata", new_col = wd_item_link) %>% 
@@ -450,8 +224,14 @@ DT::renderDataTable(
     
     # links for values
     create_link(url = fg_value, name = "Factgrid", new_col = fg_value_link) %>% 
-    create_link(url = wd_value_from_fg, name = "Wikidata", new_col = wd_value_link) %>% 
-    mutate(value = paste0(fg_valueLabel, " (", fg_value_link, ", ", wd_value_link, ")")) %>% 
+    create_link(url = wd_value_from_wd, name = "Wikidata", new_col = wd_value_link) %>% 
+    mutate(value = 
+         case_when(
+          fg_property_type == "WikibaseItem" ~ paste0(fg_valueLabel, " (", fg_value_link, ", ", wd_value_link, ")"),
+          fg_property_type %in% c("Url", "CommonsMedia") ~ paste0('<a href = "', str_remove_all(wd_value_from_wd, "<|>"), '">', str_remove_all(fg_valueLabel, "<|>"), '</a>'),
+           TRUE ~ fg_valueLabel
+           )
+       ) %>% 
     
     # get relevant columns
     select(item, property, value) %>% 
@@ -467,20 +247,25 @@ only_in_fg <- reactive({
   
   data <- comparison_raw() %>% 
     filter(is.na(is_same), !is.na(fg_item)) %>% 
-    distinct(fg_item, fg_itemLabel, wd_item, fg_property_id, fg_value, fg_valueLabel, wd_value_from_fg, wd_value_from_wd) %>% 
+    distinct(fg_item, fg_itemLabel, wd_item, fg_property_id, fg_value, fg_valueLabel, wd_value_from_fg, wd_value_from_wd, meta_property_id) %>% 
     # remove those that are present in wd
     anti_join(in_both(), by = c("fg_item", "wd_value_from_fg")) %>% 
     # add property info
-    left_join(input_properties() %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property), by = "fg_property_id")
+    left_join(input_properties() %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property, meta_property_id), by =  c("meta_property_id", "fg_property_id"))
   
   })
 ```
 
 #### Table
 ```{r show_table_only_in_fg}
+
+# item var: fg_itemLabel
+# value var: fg_valueLabel
+
 DT::renderDataTable(
   DT::datatable(
   only_in_fg() %>% 
+    left_join(input_properties() %>% distinct(meta_property_id, fg_property_type), by = "meta_property_id") %>% 
     # link for items
     create_link(url = fg_item, name = "Factgrid", new_col = fg_item_link) %>% 
     create_link(url = wd_item, name = "Wikidata", new_col = wd_item_link) %>% 
@@ -493,7 +278,13 @@ DT::renderDataTable(
     # links for values
     create_link(url = fg_value, name = "Factgrid", new_col = fg_value_link) %>% 
     create_link(url = wd_value_from_fg, name = "Wikidata", new_col = wd_value_link) %>% 
-    mutate(value = paste0(fg_valueLabel, " (", fg_value_link, ", ", wd_value_link, ")")) %>% 
+    mutate(value = 
+     case_when(
+       fg_property_type == "WikibaseItem" ~ paste0(fg_valueLabel, " (", fg_value_link, ", ", wd_value_link, ")"),
+       fg_property_type %in% c("Url", "CommonsMedia") ~ paste0('<a href = "', str_remove_all(fg_valueLabel, "<|>"), '">', str_remove_all(fg_valueLabel, "<|>"), '</a>'),
+       TRUE ~ fg_valueLabel
+       )
+   ) %>% 
     
     # get relevant columns
     select(item, property, value) %>% 
@@ -509,7 +300,7 @@ This data can be imported to Wikidata. Click the button and paste it into [Wikid
 uiOutput("download_wikidata_import_UI")
 
 import_in_wikidata <- reactive({
-  data <- get_import_data(only_in_fg(), target = "wikidata") %>% 
+  data <- get_import_data(only_in_fg(), target = "wikidata", input_property_by_type = input$property_by_type) %>% 
      distinct()
   data
 })
@@ -525,7 +316,7 @@ output$download_wikidata_import <- downloadHandler(
     "import_wikidata.csv"
   },
   content = function(file) {
-    write.csv(import_in_wikidata(), file, row.names = FALSE)
+    write.table(import_in_wikidata(), file, row.names = FALSE, quote = FALSE, sep = "\t")
   }
 )
 ```
@@ -537,11 +328,11 @@ only_in_wd <- reactive({
   
   data <- comparison_raw() %>% 
     filter(is_same == "false") %>% 
-    distinct(fg_item, fg_itemLabel, wd_item, fg_property_id, wd_value_from_wd, fg_value_from_wd) %>% 
+    distinct(fg_item, fg_itemLabel, wd_item, fg_property_id, wd_property_id, wd_value_from_wd, wd_value_from_wdLabel, fg_value_from_wd, meta_property_id) %>% 
     # remove those that are present in wd
     anti_join(in_both(), by = c("fg_item", "wd_value_from_wd")) %>%
     # add property info
-    left_join(input_properties() %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property), by = "fg_property_id")
+    left_join(input_properties() %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property, wd_property_id, meta_property_id), by = c("meta_property_id"))
   
   })
 
@@ -555,6 +346,7 @@ Labels from Wikidata are not shown (yet), because it would takes quite a time.
 DT::renderDataTable(
   DT::datatable(
     only_in_wd() %>% 
+      left_join(input_properties() %>% distinct(meta_property_id, fg_property_type), by = "meta_property_id") %>% 
      # link for items
       create_link(url = fg_item, name = "Factgrid", new_col = fg_item_link) %>% 
       create_link(url = wd_item, name = "Wikidata", new_col = wd_item_link) %>% 
@@ -571,11 +363,17 @@ DT::renderDataTable(
       mutate(
         fg_value_from_wd_link = paste0('<a href="https://database.factgrid.de/wiki/Item:', fg_value_from_wd, '">Factgrid</a>'),
         value = 
-               case_when(
-                 !is.na(fg_value_from_wd) ~ paste0(" (", fg_value_from_wd_link, ", ", wd_value_link, ")"),
-                 TRUE ~ paste0(wd_value_link)
-                 )
-        ) %>% 
+          case_when(
+            # for Wikibase Items
+            !is.na(fg_value_from_wd) ~ paste0(" (", fg_value_from_wd_link, ", ", wd_value_link, ")"),
+            fg_property_type == "WikibaseItem" & !is.na(fg_value_from_wd) ~ paste0(" (", fg_value_from_wd_link, ", ", wd_value_link, ")"),
+            fg_property_type == "WikibaseItem" & is.na(fg_value_from_wd) ~ paste0(wd_value_link),
+            # for Links
+            fg_property_type %in% c("Url", "CommonsMedia") ~ paste0('<a href = "', str_remove_all(wd_value_from_wd, "<|>"), '">', str_remove_all(wd_value_from_wd, "<|>"), '</a>'),
+            
+            TRUE ~ as.character(wd_value_from_wdLabel)
+         )
+    ) %>% 
       
       # get relevant columns
       select(item, property, value) %>% 
@@ -589,11 +387,11 @@ DT::renderDataTable(
 
 This data can be imported to Factgrid. Click the button and paste it into [Factgrid's Quickstatements Tool](https://database.factgrid.de/quickstatements/#/). Only those can be imported, that have a Factgrid-ID in Wikidata.
 
-```{r}
+```{r import_to_factgrid}
 uiOutput("download_factgrid_import_UI")
 
 import_in_factgrid <- reactive({
-  data <- get_import_data(only_in_wd(), target = "factgrid")# %>% 
+  data <- get_import_data(only_in_wd(), target = "factgrid", input_property_by_type = input$property_by_type)# %>% 
     #distinct()
   print(data)
   data
@@ -610,7 +408,7 @@ output$download_factgrid_import <- downloadHandler(
     "import_factgrid.csv"
   },
   content = function(file) {
-    write.csv(import_in_factgrid(), file, row.names = FALSE)
+    write.table(import_in_factgrid(), file, row.names = FALSE, quote = FALSE, sep = "\t")
   }
 )
 ```
