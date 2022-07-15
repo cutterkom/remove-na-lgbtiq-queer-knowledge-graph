@@ -1,0 +1,22 @@
+#defaultView:Graph
+SELECT ?root ?rootLabel ?property1Label ?item1 ?item1Label ?property2Label ?item2 ?item2Label WHERE {
+  #BIND(wd:Q225307 AS ?root)
+  #VALUES ?root { wd:Q404255 wd:Q404280 wd:Q405756}
+  ?root wdt:P131 wd:Q400012.
+  # entites I am interested in: Humans and Organisations
+  VALUES ?entities { wd:Q7 wd:Q12 wd:Q11214}
+  ?root ?wdt1 ?item1.
+ # ?item1 ?wdt2 ?item2.
+  ?property1 wikibase:directClaim ?wdt1.
+ # ?property2 wikibase:directClaim ?wdt2.
+  # items1 are only allowed to be organisations
+  ?item1 p:P2 ?statement1.
+  ?statement1 (ps:P2/(wdt:P3*)) ?entities.
+  # items1 are only allowed to be organisations
+ # ?item2 p:P2 ?statement2.
+ # ?statement2 (ps:P2/(wdt:P3*)) ?entities.
+  
+
+         
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+} LIMit 1000

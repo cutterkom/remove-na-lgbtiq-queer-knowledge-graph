@@ -1,0 +1,27 @@
+# select root item and get next two nodes of each statement
+
+# Factgrid
+PREFIX fg: <https://database.factgrid.de/entity/>
+PREFIX fgt: <https://database.factgrid.de/prop/direct/>
+# DBpedia
+PREFIX dbo: <http://dbpedia.org/ontology/> 
+PREFIX dbr: <http://dbpedia.org/resource/> 
+# Wikidata
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+# misc
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX dct:  <http://purl.org/dc/terms/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX schema: <http://schema.org/>
+prefix foaf:  <http://xmlns.com/foaf/0.1/> 
+
+SELECT ?root ?rootLabel ?property1Label ?item1 ?item1Label ?property2Label ?item2 ?item2Label WHERE {
+  ?root fgt:P131 fg:Q400012.
+  ?root ?fgt1 ?item1.
+  ?item1 ?fgt2 ?item2.
+  ?property1 wikibase:directClaim ?fgt1.
+  ?property2 wikibase:directClaim ?fgt2.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+}
