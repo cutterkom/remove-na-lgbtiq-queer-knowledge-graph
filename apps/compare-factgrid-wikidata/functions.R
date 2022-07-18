@@ -136,6 +136,7 @@ get_comparison <- function(input_properties, input_item_filter_property, input_i
           mutate(
             wd_value_from_wdLabel = case_when(
               fg_property_type == "Url" ~ str_remove_all(wd_value_from_wdLabel, "http://|https://|www.|/$"),
+              fg_property_type == "Time" ~ as.character(wd_value_from_wdLabel),
               #fg_property_type == "WikibaseItem" ~ wd_value_from_fg_id,
               #TRUE ~ wd_value_from_wdLabel
               TRUE ~ wd_value_from_fg_id
