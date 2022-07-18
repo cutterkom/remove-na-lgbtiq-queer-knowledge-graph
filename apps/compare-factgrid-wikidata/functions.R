@@ -102,12 +102,15 @@ get_comparison <- function(input_properties, input_item_filter_property, input_i
       
       if(current$fg_property_type == "WikibaseItem") {
         query <- query_items(input_items_filter = input_items_filter, fg_property_id = fg_property_id)
+      } else if(current$fg_property_type == "Time") {
+        query <- query_time_items(input_items_filter = input_items_filter, fg_property_id = fg_property_id)
       } else {
-        # everything thats not an item: strings, dates
+        # everything thats not an item or a (date)time: strings, quantities, URLs
         query <- query_non_items(input_items_filter = input_items_filter, fg_property_id = fg_property_id)
       }
       
       res <- sparql_to_tibble(query, endpoint = endpoint)
+      
       print(res)
       
       if (nrow(res) > 0) {
