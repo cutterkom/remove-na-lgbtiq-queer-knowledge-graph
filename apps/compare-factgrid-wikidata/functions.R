@@ -144,7 +144,7 @@ get_comparison <- function(input_properties, input_item_filter_property, input_i
             is_same = case_when(
               fg_property_type == "Url" & wd_value_from_wdLabel == fg_valueLabel ~ "true",
               fg_property_type == "Url" & wd_value_from_wdLabel != fg_valueLabel ~ "else",
-              TRUE ~ is_same
+              TRUE ~ as.character(is_same)
             )
           )
       } else {

@@ -115,7 +115,7 @@ comparison_raw <- eventReactive(input$button_start_input_properties, {
   } else {
     
     #data <- get_comparison(input_properties() %>% select(fg_property), input$item_filter_property, input$item_filter_value)
-     data <- get_comparison(input$input_properties, input$item_filter_property, input$item_filter_value)
+    data <- get_comparison(input$input_properties, input$item_filter_property, input$item_filter_value)
     
     shinyFeedback::showToast(
       "success", 
