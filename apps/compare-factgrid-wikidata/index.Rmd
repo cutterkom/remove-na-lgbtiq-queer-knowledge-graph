@@ -346,7 +346,6 @@ DT::renderDataTable(
             fg_property_type == "WikibaseItem" & is.na(fg_value_from_wd) ~ paste0(wd_value_link),
             # for Links
             fg_property_type %in% c("Url", "CommonsMedia") ~ paste0('<a href = "', str_remove_all(wd_value_from_wd, "<|>"), '">', str_remove_all(wd_value_from_wd, "<|>"), '</a>'),
-            
             TRUE ~ as.character(wd_value_from_wdLabel)
          )
     ) %>% 

@@ -253,7 +253,7 @@ get_import_data <- function(data, target, input_property_by_type = NULL) {
           case_when(
             fg_property_type == "WikibaseItem" ~ fg_value_from_wd_id,
             fg_property_type == "Quantity" ~ as.character(wd_value_from_wdLabel),
-            fg_property_type == "Time" ~ paste0("+", wd_value_from_wdLabel),
+            fg_property_type == "Time" ~ paste0("+", wd_value),
             TRUE ~ paste0('"', wd_value_from_wdLabel, '"')
           ),
         # Source information: Wikidata Item the value is taken from (as string)
