@@ -161,14 +161,12 @@ SELECT DISTINCT
 where {
 #BIND(fg:Q376282 as ?fg_item)
 ', input_items_filter, '
-#?fg_item fgt:P131 fg:Q400012.
-
 
 # which property in focus?
-BIND(fgt:P38 as ?fg_property)
-BIND(fg:P38 as ?fg_property_as_item)
-BIND(fgp:P38 as ?fg_property_as_p)
-BIND(fgpsv:P38 as ?fg_property_as_psv)
+BIND(fgt:', fg_property_id, ' as ?fg_property)
+BIND(fg:', fg_property_id, ' as ?fg_property_as_item)
+BIND(fgp:', fg_property_id, ' as ?fg_property_as_p)
+BIND(fgpsv:', fg_property_id, ' as ?fg_property_as_psv)
 
 # set property of corresponding wikidata property; is constant
 BIND(fgt:P343 as ?fg_corr_wd)
