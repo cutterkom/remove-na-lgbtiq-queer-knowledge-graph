@@ -1,22 +1,58 @@
-#defaultView:Graph
-SELECT ?root ?rootLabel ?property1Label ?item1 ?item1Label ?property2Label ?item2 ?item2Label WHERE {
-  #BIND(wd:Q225307 AS ?root)
-  #VALUES ?root { wd:Q404255 wd:Q404280 wd:Q405756}
-  ?root wdt:P131 wd:Q400012.
-  # entites I am interested in: Humans and Organisations
-  VALUES ?entities { wd:Q7 wd:Q12 wd:Q11214}
-  ?root ?wdt1 ?item1.
- # ?item1 ?wdt2 ?item2.
-  ?property1 wikibase:directClaim ?wdt1.
- # ?property2 wikibase:directClaim ?wdt2.
-  # items1 are only allowed to be organisations
-  ?item1 p:P2 ?statement1.
-  ?statement1 (ps:P2/(wdt:P3*)) ?entities.
-  # items1 are only allowed to be organisations
- # ?item2 p:P2 ?statement2.
- # ?statement2 (ps:P2/(wdt:P3*)) ?entities.
-  
+# Prefix standard 
+# Factgrid
+PREFIX fg: <https://database.factgrid.de/entity/>
+PREFIX fgt: <https://database.factgrid.de/prop/direct/>
+PREFIX fgp: <https://database.factgrid.de/prop/>
+PREFIX fgps: <https://database.factgrid.de/prop/statement/>
+# DBpedia
+PREFIX dbo: <http://dbpedia.org/ontology/> 
+PREFIX dbr: <http://dbpedia.org/resource/> 
+# Wikidata
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+# misc
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX dct:  <http://purl.org/dc/terms/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX schema: <http://schema.org/>
+prefix foaf:  <http://xmlns.com/foaf/0.1/> 
 
-         
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
-} LIMit 1000
+#defaultView:Graph
+SELECT ?fg_item ?fg_itemLabel ?property ?propertyLabel ?fg_value ?fg_valueLabel ?wd_item ?wd_value WHERE {
+    # Starting Point:
+    BIND(fg:Q225307 AS ?fg_item)
+    #VALUES ?fg_item { fg:Q404255 fg:Q404280 fg:Q405756}
+    #?fg_item fgt:P131 fg:Q400012.
+
+    # active entites: Humans and Organisations
+    VALUES ?fg_entities { fg:Q7 fg:Q12 fg:Q11214}
+
+    # Get first connections/statements
+    ?fg_item ?fgt ?fg_value.
+    ?property wikibase:directClaim ?fgt.
+    ?fg_value fgp:P2 ?statement1.
+    ?statement1 (fgps:P2/(fgt:P3*)) ?fg_entities.
+
+    # transform wikidata qid in factgrid to wikidata entity iri
+    ?link schema:about ?fg_item .
+    ?link schema:isPartOf <https://www.wikidata.org/> . 
+    ?link schema:name ?qid.
+    BIND(IRI(CONCAT(STR(wd:), ?qid)) AS ?wd_item)
+
+
+    # transform wikidata qid in factgrid to wikidata entity iri
+    ?link_value schema:about ?fg_value .
+    ?link_value schema:isPartOf <https://www.wikidata.org/> . 
+    ?link_value schema:name ?qid_value.
+    BIND(IRI(CONCAT(STR(wd:), ?qid_value)) AS ?wd_value)
+
+    # Wikidata
+    SERVICE <https://query.wikidata.org/sparql> { 
+        ?wd_item ?wdt1 ?wd_value.
+      
+    }  
+
+    SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+    }
+# LIMIT 100
