@@ -13,6 +13,12 @@ limit <- 500
 # data will be saved in googlesheets
 gs_file <- "1zQ2CO6fkKUg4RFN8TACOxa2ZnSg2F45saBwDNphlzGY"
 
+# cache for wikidata
+tw_enable_cache()
+tw_set_cache_folder(path = fs::path(fs::path_home_r(), "R", "tw_data"))
+tw_set_language(language = "de")
+tw_create_cache_folder(ask = FALSE)
+
 # Get all contributions ---------------------------------------------------
 
 mw_api_get_inital_batch <- function(limit = 500) {
@@ -55,17 +61,21 @@ while(!is.null(check_for_more)){
 # aka: real revisions on data and not wiki talk stuff etc
 # wikidata-ui: change on website
 # OAuth: change with Quickstatements or API
-revisions <- map_df(all_data, ~print(.)) %>% 
+revisions <- rlist::list.stack(all_data, fill=TRUE) %>% 
   filter(str_detect(tags, "wikidata-ui|OAuth")) %>% 
-  # extract date
   mutate(
     timedate = lubridate::as_datetime(timestamp),
-    date = lubridate::date(timedate),
-    # get wikidata labels of changed items
+    date = lubridate::date(timedate)
+  )
+
+labels <- revisions %>% 
+  distinct(title) %>% 
+  mutate(
     label_en = tw_get_label(id = title, language = "en"),
     label_de = tw_get_label(id = title, language = "de")
   )
 
+revisions <- revisions %>% left_join(labels, by = "title")
 
 # write to sheet
 write_sheet(revisions, ss = gs_file, sheet = "raw_data")
