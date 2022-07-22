@@ -104,19 +104,23 @@ graph_metrics <- graph_tbl %>%
 
 
 
-# graph_tbl %>%
-#   ggraph(layout == "kk") +
-#   geom_node_point() +
-#   geom_edge_diagonal() 
-# 
-# ggraph(
-#   graph = graph_tbl, 
-#   layout = "kk") +
-#   geom_node_point() +
-#   geom_edge_diagonal(alpha = 0.2)
-
 ```
 
 https://bjnnowak.netlify.app/2021/09/30/r-network-analysis-with-tidygraph/
 
 https://rviews.rstudio.com/2019/03/06/intro-to-graph-analysis/
+
+```{r}
+# 
+# graph_tbl %>%
+#   ggraph(layout == "kk") +
+#   geom_node_point() +
+#   geom_edge_diagonal()
+
+ggraph(
+  graph = graph_tbl,
+  layout = "kk") +
+  geom_node_point() +
+  geom_edge_diagonal(alpha = 0.2)
+
+```
