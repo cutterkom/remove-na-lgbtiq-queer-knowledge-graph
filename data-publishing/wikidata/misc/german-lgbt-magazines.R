@@ -14,7 +14,7 @@ statements <- googlesheets4::read_sheet(config$statements$gs_table, sheet = "wik
 # Caching for tidywikidatar
 tw_enable_cache()
 tw_set_cache_folder(path = fs::path(fs::path_home_r(), "R", "tw_data"))
-tw_set_language(language = "de")
+tw_set_language(language = "en")
 tw_create_cache_folder(ask = FALSE)
 
 
