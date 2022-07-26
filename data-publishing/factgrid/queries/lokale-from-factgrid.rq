@@ -1,0 +1,45 @@
+#defaultView:Table
+PREFIX wd: <https://database.factgrid.de/entity/>
+PREFIX wdt: <https://database.factgrid.de/prop/direct/>
+SELECT ?fg_item ?fg_itemLabel ?fg_itemDescription ?fg_itemAltLabel ?Address ?AddressLabel ?Geo ?Notiz ?Anfangszeitpunkt ?Endzeitpunkt ?Datum ?wd_item ?Treffpunkt ?TreffpunktLabel ?Zielgruppe WHERE {
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "de". }
+  ?fg_item wdt:P2 wd:Q40454.
+  { ?fg_item wdt:P726 wd:Q399989. }
+  UNION
+  {
+    ?fg_item wdt:P2 wd:Q40454;
+      wdt:P726 wd:Q399990.
+  }
+  UNION
+  {
+    ?fg_item wdt:P2 wd:Q40454;
+      wdt:P726 wd:Q399988.
+  }
+  UNION
+  {
+    ?fg_item wdt:P2 wd:Q40454;
+      wdt:P726 wd:Q400014.
+  }
+  UNION
+  {
+    ?fg_item wdt:P2 wd:Q40454;
+      wdt:P726 wd:Q137530.
+  }
+  OPTIONAL {
+    ?fg_item wdt:P208 ?Address.
+    ?Address wdt:P48 ?Geo.
+  }
+  #OPTIONAL { ?fg_item wdt:P73 ?Notiz. }
+  OPTIONAL { ?fg_item wdt:P49 ?Anfangszeitpunkt. }
+  OPTIONAL { ?fg_item wdt:P50 ?Endzeitpunkt. }
+  OPTIONAL { ?fg_item wdt:P106 ?Datum. }
+  OPTIONAL { ?fg_item wdt:P726 ?Treffpunkt. }
+  OPTIONAL { ?fg_item wdt:P573 ?Zielgruppe.}
+    OPTIONAL {
+    # transform wikidata qid in factgrid to wikidata entity iri
+    ?link schema:about ?fg_item .
+    ?link schema:isPartOf <https://www.wikidata.org/> . 
+    ?link schema:name ?qid.
+    BIND(IRI(CONCAT(STR(wd:), ?qid)) AS ?wd_item)
+  }
+}
