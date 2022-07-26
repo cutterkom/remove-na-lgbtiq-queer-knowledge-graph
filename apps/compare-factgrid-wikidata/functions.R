@@ -93,12 +93,14 @@ get_comparison <- function(input_properties, input_item_filter_property, input_i
       fg_property_id <- current$fg_property_id
 
       cli::cli_alert_info("Property data type: {current$meta_property_id}")
+      
 
       if (input_item_filter_property != "" & input_item_filter_value != "") {
         input_items_filter <- paste0("?fg_item fgt:", input_item_filter_property, " fg:", input_item_filter_value, ".")
       } else {
         input_items_filter <- ""
       }
+      cli::cli_alert_info("Items filter: {input_items_filter}")
       
       if(current$fg_property_type == "WikibaseItem") {
         query <- query_items(input_items_filter = input_items_filter, fg_property_id = fg_property_id)
@@ -221,7 +223,7 @@ get_import_data <- function(data, target, input_property_by_type = NULL) {
         # source_value: Source information: Wikidata Item the value is taken from (as string)
         source_value =
           case_when(
-            fg_property_type == "WikibaseItem" ~ fg_value_id,
+            fg_property_type == "WikibaseItem" ~ fg_item_id,
             TRUE ~ fg_item_id
           ),
         source_value = paste0('"', source_value, '"')

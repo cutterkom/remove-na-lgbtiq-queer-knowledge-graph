@@ -49,11 +49,12 @@ query_items <- function(input_items_filter = NULL, fg_property_id = NULL) {
       ?fg_item ?fg_property ?fg_value .
       # get wikidata qid of fg_value
       # used later for comparison
-      ?link_value schema:about ?fg_value .
-      ?link_value schema:isPartOf <https://www.wikidata.org/> .
-      ?link_value schema:name ?qid_value.
-      BIND(IRI(CONCAT(STR(wd:), ?qid_value)) AS ?wd_value_from_fg)
-    
+      #OPTIONAL {
+        ?link_value schema:about ?fg_value .
+        ?link_value schema:isPartOf <https://www.wikidata.org/> .
+        ?link_value schema:name ?qid_value.
+        BIND(IRI(CONCAT(STR(wd:), ?qid_value)) AS ?wd_value_from_fg)
+      #}
       # now change to wikidata as data source
       # get value from wikidata
       SERVICE <https://query.wikidata.org/sparql> {

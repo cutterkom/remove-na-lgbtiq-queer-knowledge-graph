@@ -139,7 +139,7 @@ renderValueBox({
 ```{r}
 only_in_fg_nrow <- reactive({
   nrow(only_in_fg() %>% 
-     distinct())
+     distinct(fg_item, fg_value))
 })
 
 renderValueBox({
@@ -211,7 +211,7 @@ DT::renderDataTable(
     
     # get relevant columns
     select(item, property, value) %>% 
-     distinct(),
+    distinct(),
   escape = FALSE) # show link as link
 )
 ```
@@ -222,11 +222,11 @@ DT::renderDataTable(
 only_in_fg <- reactive({
   
   data <- comparison_raw() %>% 
-    filter(is.na(is_same), !is.na(fg_item)) %>% 
+    filter(is_same != "true" | is.na(is_same), !is.na(fg_item)) %>% 
     distinct(fg_item, fg_itemLabel, wd_item, fg_property_id, fg_value, fg_valueLabel, wd_value_from_fg, wd_value_from_wd, meta_property_id) %>% 
-    # remove those that are present in wd
     anti_join(in_both(), by = c("fg_item", "wd_value_from_fg")) %>% 
-    # add property info
+    anti_join(only_in_wd(), by = c("fg_item", "fg_itemLabel", "wd_item", "wd_value_from_wd", "fg_property_id", "meta_property_id")) %>% 
+      # add property info
     left_join(input_properties() %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property, meta_property_id), by =  c("meta_property_id", "fg_property_id"))
   
   })
@@ -308,7 +308,7 @@ only_in_wd <- reactive({
     # remove those that are present in wd
     anti_join(in_both(), by = c("fg_item", "wd_value_from_wd")) %>%
     # add property info
-    left_join(input_properties() %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property, wd_property_id, meta_property_id), by = c("meta_property_id"))
+    left_join(input_properties() %>% select(fg_property_id, fg_propertyLabel, fg_property, wd_property, wd_property_id, meta_property_id), by = c("meta_property_id", "fg_property_id", "wd_property_id"))
   
   })
 
