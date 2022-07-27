@@ -1,13 +1,14 @@
 # title: Get bios from Lesbengeschichte.org and add source to wikidatas sexual p
 # desc: 
-# input: 
-# output: 
+# input: lesbengeschichte sitemap
+# output: wikidata quickstatements
 
 
 
 library(tidyverse)
 library(kabrutils)
 library(rvest)
+library(tidywikidatar)
 
 # Some config ------------------------------------------------------------
 
@@ -58,3 +59,29 @@ import
 csv_file <- tempfile(fileext = "csv")
 write.table(import, csv_file, row.names = FALSE, quote = FALSE, sep = "\t")
 fs::file_show(csv_file)  
+
+
+
+# add source to partner ---------------------------------------------------
+
+partners <- import %>% 
+  select(-property, -value) %>% 
+  mutate(partner = tw_get_property(id = item, p = "P451")) %>% 
+  unnest(partner, names_repair = "unique")
+
+has_partner <- partners %>%
+  select(item, property, value) %>% 
+  filter(!is.na(value))
+
+
+partners %>% 
+  select(item, property, value) %>% 
+  filter(is.na(value)) %>% 
+  left_join(has_partner, by = c("value" = "item")) %>% View
+
+
+
+partners %>% filter(is.na(partner$property)) %>% select(item, source_statement_1_value) %>% View
+
+
+partners %>% filter(!is.na(partner$property)) %>% select(item, "$value")
