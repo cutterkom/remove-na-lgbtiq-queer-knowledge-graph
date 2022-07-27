@@ -31,7 +31,10 @@ in_wd <- query_res %>%
 
 # Create Statements -------------------------------------------------------
 
-input <- query_res %>% 
+input <-not_in_wd %>%  #query_res %>% 
+  filter(!is.na(location))  %>% 
+  filter(is.na(instanceLabel)) %>% 
+  filter(!str_detect(fg_itemLabel, "N.N")) %>% 
   # extract IDs
   mutate(across(c(fg_item, starts_with("wd_")), ~extract_id(.))) %>% 
   mutate(across(c(fg_itemLabel, fg_itemDescription, fg_itemAltLabel), ~remove_lang(.))) %>% 
@@ -90,11 +93,11 @@ input_alias
 # Create Statements -------------------------------------------------------
 
 import <- input %>% 
-  distinct(fg_item, wd_item, TreffpunktLabel) %>% 
+  distinct(fg_item, wd_item) %>% 
   rowid_to_column() %>% 
   mutate(item = ifelse(is.na(wd_item), paste0("CREATE_", rowid), wd_item)) %>% 
-  select(item, P8168 = fg_item, TreffpunktLabel) %>% 
-  filter(item != "CREATE_4", !str_detect(item, "Q")) %>% 
+  select(item, P8168 = fg_item) %>% 
+  filter(item == "CREATE_4", !str_detect(item, "Q")) %>% 
   left_join(input_labels, by = c("P8168" = "fg_item")) %>% 
   left_join(input_descriptions, by = c("P8168" = "fg_item")) %>% 
   left_join(input_alias, by = c("P8168" = "fg_item")) %>% 
@@ -104,8 +107,8 @@ import <- input %>%
     P8168 = paste0('"', P8168, '"'),
     P31 = 
            case_when(
-             str_detect(TreffpunktLabel, "Schwul") ~ "Q1043639",
-             str_detect(TreffpunktLabel, "Frau") ~ "Q30324198",
+            # str_detect(TreffpunktLabel, "Schwul") ~ "Q1043639",
+             item == "Q405758" ~ "Q30324198",
              TRUE ~ "Q105321449"
            )
          ) %>% 
