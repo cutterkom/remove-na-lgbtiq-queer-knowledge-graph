@@ -1,0 +1,204 @@
+---
+title: "Queer Surroundings"
+author: "Katharina Brunner"
+editor: source
+execute:
+  warning: false
+  message: false
+format: 
+  html:
+    page-layout: full
+server: shiny
+---
+
+This page is used to take a look at the data of the Remove NA project. All of the people in this queer history dataset did not exist on their own. They were (and are, not all are dead) surrounded with other people they loved, collaborated with, were persecuted by, were inspired and inspired. This application is designed to help show all these different type of surroundings of person - both positive and negative.
+
+Accordingly, the **definition of a companion** is: **Someone appears in connection with the person in focus either in Factgrid, the database for historical projects, Wikidata or Wikipedia**. Technically this page utilizes federated queries starting at the [Factgrid SPARQL Endpoint](https://database.factgrid.de/query/).
+
+::: callout-important
+## Not every person in the dataset is queer
+
+But every person appears in connection with the data of the [Forum Queer Archive Munich](https://forummuenchen.org). Two examples of non-queer persons: Participants in historical events or authors of books that are in the archive's holdings.
+:::
+
+```{r setup}
+library(shiny)
+library(tidyverse)
+library(kabrutils)
+library(SPARQL)
+library(DT)
+library(shinyFeedback)
+shinyFeedback::useShinyFeedback()
+
+endpoint <- "https://database.factgrid.de/sparql"
+source("queries.R", local = TRUE)
+
+# run choose-relevant-persons.R to generate data
+persons <- readRDS("data/persons.Rds")
+persons_list <- persons %>% 
+  select(item) %>% 
+  deframe()
+
+names(persons_list) <- persons$label
+```
+
+## Surroundings Gallery of ...
+
+```{r input_fg_item_id}
+#| panel: input
+#| layout-ncol: 3
+textInput("input_fg_item_id", value = "Q402214", label = "Choose a person with Factgrid QID:", placeholder = "Q409762")
+
+actionButton("button_input_fg_item_id", "Explore surrounding", class = "btn-primary")
+actionButton("button_random", "Choose random person", class = "btn-secondary")
+```
+
+```{r}
+#| context: server
+observeEvent(input$button_random, {
+  cli::cli_alert("choose random")
+  updateTextInput(session, "input_fg_item_id", value = sample(persons$item, 1))
+})
+```
+
+```{r fetch_desc_links}
+#| context: server
+output$label_desc_links = renderUI({
+  
+  label <- persons %>% 
+    filter(item == input$input_fg_item_id) %>% 
+    pull(label)
+  
+  item <- persons %>% 
+    filter(item == input$input_fg_item_id) %>% 
+    pull(item)
+  
+  wd_item <- persons %>% 
+    filter(item == input$input_fg_item_id) %>% 
+    pull(wd_item)
+  
+   desc <- persons %>% 
+    filter(item == input$input_fg_item_id) %>% 
+    pull(desc)
+  
+  Sdewiki <- persons %>% 
+    filter(item == input$input_fg_item_id) %>% 
+    pull(Sdewiki)
+  
+  Senwiki <- persons %>% 
+    filter(item == input$input_fg_item_id) %>% 
+    pull(Senwiki)
+  
+  Swikidatawiki <- persons %>% 
+    filter(item == input$input_fg_item_id) %>% 
+    pull(Swikidatawiki)
+  
+  dbpedia <- persons %>% 
+    filter(item == input$input_fg_item_id) %>% 
+    pull(dbpedia)
+  
+  factgrid <- paste0("https://database.factgrid.de/wiki/Item:", item)
+  
+  links_df <- tibble(
+    name = c("Factgrid", "Wikidata", "English Wikipedia", "German Wikipedia", "DBPedia"),
+    href = c(factgrid, Swikidatawiki, Senwiki, Sdewiki, dbpedia)
+  ) %>% 
+    filter(!is.na(href))
+  
+  create_link <- function(name, href) {
+   shiny::a(name, href = href)
+  }
+  
+  links <- map2(links_df$name, links_df$href, create_link)
+  
+  tagList(
+    h3(label),
+    p(desc),
+    p("Find", span(label), "on: ", 
+      links
+    )
+  )
+})
+
+```
+
+```{r}
+uiOutput("label_desc_links")
+```
+
+```{r gallery}
+#| panel: center 
+htmlOutput("iframe")
+```
+
+::: callout-warning
+## Weird results?
+
+Occasionally, results appear that are clearly not people. For example, "Germany". This happens because in DBPedia some entities are of `type: Person`, although there is no apparent plausibility for this. Unfortunately, I have neither an explanation nor an influence on that data modeling decision. Also, there seems to be a bug in DBPedia: Some items are incorrectly linked to Achille Fould (e.g. [Stefan Zweig](https://dbpedia.org/page/Stefan_Zweig) and [Barbara Hammer](https://dbpedia.org/page/Barbara_Hammer)). I informed the DBPedia on that issue.
+:::
+
+::: callout-tip
+## Tips for Querying
+
+-   You can use **any** Factgrid ID as a starting point.
+
+-   When there's an empty screen, there are no relations to persons or organisations in the data. They are *NA*.
+:::
+
+## Choose a specific Person
+
+In the following table you will find all the people from the project from which a personal surroundings can be drawn. Copy the value from the column `Identifier` into the field above.
+
+### All available persons
+
+```{r render_table}
+DT::datatable(persons %>% select(Identifier = item, Label = label, Description = desc))
+```
+
+```{r}
+#| context: server
+build_src_url <- function(fg_item = NULL) {
+  base_url <- "https://database.factgrid.de/query/embed.html#"
+  src_url <- paste0(base_url, query_companions(fg_item = fg_item))
+  src_url <- str_replace_all(src_url, "\n", "%0A")
+  src_url <- str_replace_all(src_url, "\\s{2,}", "")
+  src_url
+}
+```
+
+```{r}
+#| context: server
+build_src_url_fun <- eventReactive(input$input_fg_item_id, {
+  cli::cli_alert("button clicked")
+  if(is.null(input$input_fg_item_id)) {
+    print(paste("chosen properties:", input$input_fg_item_id))
+        shinyFeedback::showToast(
+      "error",
+      "You have to select a Factgrid QID of a person."
+    )
+  } else {
+    src_url <- build_src_url(input$input_fg_item_id)
+
+    shinyFeedback::showToast(
+      "success",
+      "loading data from three data sources"
+    )
+    #print(data)
+    src_url
+  }
+})
+```
+
+```{r}
+#| context: server
+output$iframe <-  renderUI({
+  cli::cli_alert("build query")
+  cli::cli_alert("Input fg_item: {input$input_fg_item_id}")
+ iframe_tmp <- tags$iframe(src = build_src_url_fun(), height = 600, width="100%", frameborder = "no", data_external="1")
+ iframe_tmp
+})
+```
+
+------------------------------------------------------------------------
+
+By <a href="https://katharinabrunner.de">Katharina Brunner</a>
