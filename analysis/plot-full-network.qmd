@@ -124,3 +124,28 @@ ggraph(
   geom_edge_diagonal(alpha = 0.2)
 
 ```
+
+Histogram
+
+```{r}
+count <- query_res %>% count(item, sort = T)
+  
+
+count %>% 
+  ggplot(aes(x=n)) +
+  geom_histogram()
+
+summary(count)
+```
+
+```{r}
+ggplot(count, aes(x=n)) + 
+    geom_histogram(#aes(y=..density..),
+                   binwidth=.5,
+                   colour="black", fill="white") +
+   #geom_density(alpha=.2, fill="#FF6666")  +
+  labs(title = "Histogram of statements per items in Factgrid") +
+  ylab("Number of items") +
+  xlab("Number of statements per item")
+
+```
