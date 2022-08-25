@@ -78,30 +78,5 @@ labels <- revisions %>%
 revisions <- revisions %>% left_join(labels, by = "title")
 
 # write to sheet
-write_sheet(revisions, ss = gs_file, sheet = "raw_data")
+#write_sheet(revisions, ss = gs_file, sheet = "raw_data")
 write_delim(revisions, "data-publishing/wikidata/data/revisions.csv", delim = "\t")
-
-# # test
-# testdata <- user_contributions(domain = domain, project = project, 
-#                                username = user, limit = 500)
-# 
-# testdata_df <- purrr::map_df(testdata[["query"]][["usercontribs"]], ~print(.))
-# 
-# testdata_df %>% count(revid, sort = T)
-# testdata_df %>% distinct()
-# 
-# testdata[["query"]][["usercontribs"]] %>% enframe() %>% unnest_longer("value")
-# all_equal(testdata_df, revisions)
-
-
-# count_per_date <- revisions %>% 
-#   count(date, sort = T)
-# 
-# count_per_date %>% 
-#   ggplot(aes(x = date, y = n)) +
-#   geom_col() +
-#   theme_minimal() +
-#   labs(title = "Anzahl der Veränderungen in Wikidata",
-#        subtitle = "Account: Removena", 
-#        x = "Anzahl",
-#        y = "Datum" )
