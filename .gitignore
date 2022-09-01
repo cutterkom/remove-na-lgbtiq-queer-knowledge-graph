@@ -109,3 +109,5 @@ analysis/2022-05-31-status-update/index.html
 data-publishing/factgrid/data/kz-berufe
 *.ini
 *.gz
+slides/*
+apps/remove-na-explore-surroundings/index_files/*
