@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.0.35">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Katharina Brunner">
+
+<title>Queer Surroundings</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+<script src="index_files/libs/clipboard/clipboard.min.js"></script>
+<script src="index_files/libs/quarto-html/quarto.js"></script>
+<script src="index_files/libs/quarto-html/popper.min.js"></script>
+<script src="index_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="index_files/libs/quarto-html/anchor.min.js"></script>
+<link href="index_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="index_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="index_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="index_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="index_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-full">
+
+<main class="content column-page" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Queer Surroundings</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Katharina Brunner </p>
+          </div>
+  </div>
+    
+    
+  </div>
+  
+
+</header>
+
+<p>This page is used to take a look at the data of the Remove NA project. All of the people in this queer history dataset did not exist on their own. They were (and are, not all are dead) surrounded with other people they loved, collaborated with, were persecuted by, were inspired and inspired. This application is designed to help show all these different type of surroundings of person - both positive and negative.</p>
+<p>Accordingly, the <strong>definition of a companion</strong> is: <strong>Someone appears in connection with the person in focus either in Factgrid, the database for historical projects, Wikidata or Wikipedia</strong>. Technically this page utilizes federated queries starting at the <a href="https://database.factgrid.de/query/">Factgrid SPARQL Endpoint</a>.</p>
+<div class="callout-important callout callout-style-default callout-captioned">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-caption-container flex-fill">
+Not every person in the dataset is queer
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>But every person appears in connection with the data of the <a href="https://forummuenchen.org">Forum Queer Archive Munich</a>. Two examples of non-queer persons: Participants in historical events or authors of books that are in the archive’s holdings.</p>
+</div>
+</div>
+<section id="surroundings-gallery-of" class="level2">
+<h2 class="anchored" data-anchor-id="surroundings-gallery-of">Surroundings Gallery of …</h2>
+<div class="cell panel-input card bg-light p-2 quarto-layout-panel">
+<div class="quarto-layout-row quarto-layout-valign-top">
+<div class="cell-output-display quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<div class="form-group shiny-input-container">
+<label class="control-label" id="input_fg_item_id-label" for="input_fg_item_id">Choose a person with Factgrid QID:</label>
+<input id="input_fg_item_id" type="text" class="form-control" value="Q402214" placeholder="Q409762">
+</div>
+</div>
+<div class="cell-output-display quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<button class="btn btn-default action-button btn-primary" id="button_input_fg_item_id" type="button">Explore surrounding</button>
+</div>
+<div class="cell-output-display quarto-layout-cell" style="flex-basis: 33.3%;justify-content: center;">
+<button class="btn btn-default action-button btn-secondary" id="button_random" type="button">Choose random person</button>
+</div>
+</div>
+</div>
+<div class="cell" data-context="server">
+
+</div>
+<div class="cell" data-context="server">
+
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div id="label_desc_links" class="shiny-html-output"></div>
+</div>
+</div>
+<div class="panel-center panel-grid">
+<div class="g-col-24 g-col-lg-20 g-start-lg-2">
+<div class="cell panel-center">
+<div class="cell-output-display">
+<div id="iframe" class="shiny-html-output"></div>
+</div>
+</div>
+</div>
+</div>
+<div class="callout-warning callout callout-style-default callout-captioned">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-caption-container flex-fill">
+Weird results?
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Occasionally, results appear that are clearly not people. For example, “Germany”. This happens because in DBPedia some entities are of <code>type: Person</code>, although there is no apparent plausibility for this. Unfortunately, I have neither an explanation nor an influence on that data modeling decision. Also, there seems to be a bug in DBPedia: Some items are incorrectly linked to Achille Fould (e.g.&nbsp;<a href="https://dbpedia.org/page/Stefan_Zweig">Stefan Zweig</a> and <a href="https://dbpedia.org/page/Barbara_Hammer">Barbara Hammer</a>). I informed the DBPedia on that issue.</p>
+</div>
+</div>
+<div class="callout-tip callout callout-style-default callout-captioned">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-caption-container flex-fill">
+Tips for Querying
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li><p>You can use <strong>any</strong> Factgrid ID as a starting point.</p></li>
+<li><p>When there’s an empty screen, there are no relations to persons or organisations in the data. They are <em>NA</em>.</p></li>
+</ul>
+</div>
+</div>
+</section>
+<section id="choose-a-specific-person" class="level2">
+<h2 class="anchored" data-anchor-id="choose-a-specific-person">Choose a specific Person</h2>
+<p>In the following table you will find all the people from the project from which a personal surroundings can be drawn. Copy the value from the column <code>Identifier</code> into the field above.</p>
+<section id="all-available-persons" class="level3">
+<h3 class="anchored" data-anchor-id="all-available-persons">All available persons</h3>
+<div class="cell">
+<div class="cell-output-display">
+
+<div id="htmlwidget-9f544053091f8ae30de7" style="width:100%;height:auto;" class="datatables html-widget"></div>
+<script type="application/json" data-for="htmlwidget-9f544053091f8ae30de7">{"x":{"filter":"none","vertical":false,"data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","54","55","56","57","58","59","60","61","62","63","64","65","66","67","68","69","70","71","72","73","74","75","76","77","78","79","80","81","82","83","84","85","86","87","88","89","90","91","92","93","94","95","96","97","98","99","100","101","102","103","104","105","106","107","108","109","110","111","112","113","114","115","116","117","118","119","120","121","122","123","124","125","126","127","128","129","130","131","132","133","134","135","136","137","138","139","140","141","142","143","144","145","146","147","148","149","150","151","152","153","154","155","156","157","158","159","160","161","162","163","164","165","166","167","168","169","170","171","172","173","174","175","176","177","178","179","180","181","182","183","184","185","186","187","188","189","190","191","192","193","194","195","196","197","198","199","200","201","202","203","204","205","206","207","208","209","210","211","212","213","214","215","216","217","218","219","220","221","222","223","224","225","226","227","228","229","230","231","232","233","234","235","236","237","238","239","240","241","242","243","244","245","246","247","248","249","250","251","252","253","254","255","256","257","258","259","260","261","262","263","264","265","266","267","268","269","270","271","272","273","274","275","276","277","278","279","280","281","282","283","284","285","286","287","288","289","290","291","292","293","294","295","296","297","298","299","300","301","302","303","304","305","306","307","308","309","310","311","312","313","314","315","316","317","318","319","320","321","322","323","324","325","326","327","328","329","330","331","332","333","334","335","336","337","338","339","340","341","342","343","344","345","346","347","348","349","350","351","352","353","354","355","356","357","358","359","360","361","362","363","364","365","366","367","368","369","370","371","372","373","374","375","376","377","378","379","380","381","382","383","384","385","386","387","388","389","390","391","392","393","394","395","396","397","398","399","400","401","402","403","404","405","406","407","408","409","410","411","412","413","414","415","416","417","418","419","420","421","422","423","424","425","426","427","428","429","430","431","432","433","434","435","436","437","438","439","440","441","442","443","444","445","446","447","448","449","450","451","452","453","454","455","456","457","458","459","460","461","462","463","464","465","466","467","468","469","470","471","472","473","474","475","476","477","478","479","480","481","482","483","484","485","486","487","488","489","490","491","492","493","494","495","496","497","498","499","500","501","502","503","504","505","506","507","508","509","510","511","512","513","514","515","516","517","518","519","520","521","522","523","524","525","526","527","528","529","530","531","532","533","534","535","536","537","538","539","540","541","542","543","544","545","546","547","548","549","550","551","552","553","554","555","556","557","558","559","560","561","562","563","564","565","566","567","568","569","570","571","572","573","574","575","576","577","578","579","580","581","582","583","584","585","586","587","588","589","590","591","592","593","594","595","596","597","598","599","600","601","602"],["Q402272","Q225307","Q402373","Q402591","Q227125","Q402576","Q402452","Q402556","Q403058","Q402990","Q402459","Q403051","Q402253","Q403057","Q402458","Q402267","Q403068","Q403070","Q402244","Q402235","Q403011","Q402262","Q402515","Q402229","Q402449","Q402446","Q402393","Q403090","Q402237","Q402291","Q402545","Q403020","Q403037","Q402454","Q403072","Q402221","Q402966","Q402946","Q402353","Q402395","Q402698","Q402312","Q402942","Q226350","Q402457","Q402304","Q402567","Q402549","Q402344","Q402719","Q402345","Q402503","Q402285","Q402313","Q402343","Q226439","Q402442","Q402561","Q402327","Q402588","Q402596","Q402725","Q402566","Q403009","Q223816","Q402918","Q402956","Q402299","Q402555","Q402216","Q402228","Q403046","Q224647","Q223420","Q402572","Q402689","Q402282","Q402506","Q402537","Q402399","Q402421","Q402427","Q402398","Q402715","Q402305","Q402998","Q403004","Q402748","Q402580","Q402728","Q402583","Q402233","Q402474","Q225259","Q226556","Q402310","Q402497","Q402333","Q402978","Q403049","Q402332","Q402378","Q402208","Q402214","Q402334","Q403062","Q403056","Q402729","Q402330","Q402595","Q402995","Q402510","Q403069","Q402550","Q402222","Q403035","Q402475","Q402246","Q402261","Q402320","Q402295","Q402219","Q224273","Q402347","Q402352","Q226356","Q402558","Q402416","Q402415","Q402323","Q402711","Q402647","Q403192","Q402661","Q402892","Q402893","Q403148","Q402615","Q402875","Q402895","Q402639","Q403204","Q403206","Q402655","Q403118","Q402885","Q402626","Q403194","Q403199","Q403158","Q402635","Q403207","Q403134","Q402659","Q403190","Q402618","Q402622","Q403193","Q402854","Q402631","Q402657","Q403231","Q403201","Q404014","Q402845","Q403129","Q402636","Q403168","Q403187","Q403229","Q403152","Q403143","Q403114","Q403105","Q403214","Q402614","Q402867","Q403098","Q403155","Q402864","Q402889","Q402629","Q403188","Q403145","Q403095","Q403191","Q403203","Q402870","Q403237","Q403127","Q402905","Q402625","Q403122","Q403642","Q403425","Q403251","Q403651","Q403648","Q403540","Q403601","Q403581","Q403321","Q383677","Q403463","Q403399","Q402752","Q403438","Q403404","Q403266","Q383939","Q403437","Q402150","Q403268","Q403405","Q403598","Q403628","Q402152","Q403487","Q403414","Q403318","Q403257","Q403406","Q403641","Q403525","Q403520","Q403457","Q402191","Q403394","Q402796","Q403477","Q403354","Q402181","Q402780","Q403602","Q403356","Q403603","Q229065","Q403349","Q402194","Q402266","Q227596","Q228187","Q225935","Q222987","Q229412","Q402264","Q226907","Q227571","Q402172","Q227958","Q402178","Q225199","Q402486","Q402504","Q402440","Q402448","Q402455","Q402501","Q402431","Q402438","Q402465","Q402478","Q402481","Q402390","Q402293","Q402274","Q402289","Q402315","Q402336","Q402355","Q402382","Q402391","Q402324","Q402325","Q402357","Q402375","Q402380","Q403416","Q403470","Q403557","Q403948","Q403640","Q403941","Q403985","Q403611","Q403391","Q403494","Q402177","Q402170","Q403313","Q403606","Q229146","Q403427","Q402206","Q403384","Q402200","Q403961","Q403538","Q403267","Q403317","Q393338","Q403303","Q403465","Q403600","Q403596","Q403490","Q403599","Q403984","Q403587","Q269481","Q403335","Q403454","Q403314","Q402182","Q403543","Q402810","Q402808","Q403388","Q403647","Q403344","Q403479","Q402804","Q272754","Q403545","Q245300","Q403447","Q402814","Q403312","Q229384","Q403392","Q403397","Q403291","Q403495","Q228257","Q403247","Q403976","Q402168","Q403622","Q403578","Q403385","Q403468","Q403489","Q403580","Q403430","Q403524","Q272819","Q403482","Q403958","Q403977","Q403301","Q403261","Q228301","Q403967","Q402127","Q382501","Q403980","Q403514","Q402193","Q403449","Q403509","Q403331","Q403505","Q402759","Q403300","Q403452","Q273295","Q402584","Q402601","Q402610","Q402605","Q402535","Q402543","Q402573","Q402616","Q402623","Q402634","Q402560","Q402602","Q402565","Q402577","Q402712","Q402662","Q402669","Q402691","Q402706","Q402709","Q402722","Q402749","Q402768","Q402769","Q402714","Q402737","Q402667","Q402809","Q402890","Q402792","Q402787","Q402797","Q402777","Q402818","Q402811","Q402816","Q402776","Q402841","Q402843","Q402866","Q402837","Q402915","Q402947","Q402974","Q402896","Q402899","Q402902","Q402908","Q402922","Q402891","Q402920","Q402921","Q402948","Q402969","Q402976","Q402973","Q402983","Q402987","Q402984","Q402985","Q402970","Q402997","Q403006","Q402972","Q402975","Q402941","Q403089","Q403092","Q403131","Q403113","Q403031","Q403007","Q403019","Q403117","Q403128","Q403039","Q403043","Q403063","Q403060","Q403071","Q403189","Q403150","Q403219","Q403217","Q403166","Q403250","Q403223","Q403228","Q403222","Q403159","Q403256","Q403195","Q403255","Q403262","Q403258","Q403139","Q403165","Q403265","Q403264","Q403182","Q403185","Q403334","Q403294","Q403337","Q403338","Q403283","Q403272","Q403339","Q403376","Q403329","Q403336","Q403398","Q403377","Q403522","Q403424","Q403458","Q403410","Q403506","Q403415","Q403431","Q403426","Q403407","Q403412","Q403408","Q403417","Q403420","Q403500","Q403496","Q403517","Q403534","Q403484","Q403555","Q403605","Q403613","Q403554","Q403656","Q403617","Q403615","Q403614","Q403560","Q403577","Q403610","Q403546","Q403616","Q403637","Q403633","Q403638","Q403660","Q403679","Q403643","Q403646","Q403661","Q403630","Q403779","Q403773","Q403705","Q403697","Q403808","Q403717","Q403704","Q403793","Q403805","Q403737","Q403778","Q403882","Q403840","Q403910","Q403885","Q403873","Q403886","Q403852","Q403866","Q403851","Q403969","Q403999","Q403989","Q403974","Q404005","Q403951","Q404015","Q404050","Q403739","Q403665","Q403664","Q403684","Q403856","Q403753","Q403855","Q403774","Q403814","Q403777","Q403858","Q403699","Q403881","Q403709","Q403849","Q403662","Q403760","Q403761","Q403934","Q403879","Q403912","Q403757","Q403658","Q403797","Q403708","Q403844","Q403735","Q403872","Q403686","Q403923","Q403820","Q403792","Q403726","Q403675","Q403755","Q403674","Q403924","Q403680","Q403921","Q403776","Q403689","Q403698","Q403691","Q403880","Q14228","Q403804","Q403847","Q403845","Q403666","Q403683","Q403860","Q403868","Q403871","Q403719","Q403723"],["August Graf von Platen","Magnus Hirschfeld","Gabriele Kuby","Catherine Millet","Curt Riess","Alix Dobkin","Violette Leduc","Erzsébet Galgóczi","Jill Johnston","Gershon Legman","Geneviève Pastre","Edith Piaf","Alberto Moravia","Neeli Cherkovski","Elula Perrin","Johanna Sinisalo","Shere Hite","Mark Richard Zubro","Elaine Morgan","Katherine V. Forrest","Hubert Fichte","Mark Morrisroe","Jackie Kay","Stephen Spender","Charles Baudelaire","Scott Cohen","Ruth Rendell","Lillian Faderman","Leslie Feinberg","Gore Vidal","Ilse Aichinger","Quentin Crisp","Stephen Fry","Hubert Meyerinck","Sarah Lucia Hoagland","Hermes Phettberg","Tom of Finland","Yukio Mishima","Mary Daly","Elizabeth A. Lynn","Peter Greenaway","Hannah Green","Ronald M. Schernikau","Erika Mann","Zsuzsanna Emese Budapest","Geraldine Brooks","Paul B. Preciado","Otto Weininger","Ann Sutherland Harris","Erica Fischer","Linda Nochlin","Daniel Sanders","Eve Kosofsky Sedgwick","Louise Welsh","Judy Chicago","Hans Mayer","Susan Faludi","Christa Wolf","Friedrich Huch","Piper Kerman","Magda Szabó","Édouard Louis","Didier Eribon","Eileen Myles","Ernst Bornemann","Virginie Despentes","Sara Ahmed","Tom Lanoye","Kristof Magnusson","Horst Bienek","Alexandra Kollontai","Alice Walker","Erich Fromm","Anita Augspurg","Irmtraud Morgner","Gerard Kornelis van het Reve","Martina Navratilova","Heide Göttner-Abendroth","Anne-Sophie Brasme","Abha Dawesar","Kim Småge","Claire McNab","Sylvia Townsend Warner","Négar Djavadi","Carme Riera","Enzo Siciliano","Samuel R. Delany","Ellen Hart","Ulrike Folkerts","Robert Bly","Sarah Kirsch","Franzobel","Hape Kerkeling","Lida Gustava Heymann","Alexander Mitscherlich","Ti-Grace Atkinson","Aurelius","Sarah Waters","A. J. Cronin","Augusten Burroughs","Gertrud Bäumer","Walter Moers","Nigel Nicolson","Radclyffe Hall","Barbara Ehrenreich","Marilyn French","Julien Green","Edwin Shneidman","Sara Paretsky","Anja Snellman","Rosa Mayreder","Andy Warhol","Michael Nava","Barbara Köster","Ferdinand Karsch-Haack","Rudolph Moshammer","Dieter Schidor","Sarah Schulman","James Lee Burke","Maria-Antonietta Macciocchi","Christos Tsiolkas","August Forel","Albert Einstein","Barbara G. Walker","Shulamith Firestone","Klaus Mann","Rashid al-Daif","Dorothy Cannell","Liza Cody","Starhawk","Maggie Nelson","Pat Califia","Gisèle Bienne","Perihan Mağden","Olympe de Gouges","Sue Miller","Harold Brodkey","Michelle Tea","Krzysztof Charamsa","Hilda Doolittle","Derf Backderf","Susie Bright","Rosalind Miles","Roger Staub","André Gide","Vita Sackville-West","Andreas Steinhöfel","Rita Mae Brown","Gus van Sant","Joseph Hansen","Romy Haag","Douglas Crimp","Kate Millett","Philippe Besson","Henry Montherlant","Carson McCullers","Elias Petropoulos","Oscar Wilde","Renée Vivien","Rock Hudson","Xavier Mayne","Natalie Angier","Alvaro Pombo","Dieter Reiter","Hélène Cixous","David Wallechinsky","Ralf König","Susan Brownmiller","Eve Ensler","Uta Ranke-Heinemann","Luise Rinser","Jean-Gustave Binet de Valmer","Claudia Schoppmann","Robin Maugham","Erika Schulze","Beth Ditto","Klaus Theweleit","Val McDermid","Christiane Völling","Coover Colleen","Nicole Brossard","Man Ray","Leonardo Padura","Yves Navarre","Guy Hocquenghem","Helmut Schelsky","Judith Butler","Emma Healey","Gilbert Lely","Irving Wallace","Annemarie Schwarzenbach","Heinrich Hössli","Ariane Mnouchkine","Olivier Py","Valerie Solanas","Virginia Woolf","Pierre Seel","Kurt Tucholsky","Randy Shilts","Franz Kugler","Joanna Russ","Christopher Bram","Karol Szymanowski","Dino Buzzati","Richard von Krafft-Ebing","Sandra Scoppettone","Fannie Flagg","Erich Mühsam","Alice Guy","Jean Cocteau","Carolin Emcke","Patricia Highsmith","Hanif Kureishi","Pierre Louys","Annie Proulx","Jonathan Ned Katz","James Bidgood","Fritz Morgenthaler","Alison Bechdel","Elana Dykewomon","Barbara Neely","Diane Wood Middlebrook","Jacques Adelswärd-Fersen","Greta Schiller","Marjorie Garber","Rosa von Praunheim","Reimut Reiche","Hans Henny Jahnn","Han Suyin","Ariadne von Schirach","Audre Lorde","Janice G. Raymond","Penny Mickelbury","Adolph Menzel","Charlotte Perkins Gilman","David Leavitt","Robert Musil","Clarice Lispector","Richard A. Isay","Gary Indiana","Alphons Silbermann","Ruth Weiss","Edgar Kupfer-Koberwitz","Janet Malcolm","Robert Weil","Tobias G. Natter","Siegfried Placzek","Tony Sender","Paul Sethe","Elisabeth Tomalin","Gilbert Herdt","Hans von Hentig","Thomas Grossmann","Robert Beachy","Lois Bourne","Helen Hooven Santmyer","Sarah Dreher","Axel Madsen","Senta Trömel-Plötz","Luise F. Pusch","Gisela Anna Erler","Howard Roffman","Charles Silverstein","Henrik Olesen","Fritz Ostermayer","Renée Schauecker","Andrew M. Mattison","Eric E. Rofes","Deirdre English","Felice Newman","Rosemary Curb","Ken Mayer","Lesléa Newman","Noretta Koertge","Michał Witkowski","Lev Raphael","Röbi Rapp","Jean Genet","Nicole Conn","Harry Baer","Paul Hoecker","George Baxt","Christa Reinig","Adele Spitzeder","Shyam Selvadurai","Chandler Burr","Anne Holt","Janet Flanner","Pier Paolo Pasolini","Ingrid Caven","Heinz Höhne","Rudolf Grossmann","James Baldwin","J. D. Salinger","Dominique Fernandez","Anthony Gilbert","Ernst Röhm","Ernst Niekisch","John Addington Symonds","Damon Galgut","Albert Eulenburg","Gottfried Benn","Quentin Bell","Reinaldo Arenas","Adolf Wilbrandt","Djuna Barnes","Otto Eduard Hasse","Freddie Mercury","André Aciman","George Sand","Wieland Speck","Bryan Magee","Peer Raben","Will McBride","Tahar Ben Jelloun","Danielle Charest","Mary Wings","Dagmar Schultz","Edward Lucie-Smith","Virginia E. Johnson","Margarete Mitscherlich","Françoise Eaubonne","Donatien Alphonse François de Sade","Toni Morrison","Gerhard Schröder","Alice Schwarzer","Stella Duffy","Georg Kaspar Nagler","Grete von Urbanitzky","Erich Ebermayer","Simone de Beauvoir","Walter Sedlmayr","Jeanette Winterson","Christa Winsloe","Lucy Jane Bledsoe","William I of the Netherlands","Barbara Frischmuth","John Henry Mackay","Helmut Berger","Jane Rule","Chi Chi LaRue","Jim Grimsley","E. M. Forster","John Irving","Iwan Bloch","Mary Wollstonecraft","Charlotte Mahlsdorf","Ulla von Brandenburg","Wolfgang Tillmans","Marina Zwetajewa","Péter Nádas","Charlotte Wolff","Horst Seehofer","John Rechy","Ernst von Wolzogen","Paul Johann Anselm Feuerbach","Susan Sontag","Herman Bang","Helene Druskowitz","Hubert Kennedy","Werner Schroeter","Isabel Miller","Joanna Trollope","Sir Galahad","Lawrence Schimel","Herman Melville","Katrine Marçal","Antje Rávic Strubel","Dörthe Binkert","Erwin J. Haeberle","Phyllis Burke","Christiane Northrup","Clayton J. Whisnant","Philip Thody","Emily Wardill","Texier Catherine","Karl Markus Michel","Meredith Haaf","Del Lagrace Volcano","Tendai Huchu","Dennis Altman","Clara Tschudi","Terri de La Peña","Jeremy Beadle","James Richards","Zoë Fairbairns","Emily Martin","Kate Calloway","Jenifer Levin","Valerie Miner","iO Tillet Wright","Sigrid Metz-Göckel","Felix Rexhausen","Jean M. Redmann","Jessica Benjamin","Leona Gom","Brenda Miller","Eeva-Kaarina Aronen","Nikki Baker","Mercedes Lambert","Camarin Grae","Agnes Bushell","Marion Foster","Allan Bérubé","Anna Hájková","Hermann J. Huber","John Lauritsen","Manuela Kay","Owl Fisher","Herlinde Ill Koelbl","Christina Thürmer-Rohr","Richard C. Friedman","Tony","Carol Anshaw","Brenda Wineapple","Noel B. Gerson","Antoinette Azolakov","Renate Stendhal","Fox Fisher","Hank O'Neal","Patricia Morrisroe","Sal Lopes","Tony Parker","James Courage","Robert Allerton","Harry Otis","Arabelle Sicardi","Catherine Brett","Dan Taulapapa McMullin","Robert C. Rore","Larry Townsend","Emma Trosse","Thea Dorn","Carol Pearson","Bernd-Ulrich Hergemöller","Heidi Hassenmüller","Axel Schock","Yuki Kihara","Antonello Trombadori","Celeste West","Amy Wallace","Anja Meulenbelt","Dean Hamer","Robert Harborough Sherard","Gordon Merrick","Dagmar Herzog","Volkmar Sigusch","Rudolf Klimmer","Sheila Jeffreys","Klaus Dede","Andrea Weiss","Samuel M. Steward","Mirjam Müntefering","Joseph Olshan","Wolfgang Wippermann","Joao Silvério Trevisan","David Berger","Colapinto John","Alfred Chester","Grant Michaels","Maryse Holder","Anna E. Weirauch","Paul Bailey","Helmut Krausser","KCR","Georg Preuße","Burkhard Schröder","Martin Sperr","Michael Bochow","Herta Leistner","Monika Barz","Larry Duplechan","Cynthia MacAdams","Susan Kuklin","Jack Drescher","Martin S. Weinberg","Ute Wild","Rüdiger Lautmann","Martin Dannecker","Peter Watson","Riki Wilchins","Howard Overing Sturgis","Ilse Kokula","Elmar Kraushaar","Matthias T.J. Grimme","Tilman Spengler","Annamarie Jagose","Helen Humphreys","Carlfred Bartholomew Broderick","Joan Smith","Richard Amory","William Sutcliff","Karen X. Tulchinsky","Rosemary Manning","Sean O'Brien Strub","Aline Sax","Robin Norwood","Benny Ziffer","Picano Felice","Maurice Vellekoop","Gisela Bleibtreu-Ehrenberg","Silvia Bovenschen","Hans-Georg Stümke","Peter Redgrove","Penelope Shuttle","Elisarion von Kupffer","Louise DeSalvo","Steven Seidman","Elizabeth Mavor","Walt Odets","Gabriel Rotello","Kurt Kurz","Nikolaj Koljada","Adam Mars-Jones","Michael Rumaker","Ulrich Tadday","Richard Rohr","Lisa Alther","Wolfram Setz","Douglas Sadownick","Patricia Nell Warren","Jeannette Howard Foster","Matthias Frings","Viola Roggenkamp","Traude Bührmann","Evelyn C. White","Matt Dickinson","Tommy Maurer","Ines Rieder","Gisela Karau","Johannes M. Hönscheid","Broner E. M.","Jutta Koether","Peter Owen","Philip Core","Mitchell Kennerley","Cillie Rentmeister","Tony Fennelly","Cristina Perincioli","Max Mannheimer","Maria Janitschek","Ika Freudenberg","Catharina Margaretha Linck (Anasthasius Rosenstengel/ Anasthasius Beuerlein/ Peter Wannich/ Cornelius Hubsch)","Maximiliane Ackers","Anna Rüling","Sophia Goudstikker","William H. Masters","Edmund White","Stanley Weintraub","Christopher Isherwood","James Robert Baker","Therese Giehse","Giuseppe Patroni Griffi","Karl Heinrich Ulrichs","Georges Eekhoud","Michel Tournier","Gerd Brantenberg","Aimée Duc","Stefan George","Herman Puig","Walter L. Williams","Rainer Werner Fassbinder","Karl Kraus","Dodson Betty","Josef Winkler","Tabea Blumenschein","Otto Lohmüller","Isaac Julien","Stefan","Gertrude Stein","Judith C. Brown","Betty Friedan","Verena Stefan","Truman Capote","Armistead Maupin","Mercedes De Acosta","David Wojnarowicz","Maurice Sachs","David Beckham","Hervé Guibert","Fritz J. Raddatz","Pai Hsien-yung","Doris Lessing","A. A. Bronson","Monique Wittig","Felix Gonzales-Torres","Vito Russo","Aubrey Beardsley","Germaine Greer","Roberta Cowell","Hans Blüher","Wiguläus von Kreittmayr","Gilles Néret","Peter Gauweiler","Achille Essebac","Karl Maria Kertbeny","Jens Björneboe","Franziska Becker","Roger Peyrefitte","Bruce Benderson","Alan Hollinghurst","Michael Cunningham"],["German poet (1796-1835)","* May 14, 1868 Kolberg, May 14, 1935 Nice, German physician and sexologist","German writer","French art critic","* 1902 Würzburg, † 1993, emigrated from Germany during the Third Reich","American singer-songwriter and lesbian feminist activist","French writer","Hungarian writer","British-born American feminist author and cultural critic","American journalist","French writer, poet, militant, and LGBT figure (1924-2012)","French singer (1915-1963)","Italian writer and journalist (1907-1990)","American poet and biographer","French writer","Finnish writer","German-American sexologist","American writer","Welsh screenwriter, journalist, and author","American writer","German writer","American photographer (1959-1989)","Scottish poet and novelist","English poet and man of letters","* 1821, + 1867, French poet, essayist and art critic (1821-1867)","American actor","British writer (1930-2015)","American writer","American transgender activist and author (1949-2014)","American writer (1925-2012)","Austrian writer","English writer, humorist and actor (1908-1999)","British comedian, actor, writer, presenter, and activist","German actor (1896–1971)","Northeastern Illinois University faculty member; educator and academic","Austrian artist and comedian","Finnish artist (1920–1991)","Japanese author (1925-1970)","American radical feminist philosopher and theologian (1928-2010)","American writer","British film director","American writer","German writer","* November 9, 1905 Munich, + August 27, 1969 Zurich, German actress, cabaret artist, writer and editor","American author and proponent of feminist spirituality","Australian-American journalist and author","Spanish philosopher","* April 3, 1880 Vienna, + October 4, 1903 Vienna, Austrian philosopher, author of 'Sex and Character', representative of anti-Semitic and misogynist positions","British art historian (1937-)","Austrian author and translator","American art historian","German lexicographer (1819-1897)","American scholar of queer theory (1950-2009)","British writer","American artist, author, and teacher","* 1907 Cologne, † 2001 Tübingen, literary scholar, emigrated from Germany during the Third Reich","American feminist author and journalist","German literary critic, novelist, and essayist (1929-2011)","German writer","American felon and author","Hungarian writer, poet and translator","French writer","French philosopher","American poet","* 1915, + 1995, emigrated from Germany during the Third Reich, German anthropologist and sexologist","French writer and film director","British-Australian scholar (b. 1969)","Belgian poet","Icelandic-German writer and translator","German writer","Soviet diplomat (1872-1952)","American author and activist","* March 23, 1900 Frankfurt am Main, + March 18, 1980 Muralto, Switzerland, German-American psychoanalyst, philosopher and social psychologist","* 1857 Verden (Aller), † 1943 Zürich, lawyer, women's rights activist and pacifist, emigrated from Germany during the Third Reich","German writer","Dutch writer (1923-2006)","American-Czech tennis player","German activist","French writer","Indian novelist","Norwegian novelist","American writer","English writer, poet, activist (1893-1978)","French-Iranian writer","Spanish writer","Italian writer (1934-2006)","American author and literary critic","American writer","German actress","American poet, author and activist (1926-2021)","German poet","Austrian writer","German comedian","* 1868 Hamburg, † 1943 Zürich, emigrated from Germany during the Third Reich","* 1908, +1982, emigrated from Germany during the Third Reich","American feminist author","author","Welsh novelist","Scottish novelist","American writer","German politician, editor (1873-1954)","German comic creator and author","British politician and writer (1917-2004)","British poet and author","American writer and journalist","Novelist, critic (1929-2009)","American author (1900-1998)","Thanatologist and co-founder of suicidology (1918-2009)","modern American author of detective fiction","Finnish author and journalist","Austrian artist and writer (1858-1938)","American artist and film director and producer (1928-1987)","American writer","East German canoe racer","* 1853, + 1936, German biologist and anthropologist","German fashion designer","German actor","American writer","American author","Italian politician and journalist (1922-2007)","Australian writer","Swiss myrmecologist, neuroanatomist and psychiatrist (1848-1931)","* March 14, 1879 Ulm, + April 18, 1955 Princeton, New Jersey, German physicist with Swiss and US citizenship","American writer","feminist (1945-2012)","* 1906, + 1949, German writer, emigrated from Germany during the Third Reich","author","author","English crime fiction writer","American author, activist and Neopagan","American writer","American writer","French writer","Turkish writer","French playwright and political activist","American novelist","writer","American writer","Polish priest","American Imagist poet (1886-1961)","cartoonist","American writer and feminist","British writer","alpine skier (1936-1974)","French author and Nobel laureate (1869–1951)","English writer and gardener","German author for children and young adult books","novelist, poet, screenwriter, activist","American film director, producer, photographer and musician","American crime writer and poet, best known for a series of novels featuring private eye Dave Brandstetter (1923-2004)","Dutch dancer, singer, actress and nightclub manager","American art critic (1944-2019)","American writer and activist","French writer","French writer","American writer (1917-1967)","Greek poet, writer, and amateur researcher of Greek urban underground culture (1928-2003)","Irish writer and poet (1854-1900)","British poet who wrote in the French language","American actor (1925–1985)","author","American writer","Spanish writer","Mayor of Munich","French philosopher and writer","American sportswriter","German comic book creator","American feminist and author","American playwright, performer, feminist, activist and artist","German theologian and author, daughter of Gustav Heinemann","German writer","writer (1875-1940)","German historian","British novelist, playwright and travel writer (1916-1981)","German art historian, art critic and museum director (1927-2011)","American singer-songwriter","German literary scholar, cultural studies scholar and writer","Scottish crime writer","German Intersex activist","American comic book artist","Canadian poet","* August 27, 1890 Philadelphia, Pennsylvania as Emmanuel Rudnitzky or Emmanuel Radnitzky, + November 18, 1976 in Paris, American photographer, film director, painter and object artist","Cuban novelist and journalist","French writer (1940-1994)","French writer (1946-1988)","German sociologist (1912-1984)","American philosopher and gender theorist","English writer","French poet","American writer (1916-1990)","Swiss writer, journalist and photographer","Swiss writer (1784-1864)","French theater and film director, theater director and author","French actor, theater director and author of stage works","American radical feminist and author (1936-1988)","English modernist writer known for use of stream of consciousness","French writer (1923-2005)","Jewish-German journalist, satirist and writer","American journalist","German art historian","American author (1937-2011)","American writer","* 1883,  † 1937, composer","Italian writer (1906-1972)","Austrian neurologist, psychiatrist and nobleman (1840-1902)","American fiction writer","American actress, comedian and author","German-Jewish antimilitarist anarchist essayist, poet and playwright (1878-1934)","French film director (1873-1968)","* 1889,  † 1963, composer","German journalist; Peace Prize of the German Book Trade 2016","American novelist and short story writer","English playwright, screenwriter, novelist","French writer and poet","American novelist, short story and non-fiction author","historian","American photographer","Swiss neurologist, psychoanalyst and painter (1919-1984)","American cartoonist, author","American writer","African-American novelist","biographer (1939-2007)","Novelist, poet","American film director","American academic","German film director","German sociologist","German Expressionist playwright and writer","physician and author","German writer","US-American writer and activist","American writer","American journalist","German artist (1815-1905)","American feminist, writer, artist, and lecturer (1860-1935)","Novelist, short story writer, essayist, professor, born 1961","* 1880, † 1942 Geneva, emigrated from Austria during the Third Reich","Brazilian writer","American psychiatrist","American writer, playwright, poet, photographer, actor","* 1909 Cologne, † 2000 Cologne, emigrated from Germany during the Third Reich","Journalist, 1924, emigrated from Germany during the Third Reich","* 1906, † 1991 Stuttgart, emigrated from Germany during the Third Reich","European emigrant under the German expansion policy, journalist","* 1881, + 1960, emigrated from Austria during the Third Reich, austrian playwright","Austrian art historian","* 1866, † 1946, emigrated from Germany during the Third Reich","* 1888, + 1964, emigrated from Germany during the Third Reich","German writer and journalist (1901–1967)","* 1912, + 2012, artist, textile designer and art therapist, emigrated from Germany during the Third Reich","American anthropologist","* 1887 Berlin, † 1974 Bad Tölz, emigrated from Germany during the Third Reich","German psychologist","American historian","British occultist","American novelist (1895-1986)","American writer (1937-2012)","American journalist","German linguist","German linguist","German writer","American lawyer, marketing executive and photographer","American writer","Danish artist","musician","New Zealand playwright","American psychiatrist (1948-2005)","American activist","American journalist","American sex educator","American academic and activist","American actor (1918-1985)","American writer","philosopher of science","Polish writer","American author","Swiss actor (1930-2018)","French novelist, playwright, poet and political activist (1910-1986)","American film director (born 1959)","German actor, producer and author","painter (1854-1910)","American screenwriter and author (1923–2003)","German poet and author, active in East Germany and then in West Germany","* 1832, + 1895, German woman con artist, actress and folk singer","Canadian writer","American journalist","Norwegian writer, lawyer and politician","American journalist","Italian film director, poet, writer and intellectual (1922-1975)","German film actress and singer","German historian","* 1882 + 1942, emigrated from Austria during the Third Reich, Austrian anarchist","* 1924, + 1987, American writer","American author (1919–2010)","* 1929, French novelist, essayist, travel writer","British writer (1899-1973)","German Nazi, military officer and leader of the Sturmabteilung (1887-1934)","German politician (1889-1967)","19th-century English poet and literary critic","South African writer (1963-)","* August 10, 1840 in Berlin; † July 3, 1917 ibid, German physician and sex researcher, Prof. Dr. Geheimer Medizinalrat Berlin W. 10 Lichtensteinallee 3","German novelist, poet","British art historian (1910-1996)","Cuban poet/novelist/playwright","German novelist and dramatist (1837-1911)","American Modernist writer, poet and artist (1892-1982)","German film actor and director","British singer, songwriter, record producer and graphic designer (1946-1991)","Writer and professor","* 1804-07-01 Paris, + 1876-06-08 Nohant-Vic, French novelist and memoirist; pseudonym of Lucile Aurore Dupin","German film director","British politician (1930-2019)","German composer and actor","American photographer (1931-2015)","Moroccan writer","Canadian writer","American comic writer","German sociologist, film producer, publisher and lecturer","British art critic, writer and curator","American sexologist and writer (1925-2013)","German psychoanalyst","French feminist","* 1740-06-02 Paris, + 1814-12-02 Saint-Maurice, French nobleman, revolutionary politician, philosopher and writer of erotic works","American novelist, essayist and academic (1931–2019)","*1944, German Chancellor (SPD)","German journalist, publisher, and feminist","British writer","German art historian","* 1893 Linz, † 1974 Geneva, emigrated from Austria during the Third Reich","writer","* 1908, +1986, French writer, intellectual, existentialist philosopher, political activist, feminist, and social theorist","German actor (1926-1990)","English writer","* 1888-12-23 Darmstadt, + 1944-06-10 Cluny, German-Hungarian novelist, playwright and sculptor","American writer","King of the Netherlands and Grand Duke of Luxembourg 1815 - 1840","Austrian writer","German writer","Austrian film and television actor","Canadian novelist","American pornographic film director and actor","American writer","English novelist (1879-1970)","American novelist and screenwriter","* April 8, 1872, Delmenhorst; † November 19, 1922, Berlin, German physician and sex researcher, Dr. med., Berlin W., 15, Joachimsthalerstr. 9","* 1759-04-27 Spitalfields, + 1797-09-10 Somers Town, English writer, philosopher, women's rights advocate (1759–1797)","* 1928, + 2002, German museum director","German artist","German photographer","* 1892, + 1941, Russian poet","Hungarian writer","* 1897 Prabuty, † 1986 London, emigrated from Germany during the Third Reich","German politician (CSU) and Federal Minister of the Interior","* March 10, 1931 El Paso, Texas, American author","* 1855,  † 1934, composer","* November 14, 1775 Hainichen near Jena, + May 29, 1833 Frankfurt am Main, German pioneer for a humane justice system","American writer and filmmaker, professor, and activist (1933–2004)","Danish writer (1857-1912)","Austrian writer and philosopher","American mathematician and author","German film director and screenwriter (1945–2010)","American writer","British writer","Austrian writer and historian","American author of science fiction and fantasy","* 1819-08-01 New York City, + 1891-09-28 New York City, American novelist, short story writer, essayist, and poet","Swedish writer and journalist","German writer","German writer","German sexologist","Social reformer and housing commissioner","American physician and author","author","English scholar of French literature","(1977 - ) artist","French writer","German writer+","* 1983, German feminist writer","American performance artist and photographer","Zimbabwean author","Australian academic and gay rights activist","Norwegian writer (1856-1945)","Mexican American writer of novels, short stories and essays","English television presenter, writer and producer (1948-2008)","British visual artist","British writer","anthropologist","American author of crime fiction","American writer","American journalist","* September 2, 1985 Lower East Side, Manhattan, New York, American author, photographer, television host and activist","German sociologist","German journalist (1932-1992)","American writer","American psychoanalyst","Canadian writer","American post-minimalist visual artist","Finnish journalist and author (1948-2015)","author","American writer","American psychologist","American writer","* 1924, + 1997, author","American gay historian","Czech historian","German journalist","historian","German journalist","writer and transgender activist","German photographer","German feminist philosopher and social scientist","American psychiatrist","Welsh chemist","writer","American writer","author","American author","American feminist","visual artist, writer, and transgender rights advocate","American photographer","American journalist","Photographic print maker and photographer","British historian (1923-1996)","Novelist, short-story writer, poet, bookseller (1903-1963)","philanthropist","American baseball player (1886-1976)","author","American businesswoman","author","German painter","BDSM writer and activist (1930-2008)","* January 6, 1863 Gransee, + July 23, 1949 in Bad Neuenahr-Ahrweiler, teacher, headmistress, poet and author of non-fiction (especially sexology)","German writer, literary critic and TV host","American author and educator","German historian","German author","German writer","New Zealand artist","Italian politician (1917-1993)","American librarian","American writer","Dutch writer and politician","American geneticist and filmmaker","British writer","American gay writer","Professor of history at the Graduate Center, City University of New York","German psychologist","German physician and neurologist (1905-1977)","British feminist","German journalist","American filmmaker","American writer, professor, tattoo artist and pornographer","German journalist and author","American writer","German historian (1945-2021)","Brazilian writer","German theologian","Journalist, non-fiction writer","American writer (1928-1971)","American novelist","American memoirist and feminist writer","* 1887, + 1970, German writer","British writer","German writer","Indian politician and Chief Minister of Telangana","German actor","German journalist","German dramatist and actor","German sociologist","German author","German university teacher","American writer","American actress and photographer","American photographer and writer","American psychiatrist","American sexologist","East German rower","German sociologist and LGBT researcher","German sociologist, sexologist and LGBT essayist","art historian","American writer","novelist","German author","German journalist","German author and publisher of sadomasochistic literature","German writer","New Zealand writer","Canadian novelist and poet","American psychologist","English novelist, journalist and human rights activist","American novelist","British novelist","Canadian writer","* 1911, + 1988, writer","English poet","Belgian children's writer","author","Israeli writer","American writer","illustrator","German sociologist","German literary scholar, author and essayist","German writer","English writer","British poet","Baltic German painter and writer","American writer","American sociologist","British writer","writer about the clinical psychology of the AIDS Crisis","American activist","Austrian ice hockey player (1927-2013)","Russian playwright, theatre director, actor","British writer","American writer (1932-2019)","German musicologist","American Franciscan spiritual teacher","American novelist","German historian, editor, translator and essayist","American writer","American writer (1936-2019)","American writer","German journalist, writer and television presenter","German opinion journalist and writer","German translator and journalist","American writer","British filmmaker","german-American soccer player","Austrian author, political scientist and journalist (1954-2015)","German writer","* 1922, + 2001, German paratrooper and Knight's Cross recipient, publisher","American writer","German artist, musician and critic","publisher","American painter and writer","American writer and publisher","German art historian","American author","German film director, author, Multimedia Producer, web author","Jewish author, painter and Holocaust survivor","writer","German activist (1858-1912)","* 1687 Gehofen, + November 8, 1721 Halberstadt, button maker, calico printer and soldier who posed as a man, married the same woman twice, last woman to be executed for indecency with another woman in Europe","German actress and screenwriter","German journalist","German photographer and activist  (1865–1924)","American gynecologist","American novelist and LGBT essayist","American writer (1929-2019)","English-American novelist (1904-1986)","American author","German actress","Italian film director","German jurist, writer and gay rights activist (1825–1895)","Belgian writer","French writer","Norwegian writer","* 1869, French/ german author","* July 12, 1868 Büdesheim, + December 4, 1933 Locarno, German poet, center of the George circle named after him","Cuban photographer","American anthropologist","German filmmaker, playwright and actor","Austrian playwright and publicist","American sex educator","Austrian writer","performer (1952-2020)","German artist","British artist and film director","Estonian singer","American author (1874-1946)","American historian","American activist","German writer (1947-2017)","American author (1924-1984)","American writer","American poet, playwright, and novelist (1893-1968)","American painter, photographer, writer, filmmaker, performance artist, and AIDS activist (1954-1992)","French writer (1906-1945)","English association football player","French writer, photographer and journalist (1955-1991)","German writer and journalist","Taiwanese writer","British novelist, poet, playwright, librettist, biographer and short story writer","Canadian performance and installation artist","French writer (1935-2003)","American artist (1957-1996)","American writer (1946–1990)","British illustrator and author (1872–1898)","Australian writer and public intellectual","British racing driver and fighter pilot","German journalist, writer and philosopher (1888-1955)","* 14 December 1705, + 27 October 1790, since 1745 Freiherr von Kreittmayr, Bavarian jurist and public official who served as head of the public administration of the Electorate of Bavaria since 1758.","French art historian","German politician","French writer (1868-1936)","Austro-Hungarian writer, journalist, translator, bibliographer (1824-1882)","Norwegian writer","German cartoonist, painter and illustrator","* 1907, + 2000, French diplomat and writer","American writer","English writer, translator and poet","American novelist and screenwriter"]],"container":"<table class=\"display\">\n  <thead>\n    <tr>\n      <th> <\/th>\n      <th>Identifier<\/th>\n      <th>Label<\/th>\n      <th>Description<\/th>\n    <\/tr>\n  <\/thead>\n<\/table>","options":{"columnDefs":[{"orderable":false,"targets":0}],"order":[],"autoWidth":false,"orderClasses":false}},"evals":[],"jsHooks":[]}</script>
+</div>
+</div>
+<div class="cell" data-context="server">
+
+</div>
+<div class="cell" data-context="server">
+
+</div>
+<div class="cell" data-context="server">
+
+</div>
+<hr>
+<p>By <a href="https://katharinabrunner.de">Katharina Brunner</a></p>
+<p>
+<script type="application/shiny-prerendered" data-context="server-start">
+library(shiny)
+library(rmarkdown)
+library(tidyverse)
+library(kabrutils)
+library(SPARQL)
+library(DT)
+library(shinyFeedback)
+shinyFeedback::useShinyFeedback()
+
+endpoint <- "https://database.factgrid.de/sparql"
+source(here::here("apps/remove-na-explore-surroundings/queries.R"), local = TRUE)
+
+# run choose-relevant-persons.R to generate data
+persons <- readRDS(here::here("apps/remove-na-explore-surroundings/data/persons.Rds"))
+persons_list <- persons %>% 
+  select(item) %>% 
+  deframe()
+
+names(persons_list) <- persons$label
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+observeEvent(input$button_random, {
+  cli::cli_alert("choose random")
+  updateTextInput(session, "input_fg_item_id", value = sample(persons$item, 1))
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+output$label_desc_links = renderUI({
+  
+  label <- persons %>% 
+    filter(item == input$input_fg_item_id) %>% 
+    pull(label)
+  
+  item <- persons %>% 
+    filter(item == input$input_fg_item_id) %>% 
+    pull(item)
+  
+  wd_item <- persons %>% 
+    filter(item == input$input_fg_item_id) %>% 
+    pull(wd_item)
+  
+   desc <- persons %>% 
+    filter(item == input$input_fg_item_id) %>% 
+    pull(desc)
+  
+  Sdewiki <- persons %>% 
+    filter(item == input$input_fg_item_id) %>% 
+    pull(Sdewiki)
+  
+  Senwiki <- persons %>% 
+    filter(item == input$input_fg_item_id) %>% 
+    pull(Senwiki)
+  
+  Swikidatawiki <- persons %>% 
+    filter(item == input$input_fg_item_id) %>% 
+    pull(Swikidatawiki)
+  
+  dbpedia <- persons %>% 
+    filter(item == input$input_fg_item_id) %>% 
+    pull(dbpedia)
+  
+  factgrid <- paste0("https://database.factgrid.de/wiki/Item:", item)
+  
+  links_df <- tibble(
+    name = c("Factgrid", "Wikidata", "English Wikipedia", "German Wikipedia", "DBPedia"),
+    href = c(factgrid, Swikidatawiki, Senwiki, Sdewiki, dbpedia)
+  ) %>% 
+    filter(!is.na(href))
+  
+  create_link <- function(name, href) {
+   shiny::a(name, href = href)
+  }
+  
+  links <- map2(links_df$name, links_df$href, create_link)
+  
+  tagList(
+    h3(label),
+    p(desc),
+    p("Find", span(label), "on: ", 
+      links
+    )
+  )
+})
+
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+build_src_url <- function(fg_item = NULL) {
+  base_url <- "https://database.factgrid.de/query/embed.html#"
+  src_url <- paste0(base_url, query_companions(fg_item = fg_item))
+  src_url <- str_replace_all(src_url, "\n", "%0A")
+  src_url <- str_replace_all(src_url, "\\s{2,}", "")
+  src_url
+}
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+build_src_url_fun <- eventReactive(input$input_fg_item_id, {
+  cli::cli_alert("button clicked")
+  if(is.null(input$input_fg_item_id)) {
+    print(paste("chosen properties:", input$input_fg_item_id))
+        shinyFeedback::showToast(
+      "error",
+      "You have to select a Factgrid QID of a person."
+    )
+  } else {
+    src_url <- build_src_url(input$input_fg_item_id)
+
+    shinyFeedback::showToast(
+      "success",
+      "loading data from three data sources"
+    )
+    #print(data)
+    src_url
+  }
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server">
+output$iframe <-  renderUI({
+  cli::cli_alert("build query")
+  cli::cli_alert("Input fg_item: {input$input_fg_item_id}")
+ iframe_tmp <- tags$iframe(src = build_src_url_fun(), height = 600, width="100%", frameborder = "no", data_external="1")
+ iframe_tmp
+})
+</script>
+ 
+<script type="application/shiny-prerendered" data-context="server-extras">
+ojs_define <- function(..., .session = shiny::getDefaultReactiveDomain()) {
+  quos <- rlang::enquos(...)
+  vars <- rlang::list2(...)
+  nm <- names(vars)
+  if (is.null(nm)) {
+    nm <- rep_len("", length(vars))
+  }
+  mapply(function(q, nm, val) {
+    # Infer name, if possible
+    if (nm == "") {
+      tryCatch({
+        nm <- rlang::as_name(q)
+      }, error = function(e) {
+        code <- paste(collapse = "\n", deparse(rlang::f_rhs(q)))
+        stop("ojs_define() could not create a name for the argument: ", code)
+      })
+    }
+    .session$output[[nm]] <- val
+    outputOptions(.session$output, nm, suspendWhenHidden = FALSE)
+    .session$sendCustomMessage("ojs-export", list(name = nm))
+    NULL
+  }, quos, nm, vars, SIMPLIFY = FALSE, USE.NAMES = FALSE)
+  invisible()
+}
+</script>
+</p>
+<!--html_preserve-->
+
+<script type="application/shiny-prerendered" data-context="dependencies">
+{"type":"list","attributes":{},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["feedback"]},{"type":"character","attributes":{},"value":["0.4.0.9000"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["assets"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/shinyfeedback.js"]},{"type":"character","attributes":{},"value":["css/shinyfeedback.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shinyFeedback"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.4.0.9000"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["font-awesome"]},{"type":"character","attributes":{},"value":["5.15.3"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["fontawesome"]}]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["css/all.min.css","css/v4-shims.min.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["fontawesome"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.2.2"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["toastr"]},{"type":"character","attributes":{},"value":["2.1.4"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["assets/toastr"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/toastr.min.js","js/shinytoastr.js"]},{"type":"character","attributes":{},"value":["css/toastr.min.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["shinyFeedback"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.4.0.9000"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets"]},{"type":"character","attributes":{},"value":["1.5.4"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmlwidgets.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["htmlwidgets"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.5.4"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["datatables-css"]},{"type":"character","attributes":{},"value":["0.0.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets/css"]}]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["datatables-crosstalk.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["DT"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.21"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["datatables-binding"]},{"type":"character","attributes":{},"value":["0.21"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["datatables.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["DT"]},{"type":"logical","attributes":{},"value":[false]},{"type":"character","attributes":{},"value":["0.21"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["jquery"]},{"type":"character","attributes":{},"value":["3.6.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["lib/3.6.0"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquery-3.6.0.min.js"]},{"type":"NULL"},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["jquerylib"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["0.1.4"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["dt-core"]},{"type":"character","attributes":{},"value":["1.11.3"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["htmlwidgets/lib/datatables"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/jquery.dataTables.min.js"]},{"type":"character","attributes":{},"value":["css/jquery.dataTables.min.css","css/jquery.dataTables.extra.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["DT"]},{"type":"logical","attributes":{},"value":[false]},{"type":"character","attributes":{},"value":["0.21"]}]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["name","version","src","meta","script","stylesheet","head","attachment","package","all_files","pkgVersion"]},"class":{"type":"character","attributes":{},"value":["html_dependency"]}},"value":[{"type":"character","attributes":{},"value":["crosstalk"]},{"type":"character","attributes":{},"value":["1.2.0"]},{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["file"]}},"value":[{"type":"character","attributes":{},"value":["www"]}]},{"type":"NULL"},{"type":"character","attributes":{},"value":["js/crosstalk.min.js"]},{"type":"character","attributes":{},"value":["css/crosstalk.min.css"]},{"type":"NULL"},{"type":"NULL"},{"type":"character","attributes":{},"value":["crosstalk"]},{"type":"logical","attributes":{},"value":[true]},{"type":"character","attributes":{},"value":["1.2.0"]}]}]}
+</script>
+<!--/html_preserve-->
+<!--html_preserve-->
+
+<script type="application/shiny-prerendered" data-context="execution_dependencies">
+{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages"]}},"value":[{"type":"list","attributes":{"names":{"type":"character","attributes":{},"value":["packages","version"]},"class":{"type":"character","attributes":{},"value":["data.frame"]},"row.names":{"type":"integer","attributes":{},"value":[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113]}},"value":[{"type":"character","attributes":{},"value":["assertthat","backports","base","bit","bit64","bitops","broom","bslib","cachem","cellranger","cli","colorspace","compiler","config","crayon","crosstalk","curl","datasets","DBI","dbplyr","dbx","digest","dplyr","DT","ellipsis","evaluate","fansi","fastmap","fastmatch","fontawesome","forcats","fs","gargle","generics","ggplot2","glue","googledrive","googlesheets4","graphics","grDevices","grid","gtable","haven","here","hms","htmltools","htmlwidgets","httpuv","httr","jqr","jquerylib","jsonlite","kabrutils","knitr","later","lattice","lazyeval","lifecycle","lubridate","magrittr","Matrix","methods","mime","modelr","munsell","nsyllable","openxlsx","pillar","pkgconfig","promises","purrr","quanteda","quanteda.textstats","R6","Rcpp","RcppParallel","RCurl","readr","readxl","reprex","rlang","RMariaDB","rmarkdown","rprojroot","rstudioapi","rvest","sass","scales","shiny","shinyFeedback","SnowballC","SPARQL","stats","stopwords","stringi","stringr","tibble","tidyr","tidyselect","tidyverse","tokenizers","tools","tzdb","utf8","utils","vctrs","withr","xfun","XML","xml2","xtable","yaml","zip"]},{"type":"character","attributes":{},"value":["0.2.1","1.4.1","4.1.2","4.0.4","4.0.5","1.0-7","0.7.12","0.4.0","1.0.6","1.1.0","3.3.0","2.0-3","4.1.2","0.3.1","1.5.1","1.2.0","4.3.2","4.1.2","1.1.3","2.1.1","0.2.8","0.6.29","1.0.9","0.21","0.3.2","0.16","1.0.3","1.1.0","1.1-3","0.2.2","0.5.1","1.5.2","1.2.0","0.1.3","3.3.6","1.6.2","2.0.0","1.0.0","4.1.2","4.1.2","4.1.2","0.3.0","2.4.3","1.0.1","1.1.2","0.5.3","1.5.4","1.6.5","1.4.4","1.2.3","0.1.4","1.8.0","0.0.0.9000","1.39","1.3.0","0.20-45","0.2.2","1.0.1","1.8.0","2.0.3","1.4-0","4.1.2","0.12","0.1.8","0.5.0","1.0.1","4.2.5","1.8.1","2.0.3","1.2.0.1","0.3.4","3.2.1","0.95","2.5.1","1.0.9","5.1.5","1.98-1.8","2.1.2","1.3.1","2.0.1","1.0.4","1.2.2","2.15.2","2.0.2","0.13","1.0.2","0.4.2","1.2.1","1.7.2","0.4.0.9000","0.7.0","1.16","4.1.2","2.3","1.7.8","1.4.0","3.1.8","1.2.0","1.1.2","1.3.2","0.2.1","4.1.2","0.3.0","1.2.2","4.1.2","0.4.1","2.5.0","0.32","3.99-0.10","1.3.3","1.8-4","2.3.5","2.2.0"]}]}]}
+</script>
+<!--/html_preserve-->
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      let href = ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

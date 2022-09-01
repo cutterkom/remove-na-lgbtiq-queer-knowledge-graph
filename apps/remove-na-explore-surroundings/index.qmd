@@ -1,7 +1,6 @@
 ---
 title: "Queer Surroundings"
 author: "Katharina Brunner"
-editor: source
 execute:
   warning: false
   message: false
@@ -22,7 +21,11 @@ But every person appears in connection with the data of the [Forum Queer Archive
 :::
 
 ```{r setup}
+#| context: setup
+#| include: false
+
 library(shiny)
+library(rmarkdown)
 library(tidyverse)
 library(kabrutils)
 library(SPARQL)
@@ -31,10 +34,10 @@ library(shinyFeedback)
 shinyFeedback::useShinyFeedback()
 
 endpoint <- "https://database.factgrid.de/sparql"
-source("queries.R", local = TRUE)
+source(here::here("apps/remove-na-explore-surroundings/queries.R"), local = TRUE)
 
 # run choose-relevant-persons.R to generate data
-persons <- readRDS("data/persons.Rds")
+persons <- readRDS(here::here("apps/remove-na-explore-surroundings/data/persons.Rds"))
 persons_list <- persons %>% 
   select(item) %>% 
   deframe()
