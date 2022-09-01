@@ -1,0 +1,70 @@
+# Goal: Get Label of item from multiple sources
+# label needs to be queried explictly with `rdfs:label` from external source
+
+#defaultView:Table
+
+# Test at: https://database.factgrid.de/query/
+
+# Prefix standard 
+# Factgrid
+PREFIX fg: <https://database.factgrid.de/entity/>
+PREFIX fgt: <https://database.factgrid.de/prop/direct/>
+# DBpedia
+PREFIX dbo: <http://dbpedia.org/ontology/> 
+PREFIX dbr: <http://dbpedia.org/resource/> 
+# Wikidata
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdp: <http://www.wikidata.org/prop/>
+PREFIX wps: <http://www.wikidata.org/prop/statement/>
+PREFIX wdpsv: <http://www.wikidata.org/prop/statement/value/>
+# misc
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX dct:  <http://purl.org/dc/terms/>
+PREFIX wikibase: <http://wikiba.se/ontology#>
+PREFIX bd: <http://www.bigdata.com/rdf#>
+PREFIX schema: <http://schema.org/>
+prefix foaf:  <http://xmlns.com/foaf/0.1/> 
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+
+
+SELECT DISTINCT ?fg_item ?fg_itemLabel ?wd_item ?fg_relation_helperLabel ?value ?valueLabel ?source WHERE {
+
+  # labels from Factgrid
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  
+  
+  # starting point is a factgrid item
+  BIND(fg:Q225307 as ?fg_item)
+  #?fg_item fgt:P131 fg:Q400012 .
+  # transform wikidata qid in factgrid to wikidata entity iri
+  ?link schema:about ?fg_item .
+  ?link schema:isPartOf <https://www.wikidata.org/> . 
+  ?link schema:name ?qid.
+  BIND(IRI(CONCAT(STR(wd:), ?qid)) AS ?wd_item)
+  
+  # FACTGRID: Get relations with all humans and organisations
+  {
+    # get all statments to a PERSON
+   OPTIONAL {
+    ?fg_item ?relation ?value .
+    ?value (fgt:P2/fgt:P3*) fg:Q12 .
+    ?fg_relation_helper wikibase:directClaim ?relation.
+    BIND ("factgrid" AS ?source)
+    }
+  }
+  UNION {
+    OPTIONAL {
+  ######  ######  ######  ######
+  # the important part: wd_itemLabel is not enough in the external sources
+  # must be queried explicitly with rdfs:label
+  ######  ######  ######  ######
+  SERVICE <https://query.wikidata.org/sparql> {
+    SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }  
+      ?wd_item rdfs:label ?wd_itemLabel.
+      ?wd_item ?relation ?value .
+      ?value (wdt:P31/wdt:P279*) wd:Q43229 .
+      FILTER(LANG(?wd_itemLabel) = "[AUTO_LANGUAGE]") .
+   }
+  }
+  }
+} LIMIT 10

@@ -24,9 +24,9 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
     
 SELECT DISTINCT 
 # all data
-?fg_item ?fg_itemLabel ?wd_item ?value ?valueLabel ?relation ?relation_stringLabel ?image ?source
+#?fg_item ?fg_itemLabel ?wd_item ?db_item ?value ?valueLabel ?relation ?relation_stringLabel ?image ?source
 # more distinct
-# ?fg_item ?value ?valueLabel ?image
+ ?fg_item ?valueLabel ?image ?sortname
 WHERE {
 
   # labels from Factgrid
@@ -123,15 +123,33 @@ WHERE {
       # also get their wikidata qid's
       #?value owl:sameAs ?db_wikilink_wd_item FILTER(regex(str(?db_wikilink_wd_item), "wikidata" ))
       # get image
-      OPTIONAL { ?value dbo:thumbnail?image }
+      OPTIONAL { ?value dbo:thumbnail ?image }
       
     BIND ("wikipedia" AS ?source)
-    BIND ("mentioned_in_wikipedia" AS ?relation_stringLabel)      
+    BIND ("mentioned_in_wikipedia" AS ?relation_stringLabel)   
+    BIND (dbo:wikiPageWikiLink AS ?relation)  
+    #BIND (wdt:P452 AS ?relation)  
     
     
     }
       
     }
+# WIKIPEDIA: Get Persons from DBPedia
+} UNION {
+  # fetch data from DBpedia
+  SERVICE <https://dbpedia.org/sparql> {
+    # get Wikidata QID from DBPedia resource
+    ?db_item owl:sameAs ?wd_item .
+    ?wd_item ?relation ?value .
+    ?value a dbo:Person .
+    ?value rdfs:label ?valueLabel .
+    FILTER(LANG(?valueLabel) = "[AUTO_LANGUAGE]") .
+    # remove Stefan Zweig, because there is some data fuckup within that resource (I informed DBpedia)
+    MINUS {FILTER(REGEX(STR(?value), "Stefan_Zweig|LGBT_rights_by_country_or_territory"))}
+    BIND ("dbpedia" AS ?source)
+    OPTIONAL { ?value dbo:thumbnail ?image }           
+      
+    }
+  }
   
 }
-} 
