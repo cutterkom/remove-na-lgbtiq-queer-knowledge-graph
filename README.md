@@ -13,7 +13,7 @@ The goal is to create a LGBTIQ* knowledge graph based on data of a community arc
 We collect cultural heritage on queer history, especially in Munich and Bavaria/Germany.
 
 **More on the project:**
-
+* [Project website](https://queerdata.forummuenchen.org/en)
 * [Technical Documentation](https://cutterkom.github.io/remove-na-lgbtiq-queer-knowledge-graph/)
 * [Prototype Fund Website](https://prototypefund.de/project/remove-na/)
 * [Remove NA: Warum ich einen LGBTIQ*-Knowledge Graph bauen werde](https://katharinabrunner.de/2022/03/remove-na-ein-lgbtiq-knowledge-graph/)
