@@ -6,7 +6,7 @@ This project is finished. Results, an essay and methodology are available on
 * [queerdata.forummuenchen.org/en](http://queerdata.forummuenchen.org/en) in English
 * [queerdata.forummuenchen.org](http://queerdata.forummuenchen.org) in German 
 
-![The knowledge graph about queer history.](https://katharinabrunner.de/wp-content/uploads/2022/05/full-network-big.png)
+![The knowledge graph about queer history.](https://queerdata.forummuenchen.org/img/full-network-big-small.png)
 
 ---
 
