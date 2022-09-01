@@ -1,5 +1,15 @@
 # Remove NA
 
+---
+
+This project is finished. Results, an essay and methodology are available on 
+* [queerdata.forummuenchen.org/en](http://queerdata.forummuenchen.org/en) in English
+* [queerdata.forummuenchen.org](http://queerdata.forummuenchen.org) in German 
+
+![The knowledge graph about queer history.](https://katharinabrunner.de/wp-content/uploads/2022/05/full-network-big.png)
+
+---
+
 This repository is the central hub for everything related to the "Remove NA" project.
 The goal is to create a LGBTIQ* knowledge graph based on data of a community archive in Munich called [Forum Queeres Archiv München](https://forummuenchen.org/en/english/). 
 We collect cultural heritage on queer history, especially in Munich and Bavaria/Germany.
