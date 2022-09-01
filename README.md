@@ -1,7 +1,5 @@
 # Remove NA
 
----
-
 This project is finished. Results, an essay and methodology are available on 
 * [queerdata.forummuenchen.org/en](http://queerdata.forummuenchen.org/en) in English
 * [queerdata.forummuenchen.org](http://queerdata.forummuenchen.org) in German 
