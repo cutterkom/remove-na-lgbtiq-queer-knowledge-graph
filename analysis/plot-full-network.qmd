@@ -139,13 +139,73 @@ summary(count)
 ```
 
 ```{r}
-ggplot(count, aes(x=n)) + 
+plot_en <- ggplot(count, aes(x=n)) + 
     geom_histogram(#aes(y=..density..),
                    binwidth=.5,
                    colour="black", fill="white") +
    #geom_density(alpha=.2, fill="#FF6666")  +
-  labs(title = "Histogram of statements per items in Factgrid") +
+  labs(title = "Histogram of statements per items in FactGrid") +
   ylab("Number of items") +
   xlab("Number of statements per item")
 
+ggsave(plot_en, filename = "img/histogram_en.png", width = 8, height = 5)
+
+plot_de <- ggplot(count, aes(x=n)) + 
+    geom_histogram(#aes(y=..density..),
+                   binwidth=.5,
+                   colour="black", fill="white") +
+   #geom_density(alpha=.2, fill="#FF6666")  +
+  labs(title = "Histogram der Statements pro Item in FactGrid") +
+  ylab("Anzahl der Items") +
+  xlab("Anzahl der Statements pro Item")
+
+ggsave(plot_de, filename = "img/histogram_de.png", width = 8, height = 5)
+
+```
+
+## Events over times
+
+Used on website
+
+```{r}
+query <- "SELECT ?year (COUNT(DISTINCT ?item) AS ?count) WHERE {
+   ?item  (wdt:P2/wdt:P3*) wd:Q9.
+    ?item  wdt:P97 wd:Q400013.
+  ?item    wdt:P106 ?date.
+   bind(str(YEAR(?date)) AS ?year)
+}
+GROUP BY ?year"
+
+events_per_year <-  query %>% sparql_to_tibble(endpoint = config$connection$sparql_endpoint) 
+
+events_per_year <- events_per_year %>% mutate(year = paste0(as.numeric(year), "-01-01"))
+
+
+events_per_year$year_as_date <- lubridate::ymd(paste0(as.numeric(events_per_year$year), "-01-01"))
+
+events_count_en <- events_per_year %>% 
+  ggplot(
+  aes(x=year_as_date, y=count)
+) + 
+  geom_col() +
+  labs(title = "Events per year") +
+  ylab("Number of events") +
+  xlab("Year")
+
+
+events_count_en
+ggsave(events_count_en, filename = "img/events_count_en.png", width = 8, height = 5)
+
+events_count_de <- events_per_year %>% 
+  ggplot(
+  aes(x=year_as_date, y=count)
+) + 
+  geom_col() +
+  labs(title = "Ereignisse pro Jahr") +
+  ylab("Anzahl der Ereignisse") +
+  xlab("Jahr")
+
+
+events_count_de
+ggsave(events_count_de, filename = "img/events_count_de.png", width = 8, height = 5)
 ```
