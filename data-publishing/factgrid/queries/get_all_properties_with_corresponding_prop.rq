@@ -14,4 +14,4 @@ SELECT ?fg_property ?fg_propertyLabel ?fg_property_type ?fg_propertyDescription 
   ?fg_property wikibase:propertyType ?fg_property_type .
   OPTIONAL {?fg_property fgt:P8 ?fg_part_of}
   BIND(IRI(CONCAT(STR(wdt:), ?fg_corr_wd_value)) AS ?wd_property)
-}
+} LIMIT 314
